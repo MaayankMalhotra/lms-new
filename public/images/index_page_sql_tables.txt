@@ -1,0 +1,159 @@
+CREATE TABLE hero_content (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    highlight VARCHAR(255) NOT NULL,
+    description TEXT NOT NULL,
+    button_text VARCHAR(255) NOT NULL,
+    button_link VARCHAR(255) NOT NULL
+);
+INSERT INTO hero_content (title, highlight, description, button_text, button_link) 
+VALUES
+('Welcome to Our LMS', 'Learn Anytime, Anywhere!', 'Discover a variety of courses to boost your career.', 'Get Started', 'signup.php'),
+('Master New Skills', 'Upgrade Your Knowledge', 'Join thousands of students learning from top instructors.', 'Explore Courses', 'courses.php'),
+('Join Our Community', 'Empower Your Learning', 'Engage with peers and industry experts to grow together.', 'Join Now', 'community.php');
+
+
+
+CREATE TABLE `student_placements` (
+  `id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  `student_name` VARCHAR(255) NOT NULL,
+  `college_name` VARCHAR(255) NOT NULL,
+  `image` VARCHAR(255),  -- Path to uploaded student image
+  `company` VARCHAR(255) NOT NULL,
+  `package` VARCHAR(255) NOT NULL,
+  `badge1` VARCHAR(255),
+  `badge2` VARCHAR(255),
+  `callback_link` VARCHAR(255),
+  `more_info_link` VARCHAR(255)
+);
+INSERT INTO `student_placements` (student_name, college_name, image, company, package, badge1, badge2, callback_link, more_info_link) 
+VALUES
+('John Doe', 'Tech University', 'uploads/john_doe.jpg', 'Google', '$120,000', 'Top Performer', 'Best Project', 'callback.php?id=1', 'details.php?id=1'),
+('Jane Smith', 'National College', 'uploads/jane_smith.jpg', 'Microsoft', '$115,000', 'Leadership Award', '100% Attendance', 'callback.php?id=2', 'details.php?id=2');
+
+DROP TABLE IF EXISTS student_placements;
+
+
+CREATE TABLE `courses` (
+    `id` INT NOT NULL AUTO_INCREMENT,
+    `course_name` VARCHAR(255) NOT NULL,
+    `course_title` VARCHAR(255) NOT NULL,
+    `course_description` TEXT,
+    `duration` VARCHAR(50),
+    `num_of_slots` INT,
+    `instructor_id` INT,
+    `category` VARCHAR(255),
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    FOREIGN KEY (`instructor_id`) REFERENCES `instructors`(`id`)
+);
+INSERT INTO courses (course_name, course_title, course_description, duration, num_of_slots, instructor_id, category) 
+VALUES 
+('Data Science Bootcamp', 'Mastering Data Science', 'Comprehensive data science course covering Python, Machine Learning, and AI.', '6 Months', 30, 1, 'Technology'),
+('Full Stack Web Development', 'Become a Web Developer', 'Learn HTML, CSS, JavaScript, PHP, and MySQL to build full-stack applications.', '4 Months', 25, 2, 'Web Development');
+
+
+
+CREATE TABLE `instructors` (
+    `id` INT NOT NULL AUTO_INCREMENT,
+    `name` VARCHAR(255) NOT NULL,
+    `experience` TEXT,
+    `bio` TEXT,
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`)
+);
+INSERT INTO instructors (name, experience, bio) 
+VALUES 
+('Dr. Alan Turing', '10 years in AI and Machine Learning', 'Expert in deep learning, natural language processing, and AI ethics.'),
+('Grace Hopper', '8 years in Web Development', 'Specialist in front-end and backend development with PHP, Laravel, and React.');
+
+
+
+CREATE TABLE `learning_outcomes` (
+    `id` INT NOT NULL AUTO_INCREMENT,
+    `course_id` INT NOT NULL,
+    `outcome` TEXT,
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    FOREIGN KEY (`course_id`) REFERENCES `courses`(`id`)
+);
+INSERT INTO learning_outcomes (course_id, outcome) 
+VALUES 
+(1, 'Understand the core concepts of data science and machine learning.'),
+(1, 'Build predictive models using Python.'),
+(2, 'Develop a fully functional full-stack web application.'),
+(2, 'Understand RESTful APIs and database management.');
+
+
+
+CREATE TABLE `batches` (
+    `id` INT NOT NULL AUTO_INCREMENT,
+    `course_id` INT NOT NULL,
+    `start_date` DATE,
+    `end_date` DATE,
+    `max_slots` INT,
+    `filled_slots` INT DEFAULT 0,
+    `batch_mode` ENUM('Online', 'Offline'),
+    `enrollment_status` ENUM('Open', 'Closed') DEFAULT 'Open',
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    FOREIGN KEY (`course_id`) REFERENCES `courses`(`id`)
+);
+INSERT INTO batches (course_id, start_date, end_date, max_slots, filled_slots, batch_mode, enrollment_status) 
+VALUES 
+(1, '2024-06-10', '2024-12-15', 30, 10, 'Online', 'Open'),
+(2, '2024-08-01', '2025-01-30', 25, 15, 'Offline', 'Open');
+
+
+
+CREATE TABLE `videos` (
+    `id` INT NOT NULL AUTO_INCREMENT,
+    `batch_id` INT NOT NULL,
+    `video_title` VARCHAR(255),
+    `video_url` VARCHAR(255),  -- For YouTube link or uploaded video URL
+    `video_description` TEXT,
+    `video_thumbnail` VARCHAR(255),  -- Path to thumbnail image
+    `video_duration` INT,  -- Duration in seconds
+    `video_unlock_date` DATE,  -- Date when video unlocks
+    `status` ENUM('Locked', 'Unlocked') DEFAULT 'Locked',
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    FOREIGN KEY (`batch_id`) REFERENCES `batches`(`id`)
+);
+INSERT INTO videos (batch_id, video_title, video_url, video_description, video_thumbnail, video_duration, video_unlock_date, status) 
+VALUES 
+(1, 'Introduction to Data Science', 'https://www.youtube.com/watch?v=xyz123', 'Overview of Data Science and its applications.', 'uploads/video1.jpg', 1800, '2024-06-15', 'Unlocked'),
+(2, 'Building a Full-Stack Web App', 'https://www.youtube.com/watch?v=abc456', 'Step-by-step tutorial on full-stack development.', 'uploads/video2.jpg', 2400, '2024-08-10', 'Locked');
+
+
+CREATE TABLE `video_logs` (
+    `id` INT NOT NULL AUTO_INCREMENT,
+    `student_id` INT NOT NULL,
+    `video_id` INT NOT NULL,
+    `access_time` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    FOREIGN KEY (`student_id`) REFERENCES `students`(`id`),
+    FOREIGN KEY (`video_id`) REFERENCES `videos`(`id`)
+);
+INSERT INTO video_logs (student_id, video_id, access_time) 
+VALUES 
+(1, 1, NOW()),
+(2, 2, NOW());
+
+
+
+CREATE TABLE `enrollments` (
+    `id` INT NOT NULL AUTO_INCREMENT,
+    `student_id` INT NOT NULL,
+    `batch_id` INT NOT NULL,
+    `enrollment_date` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    `status` ENUM('Active', 'Completed', 'Dropped') DEFAULT 'Active',
+    PRIMARY KEY (`id`),
+    FOREIGN KEY (`student_id`) REFERENCES `students`(`id`),
+    FOREIGN KEY (`batch_id`) REFERENCES `batches`(`id`)
+);
+INSERT INTO enrollments (student_id, batch_id, enrollment_date, status) 
+VALUES 
+(1, 1, NOW(), 'Active'),
+(2, 2, NOW(), 'Active');
+

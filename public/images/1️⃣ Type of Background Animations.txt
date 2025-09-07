@@ -1,0 +1,57 @@
+1️⃣ Type of Background Animations
+✅ Do you want animations to be subtle or highly dynamic?
+
+Subtle: Light movements (like floating shapes, gentle waves, soft glows).
+Dynamic: Rotating gears, moving symbols, particles, neon effects.
+✅ Do you prefer 2D or 3D effects?
+
+2D: SVG shapes, CSS gradients, animated lines, glitch effects.
+3D: Rotating cubes, depth effects, floating particles.
+✅ What kind of historical elements should appear in the background?
+
+Symbols of history (e.g., ancient scripts, gears, books, old-world maps)?
+Futuristic history elements (e.g., time travel clocks, cyberpunk history)?
+2️⃣ Placement & Animation Type
+✅ Where should the animations appear?
+
+Behind the text?
+Floating around the images?
+Covering the whole section with parallax?
+✅ How should the animations behave?
+
+Infinite loop animations?
+Fade-in / fade-out effects?
+Interactive animations (change on scroll or hover)?
+3️⃣ Technology Preferences
+✅ What do you prefer for animations?
+
+Pure CSS (Lightweight & Simple)
+GSAP (Advanced, Smooth, Optimized Animations)
+Three.js (For 3D effects & depth)
+✅ Any existing animation styles you love?
+
+If you’ve seen inspiring animations on a website, share a reference!
+4️⃣ Performance Considerations
+✅ Should animations be optimized for performance?
+
+✅ Jump-In Animation for Title
+✅ Smooth Fade-In Effect for Text
+✅ Floating Effect for the Right-Side Image
+✅ Animated Background Shapes (Moving Circles, Rectangles, Triangles)
+✅ Fully Responsive & Works on All Devices
+✅ Random Floating Shapes with JavaScript for a Dynamic Look
+
+✅ Glitch Title Effect
+✅ Floating Image with Glow Effect
+✅ Random Floating Shapes
+✅ Particle Animation with JavaScript
+✅ Fully Responsive & Optimized
+
+
+✅ Particle Effects (Floating dots & shapes like sparks, lines, or waves)
+✅ Glitch Animation for the Title (Subtle effect for a futuristic look)
+✅ Circular & Zig-Zag Motion for Background Shapes
+✅ Parallax Scrolling Effect (Shapes move slightly when you scroll)
+✅ Glow Effects for the Floating Image
+Yes, ensure it’s smooth on mobile & fast-loading
+Or, I want full high-quality effects, even if it’s a bit heavier
