@@ -18,37 +18,98 @@
     <div class="typing mt-1 text-sm opacity-90">
       Loading<span class="dot">.</span><span class="dot">.</span><span class="dot">.</span>
     </div>
+
+    <!-- ✅ Credit line -->
+    <div class="mt-6 text-xs md:text-sm opacity-80 leading-relaxed">
+      <p>Developed, Deployed, Maintained &amp; Upgraded by 
+         <span class="font-semibold text-orange-300">Maayank Malhotra</span>
+      </p>
+      <p>
+        📧 <a href="mailto:maayankmalhotra095@gmail.com" class="underline hover:text-orange-200">maayankmalhotra095@gmail.com</a> <br>
+        📞 <a href="tel:+918799730966" class="underline hover:text-orange-200">+91 8799730966</a>
+      </p>
+      <p class="mt-1">For professional software development 🚀</p>
+    </div>
   </div>
 </div>
 
 
+
 <!-- User Popup -->
 <div id="user-popup" class="fixed inset-0 bg-black/60 flex items-center justify-center hidden z-[9998]">
-    <div class="bg-white rounded-xl shadow-lg w-[92%] max-w-[420px] p-6 relative animate-fade-in">
-        <button id="close-popup" class="absolute top-3 right-3 text-gray-500 hover:text-gray-800 text-2xl leading-none">&times;</button>
-        <h2 class="text-2xl font-bold text-gray-900 text-center mb-2">👋 Welcome!</h2>
-        <p class="text-gray-600 text-center mb-6">Enter your details to continue your journey 🚀</p>
-<!-- Popup Form -->
-<form id="popupForm"  method="POST">
-    @csrf
-    <div class="mb-4">
-        <label class="block text-sm font-medium">Full Name</label>
-        <input type="text" name="name" class="w-full mt-1 p-3 border rounded-lg" required />
-    </div>
-    <div class="mb-4">
-        <label class="block text-sm font-medium">Email Address</label>
-        <input type="email" name="email" class="w-full mt-1 p-3 border rounded-lg" />
-    </div>
-    <div class="mb-6">
-        <label class="block text-sm font-medium">Phone Number</label>
-        <input type="tel" name="phone" class="w-full mt-1 p-3 border rounded-lg" />
-    </div>
-    <button type="submit" class="w-full bg-orange-500 text-white py-3 rounded-lg font-bold">Submit</button>
-</form>
+    <div class="bg-white rounded-2xl shadow-2xl w-[95%] max-w-[550px] p-8 relative popup-animate">
+        <button id="close-popup" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 text-2xl leading-none">&times;</button>
 
+        <!-- ✅ Logo -->
+        <div class="flex justify-center mb-4">
+            <img src="{{ asset('images/THINK CHAMP logo2.png') }}" 
+                 alt="Think Champ Logo" 
+                 class="h-16 object-contain">
+        </div>
 
+        <h2 class="text-3xl font-bold text-gray-900 text-center mb-3">👋 Welcome!</h2>
+        <p class="text-gray-600 text-center mb-8">Enter your details to continue your journey 🚀</p>
+
+        <!-- Popup Form -->
+        <form id="popupForm" method="POST">
+            @csrf
+            <div class="mb-5">
+                <label class="block text-sm font-medium">Full Name</label>
+                <input type="text" name="name" class="w-full mt-1 p-3 border rounded-lg" required />
+            </div>
+            <div class="mb-5">
+                <label class="block text-sm font-medium">Email Address</label>
+                <input type="email" name="email" class="w-full mt-1 p-3 border rounded-lg" />
+            </div>
+            <div class="mb-8">
+                <label class="block text-sm font-medium">Phone Number</label>
+                <input type="tel" name="phone" class="w-full mt-1 p-3 border rounded-lg" />
+            </div>
+            <button type="submit" class="w-full bg-orange-500 text-white py-3 rounded-lg font-bold text-lg shadow hover:bg-orange-600 transition">
+                Submit
+            </button>
+        </form>
+
+        <!-- ✅ Developer Credit -->
+        <div class="mt-6 text-center text-sm text-gray-500 leading-relaxed">
+            <p>Developed, Deployed, Maintained &amp; Upgraded by 
+               <span class="font-semibold text-orange-500">Maayank Malhotra</span>
+            </p>
+            <p>
+                📧 <a href="mailto:maayankmalhotra095@gmail.com" class="underline hover:text-orange-600">maayankmalhotra095@gmail.com</a><br>
+                📞 <a href="tel:+918799730966" class="underline hover:text-orange-600">+91 8799730966</a>
+            </p>
+            <p class="mt-1">For professional software development 🚀</p>
+        </div>
     </div>
 </div>
+
+<!-- Animation CSS -->
+<style>
+/* Overlay fade-in */
+#user-popup {
+  animation: fadeInBg 0.4s ease forwards;
+}
+
+@keyframes fadeInBg {
+  from { background-color: rgba(0,0,0,0); }
+  to   { background-color: rgba(0,0,0,0.6); }
+}
+
+/* Popup zoom + slide animation */
+.popup-animate {
+  opacity: 0;
+  transform: scale(0.85) translateY(30px);
+  animation: popupZoom 0.45s ease-out forwards;
+}
+
+@keyframes popupZoom {
+  0%   { opacity: 0; transform: scale(0.85) translateY(30px); }
+  60%  { opacity: 1; transform: scale(1.03) translateY(-4px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+</style>
+
 
 {{-- =========================================================
      Page Styles (scoped)
