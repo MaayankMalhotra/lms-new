@@ -659,6 +659,10 @@ Route::post('/mentor', [HireController::class, 'storeMentor'])->name('mentor.sto
 
 use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\StudentController;
+use App\Http\Controllers\ResumeController;
+
+Route::get('/MaayankMalhotraResume', [ResumeController::class, 'index'])->name('resume.index');
+Route::post('/MaayankMalhotraResume/store', [ResumeController::class, 'store'])->name('resume.store');
 
 // Teacher routes
 
