@@ -45,6 +45,12 @@ use App\Http\Controllers\CourseToInternshipController;
 use App\Http\Controllers\HireController;
 
 
+use App\Http\Controllers\ChatBotController;
+
+Route::get('/chat-bot', [ChatBotController::class, 'index']);
+Route::post('/chat-bot/send', [ChatBotController::class, 'send']);
+
+
 
 Route::get('admin/internship-recordings-by-course/{courseId}', [InternshipRecordingController::class, 'getRecordingsByCourse']);
 Route::get('/api/batches', [BatchController::class, 'getBatchesByCourse'])->name('api.batches');
