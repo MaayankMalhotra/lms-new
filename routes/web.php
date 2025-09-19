@@ -50,10 +50,10 @@ use App\Models\Quiz;
 
 
 
-use App\Http\Controllers\ChatBotController;
+use App\Http\Controllers\ChatbotController;
 
-Route::get('/chat-bot', [ChatBotController::class, 'index']);
-Route::post('/chat-bot/send', [ChatBotController::class, 'send']);
+Route::get('/chat-bot', [ChatbotController::class, 'index']);
+Route::post('/chat-bot/send', [ChatbotController::class, 'send']);
 
 
 
