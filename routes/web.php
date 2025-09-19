@@ -44,6 +44,11 @@ use App\Http\Controllers\YouTubeReviewController;
 use App\Http\Controllers\CourseToInternshipController;
 use App\Http\Controllers\HireController;
 
+ use App\Models\Student;
+use App\Models\Assignment;
+use App\Models\Quiz;
+
+
 
 use App\Http\Controllers\ChatBotController;
 
@@ -238,9 +243,100 @@ Route::get('/trainer-dashboard', function () {
 })->name('trainer.dashboard');
 
 //Route::middleware(['auth'])->group(function () {
-    Route::get('/dashboard', function () {
-        return view('admin.dashboard');
-    })->name('admin.dash');
+    // Route::get('/dashboard', function () {
+    //     return view('admin.dashboard');
+    // })->name('admin.dash');
+
+   
+
+
+use App\Models\Payment;
+use App\Models\Trainer;
+use Carbon\Carbon;
+  use App\Models\User;
+
+
+Route::get('/dashboard', function () {
+    // 1. Registrations
+ 
+
+// All-time student registrations
+$totalRegistrations = User::where('role', 3)->count();
+
+// This month student registrations
+$thisMonthRegistrations = User::where('role', 3)
+    ->whereBetween('created_at', [Carbon::now()->startOfMonth(), Carbon::now()->endOfMonth()])
+    ->count();
+
+
+    // 2. Active Students + Batches
+    $today = Carbon::now();
+
+$activeStudents = DB::table('users')
+    ->where('users.role', 3) // sirf students
+    ->join('enrollments', 'users.id', '=', 'enrollments.user_id')
+    ->join('batches', 'enrollments.batch_id', '=', 'batches.id')
+    ->select('users.id', 'batches.start_date', 'batches.duration')
+    ->orderBy('batches.start_date', 'desc')
+    ->get()
+    ->unique('id') // ek student ka sirf latest batch
+    ->filter(function ($row) use ($today) {
+        // ✅ duration validation
+        if (!ctype_digit((string)$row->duration) || (int)$row->duration > 12) {
+            $duration = 6; // default 3 months
+        } else {
+            $duration = (int)$row->duration;
+        }
+
+        // ✅ batch end date
+        $endDate = Carbon::parse($row->start_date)->addMonths($duration);
+
+        // ✅ active agar abhi chal raha hai
+        return $endDate->greaterThan($today);
+    })
+    ->count();
+    $totalBatches = Batch::count();
+
+
+    // 3. Revenue
+    $totalRevenue = Payment::sum('amount');
+ 
+
+    $thisMonthRevenue = Payment::whereMonth('created_at', Carbon::now()->month)->sum('amount');
+    $lastMonthRevenue = Payment::whereMonth('created_at', Carbon::now()->subMonth()->month)->sum('amount');
+    $monthlyGrowth = $lastMonthRevenue > 0 
+        ? round((($thisMonthRevenue - $lastMonthRevenue) / $lastMonthRevenue) * 100, 2)
+        : 0;
+
+    // 4. Trainers
+  
+    $totalTrainers = User::where('role', 2)->count();
+
+    //  dd([
+    //     'totalRegistrations' => $totalRegistrations,
+    //     'thisMonthRegistrations' => $thisMonthRegistrations,
+    //     'activeStudents' => $activeStudents,
+    //     'totalBatches' => $totalBatches,
+    //     'totalRevenue' => $totalRevenue,
+        
+    //     'monthlyGrowth' => $monthlyGrowth,
+    //     'totalTrainers' => $totalTrainers,
+    // ]);
+
+    return view('admin.dashboard', compact(
+        'totalRegistrations',
+        'thisMonthRegistrations',
+        'activeStudents',
+        'totalBatches',
+        'totalRevenue',
+          'thisMonthRevenue',    // ✅ new
+        'lastMonthRevenue'  ,   // ✅ new
+        'monthlyGrowth',
+        'totalTrainers'
+    ));
+})->name('admin.dash');
+
+
 
     Route::prefix('admin')->name('admin.')->group(function () {
         Route::prefix('courses')->name('course.')->group(function () {
