@@ -14,7 +14,7 @@ class HireController extends Controller
     {
         $jobRoles= JobRolesForHiring::all();
         $instructors=Instructor::where('is_active',1)->get();
-        return view('website.Hire_With_US',compact('jobRoles','instructors'));
+        return view('website.hire_with_us',compact('jobRoles','instructors'));
     }
 
     public function storeMentor(Request $request)
