@@ -60,43 +60,116 @@ public function internshipList()
 
     return view('admin.internship-list', compact('internships'));
 }
-    public function edit(Internship $internship)
-    {
-        return response()->json($internship);
-    }
 
-    public function update(Request $request, Internship $internship)
-    {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'duration' => 'required|string|max:255',
-            'project' => 'required|string|max:255',
-            'applicant' => 'required',
-            'certified_button' => 'required',
-            'price' => 'required|numeric|min:0', // Validate price
-        ]);
 
-        // Handle file upload
-        if ($request->hasFile('logo')) {
-            // Delete old logo if it exists
-            if ($internship->logo && file_exists(public_path($internship->logo))) {
-                unlink(public_path($internship->logo));
-            }
+// InternshipController.php
 
-            $image = $request->file('logo');
-            $imageName = time() . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
-            $image->move(public_path('internships'), $imageName);
+public function edit(Internship $internship)
+{
+    // Return JSON for the modal
+    return response()->json([
+        'id'               => $internship->id,
+        'name'             => $internship->name,
+        'duration'         => $internship->duration,
+        'project'          => $internship->project,
+        'applicant'        => $internship->applicant,
+        'certified_button' => $internship->certified_button,
+        'price'            => $internship->price,
+        'logo'             => $internship->logo,
+        'logo_url'         => $internship->logo ? asset($internship->logo) : null,
+    ]);
+}
 
-            // Store only relative path
-            $validated['logo'] = 'internships/' . $imageName;
+public function update(Request $request, Internship $internship)
+{
+    // Light validation: only the fields visible on the card + optional logo
+    $validated = $request->validate([
+        'name'             => 'required|string|max:255',
+        'duration'         => 'required|string|max:255',
+        'project'          => 'required',
+        'applicant'        => 'required',
+        'certified_button' => 'required',
+        'price'            => 'required|numeric|min:0',
+        'logo'             => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+    ]);
+
+    // Handle logo upload (public/internships)
+    if ($request->hasFile('logo')) {
+        if ($internship->logo && file_exists(public_path($internship->logo))) {
+            @unlink(public_path($internship->logo));
         }
-
-        // Update the internship
-        $internship->update($validated);
-
-        return redirect()->route('admin.internship.list')->with('success', 'Internship updated successfully!');
+        $image = $request->file('logo');
+        $imageName = time() . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
+        // ensure folder exists and is writable: public/internships
+        if (!is_dir(public_path('internships'))) {
+            @mkdir(public_path('internships'), 0755, true);
+        }
+        $image->move(public_path('internships'), $imageName);
+        $validated['logo'] = 'internships/' . $imageName;
     }
+
+    $internship->update($validated);
+
+    // If AJAX request, return JSON (used by modal)
+    if ($request->ajax() || $request->wantsJson() || $request->expectsJson()) {
+        $fresh = $internship->fresh();
+        return response()->json([
+            'success' => true,
+            'internship' => [
+                'id'               => $fresh->id,
+                'name'             => $fresh->name,
+                'duration'         => $fresh->duration,
+                'project'          => $fresh->project,
+                'applicant'        => $fresh->applicant,
+                'certified_button' => $fresh->certified_button,
+                'price'            => $fresh->price,
+                'logo'             => $fresh->logo,
+                'logo_url'         => $fresh->logo ? asset($fresh->logo) : null,
+            ]
+        ]);
+    }
+
+    // Non-AJAX fallback
+    return redirect()->route('admin.internship.list')->with('success', 'Internship updated successfully!');
+}
+
+    // public function edit(Internship $internship)
+    // {
+    //     return response()->json($internship);
+    // }
+
+    // public function update(Request $request, Internship $internship)
+    // {
+    //     $validated = $request->validate([
+    //         'name' => 'required|string|max:255',
+    //         'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+    //         'duration' => 'required|string|max:255',
+    //         'project' => 'required|string|max:255',
+    //         'applicant' => 'required',
+    //         'certified_button' => 'required',
+    //         'price' => 'required|numeric|min:0', // Validate price
+    //     ]);
+
+    //     // Handle file upload
+    //     if ($request->hasFile('logo')) {
+    //         // Delete old logo if it exists
+    //         if ($internship->logo && file_exists(public_path($internship->logo))) {
+    //             unlink(public_path($internship->logo));
+    //         }
+
+    //         $image = $request->file('logo');
+    //         $imageName = time() . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
+    //         $image->move(public_path('internships'), $imageName);
+
+    //         // Store only relative path
+    //         $validated['logo'] = 'internships/' . $imageName;
+    //     }
+
+    //     // Update the internship
+    //     $internship->update($validated);
+
+    //     return redirect()->route('admin.internship.list')->with('success', 'Internship updated successfully!');
+    // }
 
     public function destroy(Internship $internship)
     {
