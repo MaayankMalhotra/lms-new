@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
+
 class CourseController extends Controller
 {
     public function addCourse()
@@ -165,36 +166,86 @@ public function update(Request $request, $id)
         ->with('success', 'Course updated successfully!');
 }
 
-public function destroy($id)
+
+
+public function destroy(Request $request, $id)
 {
     try {
         $course = Course::findOrFail($id);
-        
-        // Delete logo if exists
-        // if ($course->logo) {
-        //     $path = str_replace('/storage', 'public', $course->logo);
-        //     if (Storage::exists($path)) {
-        //         Storage::delete($path);
-        //     }
-        // }
-         if ($course->logo && file_exists(public_path($course->logo))) {
-                unlink(public_path($course->logo));
+
+        // Delete logo file (relative path like 'courses/xyz.jpg')
+        if ($course->logo) {
+            $path = public_path($course->logo);
+            if (is_file($path)) {
+                @unlink($path);
             }
-        
+        }
+
         $course->delete();
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Course deleted successfully'
-        ]);
+        // Redirect (HTML) or JSON (AJAX)
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Course deleted successfully.',
+            ]);
+        }
 
-    } catch (\Exception $e) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Error deleting course: ' . $e->getMessage()
-        ], 500);
+        return redirect()
+            ->route('admin.course.list')
+            ->with('success', 'Course deleted successfully!');
+
+    } catch (QueryException $e) {
+        Log::error('Course delete failed (FK/QueryException)', ['id' => $id, 'error' => $e->getMessage()]);
+
+        $msg = 'Could not delete the course. Remove related records first.';
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json(['success' => false, 'message' => $msg], 422);
+        }
+        return redirect()->back()->with('error', $msg);
+
+    } catch (\Throwable $e) {
+        Log::error('Course delete failed', ['id' => $id, 'error' => $e->getMessage()]);
+
+        $msg = 'Unexpected error while deleting the course.';
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json(['success' => false, 'message' => $msg], 500);
+        }
+        return redirect()->back()->with('error', $msg);
     }
 }
+
+
+// public function destroy($id)
+// {
+//     try {
+//         $course = Course::findOrFail($id);
+        
+//         // Delete logo if exists
+//         // if ($course->logo) {
+//         //     $path = str_replace('/storage', 'public', $course->logo);
+//         //     if (Storage::exists($path)) {
+//         //         Storage::delete($path);
+//         //     }
+//         // }
+//          if ($course->logo && file_exists(public_path($course->logo))) {
+//                 unlink(public_path($course->logo));
+//             }
+        
+//         $course->delete();
+
+//         return response()->json([
+//             'success' => true,
+//             'message' => 'Course deleted successfully'
+//         ]);
+
+//     } catch (\Exception $e) {
+//         return response()->json([
+//             'success' => false,
+//             'message' => 'Error deleting course: ' . $e->getMessage()
+//         ], 500);
+//     }
+// }
 
 public function courseDetails($slug)
 {

@@ -6,19 +6,80 @@
         background: url("https://img.freepik.com/free-vector/education-pattern-background-doodle-style_53876-115365.jpg") no-repeat center center fixed;
         background-size: cover;
     }
-    .card-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:1.5rem; }
-    .course-card { background:rgba(255,255,255,.95); backdrop-filter:blur(8px); border-radius:1rem; box-shadow:0 6px 16px rgba(0,0,0,.15); overflow:hidden; transition:transform .2s, box-shadow .2s; }
-    .course-card:hover { transform:translateY(-6px); box-shadow:0 10px 20px rgba(0,0,0,.25); }
-    .course-logo { width:100%; height:160px; object-fit:contain; background:#f9fafb; padding:1rem; }
-    .course-body { padding:1rem 1.2rem; }
-    .course-title { font-size:1.25rem; font-weight:700; color:#1f2937; }
-    .course-meta { margin-top:.5rem; font-size:.9rem; color:#6b7280; }
-    .course-price { margin-top:.75rem; font-size:1.1rem; font-weight:600; color:#2563eb; }
-    .course-actions { margin-top:1rem; display:flex; justify-content:space-between; align-items:center; }
-    .course-actions button, .course-actions a { border:none; background:none; cursor:pointer; font-size:1.1rem; transition:color .2s; }
-    .course-actions .edit{color:#3b82f6}.course-actions .edit:hover{color:#2563eb}
-    .course-actions .detail{color:#16a34a}.course-actions .detail:hover{color:#15803d}
-    .course-actions .delete{color:#ef4444}.course-actions .delete:hover{color:#b91c1c}
+
+    .card-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .course-card {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(8px);
+        border-radius: 1rem;
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+        overflow: hidden;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .course-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.25);
+    }
+
+    .course-logo {
+        width: 100%;
+        height: 160px;
+        object-fit: contain;
+        background: #f9fafb;
+        padding: 1rem;
+    }
+
+    .course-body {
+        padding: 1rem 1.2rem;
+    }
+
+    .course-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #1f2937;
+    }
+
+    .course-meta {
+        margin-top: 0.5rem;
+        font-size: 0.9rem;
+        color: #6b7280;
+    }
+
+    .course-price {
+        margin-top: 0.75rem;
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #2563eb;
+    }
+
+    .course-actions {
+        margin-top: 1rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .course-actions button,
+    .course-actions a {
+        border: none;
+        background: none;
+        cursor: pointer;
+        font-size: 1.1rem;
+        transition: color 0.2s;
+    }
+
+    .course-actions .edit { color: #3b82f6; }
+    .course-actions .edit:hover { color: #2563eb; }
+    .course-actions .detail { color: #16a34a; }
+    .course-actions .detail:hover { color: #15803d; }
+    .course-actions .delete { color: #ef4444; }
+    .course-actions .delete:hover { color: #b91c1c; }
 </style>
 
 <div class="min-h-screen bg-gray-100/60 p-8">
@@ -75,16 +136,18 @@
                             <i class="fas fa-edit"></i>
                         </button>
 
-                        <!-- If you want a details page, point to the course edit route with the course ID -->
-                        @if($course->course_details_id)
-                        <a href="{{ route('admin.course.edit', $course->id) }}" class="detail" title="Edit Course Detail">
+                        <!-- Optional details icon: navigates to full edit page -->
+                        <a href="{{ route('admin.course.edit', $course->id) }}" class="detail" title="Open Full Editor">
                             <i class="fas fa-book-open"></i>
                         </a>
-                        @endif
 
+                        <!-- DELETE -> opens confirm modal -->
                         <button type="button"
-                                onclick="openDeleteModal(`{{ route('admin.course.delete', $course->id) }}`)"
-                                class="delete" title="Delete Course">
+                                class="delete"
+                                title="Delete Course"
+                                data-delete-url="{{ route('admin.course.delete', $course->id) }}"
+                                data-name="{{ $course->name }}"
+                                onclick="openDeleteModal(this)">
                             <i class="fas fa-trash"></i>
                         </button>
                     </div>
@@ -162,7 +225,40 @@
     </div>
 </div>
 
+<!-- Shared Delete Course Modal (Tailwind) -->
+<div id="deleteCourseModal" class="fixed inset-0 z-50 hidden items-center justify-center">
+    <div class="absolute inset-0 bg-black/50" onclick="closeDeleteModal()"></div>
+
+    <div class="relative bg-white rounded-xl shadow-2xl w-full max-w-md mx-4 p-6">
+        <div class="flex items-center justify-between mb-3">
+            <h3 class="text-lg font-semibold text-gray-800">Delete Course</h3>
+            <button type="button" class="text-gray-400 hover:text-gray-600" onclick="closeDeleteModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <p class="text-sm text-gray-600">
+            Are you sure you want to delete
+            <span id="deleteCourseName" class="font-semibold"></span>?
+            This action cannot be undone.
+        </p>
+
+        <form id="deleteCourseForm" method="POST" action="#" class="mt-6">
+            @csrf
+            @method('DELETE')
+            <div class="flex items-center justify-end gap-3">
+                <button type="button" class="px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700"
+                        onclick="closeDeleteModal()">Cancel</button>
+                <button type="submit" class="px-5 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white">
+                    Delete
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
+    /* ---------- Edit Modal ---------- */
     const editModal = document.getElementById('editCourseModal');
     const editForm  = document.getElementById('editCourseForm');
 
@@ -183,8 +279,8 @@
         f.duration.value = btn.dataset.duration || '';
         f.price.value    = btn.dataset.price || '';
 
-        // IMPORTANT: use admin.course.update
-        editForm.action = btn.dataset.updateUrl;
+        // Use admin.course.update
+        editForm.action  = btn.dataset.updateUrl || '#';
 
         editModal.classList.remove('hidden');
         editModal.classList.add('flex');
@@ -197,8 +293,31 @@
         document.body.style.overflow = '';
     }
 
+    /* ---------- Delete Modal ---------- */
+    const deleteModal  = document.getElementById('deleteCourseModal');
+    const deleteForm   = document.getElementById('deleteCourseForm');
+    const deleteNameEl = document.getElementById('deleteCourseName');
+
+    function openDeleteModal(btn) {
+        deleteForm.action = btn.dataset.deleteUrl || '#';
+        deleteNameEl.textContent = btn.dataset.name || '';
+        deleteModal.classList.remove('hidden');
+        deleteModal.classList.add('flex');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeDeleteModal() {
+        deleteModal.classList.add('hidden');
+        deleteModal.classList.remove('flex');
+        document.body.style.overflow = '';
+    }
+
+    // Close modals on ESC
     document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') closeEditModal();
+        if (e.key === 'Escape') {
+            closeEditModal();
+            closeDeleteModal();
+        }
     });
 </script>
 @endsection
