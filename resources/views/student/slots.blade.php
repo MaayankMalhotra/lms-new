@@ -29,6 +29,7 @@
                     <thead class="text-xs text-gray-700 uppercase bg-gray-50">
                         <tr>
                             <th class="px-6 py-3">Date & Time</th>
+                            <th class="px-6 py-3">Batch</th> <!-- NEW -->
                             <th class="px-6 py-3">Status</th>
                             <th class="px-6 py-3">Action</th>
                         </tr>
@@ -40,14 +41,36 @@
                                     <td class="px-6 py-4 font-medium text-gray-900">
                                         {{ $slot->start_time->format('Y-m-d h:i A') }}
                                     </td>
+
+                                    <!-- NEW: Batch -->
                                     <td class="px-6 py-4">
-                                        <span class="px-2 py-1 rounded-full text-xs font-semibold @if($slot->booking && $slot->booking->status === 'confirmed') bg-green-100 text-green-800 @elseif($slot->booking && $slot->booking->status === 'pending') bg-yellow-100 text-yellow-800 @else bg-red-100 text-red-800 @endif">
-                                            {{ $slot->booking ? $slot->booking->status : 'Pending' }}
+                                        @if(!empty($slot->batch_name))
+                                            <div class="font-medium text-gray-900">{{ $slot->batch_name }}</div>
+                                            <div class="text-xs text-gray-500">
+                                                Starts {{ \Carbon\Carbon::parse($slot->batch_start_date)->format('d M Y') }}
+                                            </div>
+                                        @else
+                                            <span class="text-gray-400">—</span>
+                                        @endif
+                                    </td>
+
+                                    <td class="px-6 py-4">
+                                        @php $status = $slot->booking_status ?? 'pending'; @endphp
+                                        <span class="px-2 py-1 rounded-full text-xs font-semibold
+                                            @if($status === 'confirmed') bg-green-100 text-green-800
+                                            @elseif($status === 'pending') bg-yellow-100 text-yellow-800
+                                            @else bg-red-100 text-red-800 @endif">
+                                            {{ ucfirst($status) }}
                                         </span>
                                     </td>
                                     <td class="px-6 py-4">
-                                        @if ($slot->booking && $slot->booking->meeting_link && now()->between($slot->start_time->subMinutes(15), $slot->start_time->addMinutes($slot->duration_minutes)))
-                                            <a href="{{ $slot->booking->meeting_link }}" target="_blank" class="inline-block px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700">
+                                        @php
+                                            $windowStart = (clone $slot->start_time)->subMinutes(15);
+                                            $windowEnd   = (clone $slot->start_time)->addMinutes($slot->duration_minutes);
+                                        @endphp
+
+                                        @if ($slot->meeting_link && now()->between($windowStart, $windowEnd))
+                                            <a href="{{ $slot->meeting_link }}" target="_blank" class="inline-block px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700">
                                                 Join Meeting
                                             </a>
                                         @else
@@ -75,6 +98,7 @@
                     <thead class="text-xs text-gray-700 uppercase bg-gray-50">
                         <tr>
                             <th class="px-6 py-3">Date & Time</th>
+                            <th class="px-6 py-3">Batch</th> <!-- NEW -->
                             <th class="px-6 py-3">Duration (min)</th>
                             <th class="px-6 py-3">Action</th>
                         </tr>
@@ -86,7 +110,20 @@
                                     <td class="px-6 py-4 font-medium text-gray-900">
                                         {{ $slot->start_time->format('Y-m-d h:i A') }}
                                     </td>
-                                    <td class="px-6 py-4">{{ $slot->duration_minutes }}</td>
+
+                                    <!-- NEW: Batch -->
+                                    <td class="px-6 py-4">
+                                        @if(!empty($slot->batch_name))
+                                            <div class="font-medium text-gray-900">{{ $slot->batch_name }}</div>
+                                            <div class="text-xs text-gray-500">
+                                                Starts {{ \Carbon\Carbon::parse($slot->batch_start_date)->format('d M Y') }}
+                                            </div>
+                                        @else
+                                            <span class="text-gray-400">—</span>
+                                        @endif
+                                    </td>
+
+                                    <td class="px-6 py-4">{{ (int) $slot->duration_minutes }}</td>
                                     <td class="px-6 py-4">
                                         <form method="POST" action="{{ route('student.book', $slot->id) }}" class="inline">
                                             @csrf

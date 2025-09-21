@@ -7,6 +7,7 @@ use App\Models\InterviewBooking;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class StudentController extends Controller
 {
@@ -121,30 +122,71 @@ public function viewAvailableSlots__()
 
         return view('student.slots', compact('upcomingMeetings'));
     }
-
-
 public function viewAvailableSlots()
     {
         $studentId = Auth::id();
+        $now = now();
 
-        // Upcoming meetings (booked slots for the student)
-        $upcomingMeetings = AvailableSlot::with(['booking'])
-            ->whereHas('booking', function ($query) use ($studentId) {
-                $query->where('student_id', $studentId);
-            })
-            ->where('start_time', '>', now())
+        // Booked slots for this student (upcoming) + batch info via JOIN
+        $upcomingMeetings = AvailableSlot::query()
+            ->select(
+                'available_slots.*',
+                'interview_bookings.status as booking_status',
+                'interview_bookings.meeting_link',
+                'batches.batch_name',
+                DB::raw('batches.start_date as batch_start_date')
+            )
+            ->join('interview_bookings', 'interview_bookings.slot_id', '=', 'available_slots.id')
+            ->leftJoin('batches', 'batches.id', '=', 'available_slots.batch_id')
+            ->where('interview_bookings.student_id', $studentId)
+            ->where('available_slots.start_time', '>', $now)
+            ->orderBy('available_slots.start_time', 'asc')
             ->get()
+            // keep your existing grouping style
             ->groupBy('start_time');
 
-        // Available slots (unbooked and upcoming)
-        $availableSlots = AvailableSlot::whereDoesntHave('booking')
-            ->where('start_time', '>', now())
-            ->where('status', 'pending')
+        // Unbooked future slots + batch info via JOIN
+        $availableSlots = AvailableSlot::query()
+            ->select(
+                'available_slots.*',
+                'batches.batch_name',
+                DB::raw('batches.start_date as batch_start_date')
+            )
+            ->leftJoin('interview_bookings', 'interview_bookings.slot_id', '=', 'available_slots.id')
+            ->leftJoin('batches', 'batches.id', '=', 'available_slots.batch_id')
+            ->whereNull('interview_bookings.id')
+            ->where('available_slots.status', 'pending')
+            ->where('available_slots.start_time', '>', $now)
+            ->orderBy('available_slots.start_time', 'asc')
             ->get()
             ->groupBy('start_time');
 
         return view('student.slots', compact('upcomingMeetings', 'availableSlots'));
     }
+
+
+// public function viewAvailableSlots()
+//     {
+//         $studentId = Auth::id();
+
+//         // Upcoming meetings (booked slots for the student)
+//         $upcomingMeetings = AvailableSlot::with(['booking'])
+//             ->whereHas('booking', function ($query) use ($studentId) {
+//                 $query->where('student_id', $studentId);
+//             })
+//             ->where('start_time', '>', now())
+//             ->get()
+//             ->groupBy('start_time');
+
+//         // Available slots (unbooked and upcoming)
+//         $availableSlots = AvailableSlot::whereDoesntHave('booking')
+//             ->where('start_time', '>', now())
+//             ->where('status', 'pending')
+//             ->get()
+//             ->groupBy('start_time');
+
+//         return view('student.slots', compact('upcomingMeetings', 'availableSlots'));
+//     }
 
     public function bookSlot($slotId)
     {
