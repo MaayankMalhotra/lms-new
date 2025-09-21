@@ -52,6 +52,12 @@ use App\Models\Quiz;
 
 use App\Http\Controllers\ChatbotController;
 
+use App\Http\Controllers\StudentDashboardController;
+
+
+
+
+
 Route::get('/chat-bot', [ChatbotController::class, 'index']);
 Route::post('/chat-bot/send', [ChatbotController::class, 'send']);
 
@@ -787,6 +793,8 @@ Route::post('/leads/store', [LeadController::class, 'store'])->name('leads.store
 Route::get('/leads', [LeadController::class, 'index'])->name('leads.index');
 
 Route::post('/admin/leads/{id}/send-email', [LeadController::class, 'sendEmail'])->name('admin.leads.sendEmail');
+
+Route::get('/student-dashboard', [StudentDashboardController::class, 'index'])->name('student.dashboard');
 
 
 

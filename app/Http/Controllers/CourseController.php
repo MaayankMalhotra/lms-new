@@ -59,10 +59,12 @@ class CourseController extends Controller
 // }
 public function courseList()
 {
+
     $courses = Course::select('courses.*', 'course_details.id as course_details_id')
         ->leftJoin('course_details', 'course_details.course_id', '=', 'courses.id')
         ->latest('courses.created_at')
         ->paginate(100);
+        
     return view('admin.courses-list', compact('courses'));
 }
 public function edit($id)
@@ -72,46 +74,95 @@ public function edit($id)
     }
 
    
-    public function update(Request $request, $id)
+    // Controller top (if not already there)
+// use Illuminate\Support\Str;
+
+// public function update(Request $request, $id)
+// {
+//     $course = Course::findOrFail($id);
+
+//     // Only accept fields you actually allow from the modal
+//     $data = $request->only([
+//         'name',
+//         'course_code_id',
+//         'slug',
+//         'duration',
+//         'price',
+//         // 'rating', 'placed_learner'  // add if you ever send them
+//     ]);
+
+//     // Handle logo (optional)
+//     if ($request->hasFile('logo')) {
+//         // delete old file if exists
+//         if ($course->logo && file_exists(public_path($course->logo))) {
+//             @unlink(public_path($course->logo));
+//         }
+
+//         // ensure folder exists
+//         $destPath = public_path('courses');
+//         if (!is_dir($destPath)) {
+//             @mkdir($destPath, 0755, true);
+//         }
+
+//         $image = $request->file('logo');
+//         $imageName = time() . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
+//         $image->move($destPath, $imageName);
+
+//         // store relative path (your Blade uses asset($course->logo))
+//         $data['logo'] = 'courses/' . $imageName;
+//     }
+
+//     // Save without validation
+//     $course->fill($data)->save();
+
+//     return redirect()
+//         ->route('admin.course.list')
+//         ->with('success', 'Course updated successfully!');
+// }
+
+
+
+public function update(Request $request, $id)
 {
     $course = Course::findOrFail($id);
 
-    $validated = $request->validate([
-        'name' => 'required|string|max:255',
-        'course_code_id' => 'required|unique:courses,course_code_id,'.$course->id,
-        'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-        'duration' => 'required|string|max:255',
-        'placed_learner' => 'required|integer',
-        'slug' => 'required|unique:courses,slug,'.$course->id,
-        'rating' => 'required',
-        'price' => 'required|numeric',
+    // Only accept fields you actually allow from the modal
+    $data = $request->only([
+        'name',
+        'course_code_id',
+        'slug',
+        'duration',
+        'price',
+        // 'rating', 'placed_learner'  // add if you ever send them
     ]);
 
-    // if ($request->hasFile('logo')) {
-    //     // Delete old logo
-    //     if ($course->logo) {
-    //         Storage::delete(str_replace('/storage', 'public', $course->logo));
-    //     }
-        
-    //     $path = $request->file('logo')->store('public/courses');
-    //     $validated['logo'] = Storage::url($path);
-    // }
- if ($request->hasFile('logo')) {
-            // Delete old logo
-            if ($course->logo && file_exists(public_path($course->logo))) {
-                unlink(public_path($course->logo));
-            }
-
-            $image = $request->file('logo');
-            $imageName = time() . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
-            $image->move(public_path('courses'), $imageName);
-
-            // Store only relative path
-            $validated['logo'] = 'courses/' . $imageName;
+    // Handle logo (optional)
+    if ($request->hasFile('logo')) {
+        // delete old file if exists
+        if ($course->logo && file_exists(public_path($course->logo))) {
+            @unlink(public_path($course->logo));
         }
-    $course->update($validated);
 
-      return redirect()->route('admin.course.list')->with('success', 'Course updated successfully!');
+        // ensure folder exists
+        $destPath = public_path('courses');
+        if (!is_dir($destPath)) {
+            @mkdir($destPath, 0755, true);
+        }
+
+        $image = $request->file('logo');
+        $imageName = time() . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
+        $image->move($destPath, $imageName);
+
+        // store relative path (your Blade uses asset($course->logo))
+        $data['logo'] = 'courses/' . $imageName;
+    }
+
+    // Save without validation
+    $course->fill($data)->save();
+
+    return redirect()
+        ->route('admin.course.list')
+        ->with('success', 'Course updated successfully!');
 }
 
 public function destroy($id)
