@@ -7,10 +7,16 @@ use Illuminate\Database\Eloquent\Model;
 
 class InternshipEnrollment extends Model
 {
+    // protected $fillable = [
+    //     'user_id', 'internship_id', 'email', 'name', 'phone',
+    //     'payment_id', 'amount', 'status','batch_id', 'payment_status',
+    // ];
+
     protected $fillable = [
-        'user_id', 'internship_id', 'email', 'name', 'phone',
-        'payment_id', 'amount', 'status','batch_id', 'payment_status',
-    ];
+  'user_id','email','name','batch_id','course_id',
+  'payment_id','amount','status','free_internship_after_course'
+];
+
 
     public function user()
     {
@@ -31,7 +37,7 @@ class InternshipEnrollment extends Model
 {
     return $this->belongsToMany(InternshipBatch::class, 'internship_batch_student');
 }
- public function liveClasses()
+    public function liveClasses()
     {
         return $this->hasMany(InternshipClass::class, 'batch_id', 'batch_id');
     }
