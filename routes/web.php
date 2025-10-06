@@ -109,6 +109,11 @@ Route::delete('/admin/quizzes/{id}', [QuizController::class, 'deleteQuiz'])->nam
 
  Route::get('/', [HomeController::class, 'index'])->name('home-page');
 
+// Simple health-check route to verify Codex setup
+Route::get('/codex-works', function () {
+    return view('codex');
+})->name('codex.works');
+
 
 
 Route::get('/about', function () {

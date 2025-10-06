@@ -37,7 +37,7 @@
 
 <!-- User Popup -->
 <div id="user-popup" class="fixed inset-0 bg-black/60 flex items-center justify-center hidden z-[9998]">
-    <div class="bg-white rounded-2xl shadow-2xl w-[95%] max-w-[550px] p-8 relative popup-animate">
+    <div class="bg-white rounded-2xl shadow-2xl w-[95%] max-w-[550px] p-8 relative popup-animate max-h-[90vh] overflow-y-auto">
         <button id="close-popup" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 text-2xl leading-none">&times;</button>
 
         <!-- ✅ Logo -->
@@ -248,7 +248,14 @@
                     job ready <strong class="font-semibold">10x faster</strong>.
                 </p>
                 <div class="text-center">
-                    <a href="#" class="inline-block bg-gradient-to-r from-orange-500 to-amber-400 text-white px-8 py-4 rounded-full text-lg font-bold hover:scale-105 transition-transform duration-300 shadow-lg hover:shadow-xl hover:shadow-orange-500/30">
+                    <a href="https://wa.me/919876543210?text=Hi%20I%20want%20to%20start%20my%20coding%20journey%20🚀"
+                       target="_blank"
+                       rel="noopener noreferrer"
+                       aria-label="Start your coding journey on WhatsApp"
+                       class="inline-flex items-center gap-3 bg-gradient-to-r from-orange-500 to-amber-400 text-white px-8 py-4 rounded-full text-lg font-bold hover:scale-105 transition-transform duration-300 shadow-lg hover:shadow-xl hover:shadow-orange-500/30">
+                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2a1 1 0 011.02-.24 11.36 11.36 0 003.56.57 1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1 11.36 11.36 0 00.57 3.56 1 1 0 01-.24 1.02l-2.2 2.2z"/>
+                        </svg>
                         Start your coding journey
                     </a>
                 </div>
