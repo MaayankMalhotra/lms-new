@@ -7,6 +7,8 @@ use App\Http\Controllers\LoginController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AdminInternshipClassCreateController;
 use App\Http\Controllers\CourseController;
+
+
 use App\Http\Controllers\ImageUploadController;
 use App\Http\Controllers\InternshipController;
 use App\Http\Controllers\HomeController;
