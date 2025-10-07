@@ -6,6 +6,9 @@
 <meta name="csrf-token" content="{{ csrf_token() }}">
 
 <style>
+    body {
+        background-color: #ffffff;
+    }
     /* Custom rotate animation for the chevron */
     .rotate-180 {
         transform: rotate(180deg);

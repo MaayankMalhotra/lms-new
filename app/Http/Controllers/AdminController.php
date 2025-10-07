@@ -261,6 +261,7 @@ public function storePlacement(Request $request)
         $imagePath = null;
         if ($request->hasFile('image') && $request->file('image')->isValid()) {
             $imagePath = $request->file('image')->store('images', 'public');
+           //sss dd($request->hasFile('image')&& $request->file('image')->isValid());
         } else {
             throw new \Exception('Image upload failed.');
         }

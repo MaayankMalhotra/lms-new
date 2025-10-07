@@ -7,79 +7,60 @@
         background-size: cover;
     }
 
-    .card-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-        gap: 1.5rem;
-    }
-
-    .course-card {
-        background: rgba(255, 255, 255, 0.95);
-        backdrop-filter: blur(8px);
-        border-radius: 1rem;
-        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
-        overflow: hidden;
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-
-    .course-card:hover {
-        transform: translateY(-6px);
-        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.25);
-    }
-
-    .course-logo {
-        width: 100%;
-        height: 160px;
-        object-fit: contain;
-        background: #f9fafb;
-        padding: 1rem;
-    }
-
-    .course-body {
-        padding: 1rem 1.2rem;
-    }
-
-    .course-title {
-        font-size: 1.25rem;
-        font-weight: 700;
-        color: #1f2937;
-    }
-
-    .course-meta {
-        margin-top: 0.5rem;
-        font-size: 0.9rem;
+    .listing-table thead th {
+        font-size: 0.75rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
         color: #6b7280;
     }
 
-    .course-price {
-        margin-top: 0.75rem;
-        font-size: 1.1rem;
-        font-weight: 600;
+    .listing-table tbody tr:hover {
+        background-color: rgba(59, 130, 246, 0.05);
+    }
+
+    .listing-table td {
+        vertical-align: middle;
+    }
+
+    .action-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 2.5rem;
+        height: 2.5rem;
+        border-radius: 9999px;
+        transition: background-color 0.2s, color 0.2s;
+    }
+
+    .action-icon.edit {
+        background-color: rgba(59, 130, 246, 0.1);
         color: #2563eb;
     }
 
-    .course-actions {
-        margin-top: 1rem;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
+    .action-icon.edit:hover {
+        background-color: rgba(37, 99, 235, 0.2);
+        color: #1d4ed8;
     }
 
-    .course-actions button,
-    .course-actions a {
-        border: none;
-        background: none;
-        cursor: pointer;
-        font-size: 1.1rem;
-        transition: color 0.2s;
+    .action-icon.details {
+        background-color: rgba(34, 197, 94, 0.1);
+        color: #16a34a;
     }
 
-    .course-actions .edit { color: #3b82f6; }
-    .course-actions .edit:hover { color: #2563eb; }
-    .course-actions .detail { color: #16a34a; }
-    .course-actions .detail:hover { color: #15803d; }
-    .course-actions .delete { color: #ef4444; }
-    .course-actions .delete:hover { color: #b91c1c; }
+    .action-icon.details:hover {
+        background-color: rgba(22, 163, 74, 0.2);
+        color: #15803d;
+    }
+
+    .action-icon.delete {
+        background-color: rgba(239, 68, 68, 0.12);
+        color: #dc2626;
+    }
+
+    .action-icon.delete:hover {
+        background-color: rgba(239, 68, 68, 0.2);
+        color: #b91c1c;
+    }
 </style>
 
 <div class="min-h-screen bg-gray-100/60 p-8">
@@ -98,67 +79,89 @@
             </a>
         </div>
 
-        <!-- Course Cards -->
-        <div class="card-grid">
-            @forelse($courses as $course)
-            <div class="course-card">
-                @if($course->logo)
-                    <img src="{{ asset($course->logo) }}" alt="{{ $course->name }}" class="course-logo">
-                @else
-                    <div class="course-logo flex items-center justify-center text-gray-400">
-                        <i class="fas fa-image text-3xl"></i>
-                    </div>
-                @endif
+        <div class="bg-white/95 backdrop-blur rounded-xl shadow-xl overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="min-w-full listing-table">
+                    <thead class="bg-gray-50/80">
+                        <tr>
+                            <th class="px-6 py-3 text-left">Course</th>
+                            <th class="px-6 py-3 text-left">Slug</th>
+                            <th class="px-6 py-3 text-left">Code</th>
+                            <th class="px-6 py-3 text-left">Duration</th>
+                            <th class="px-6 py-3 text-right">Price</th>
+                            <th class="px-6 py-3 text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200/70">
+                        @forelse($courses as $course)
+                            <tr>
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center gap-4">
+                                        <div class="w-14 h-14 rounded-lg border border-gray-200 bg-gray-50 flex items-center justify-center overflow-hidden">
+                                            @if($course->logo)
+                                                <img src="{{ asset($course->logo) }}" alt="{{ $course->name }}" class="object-contain w-full h-full">
+                                            @else
+                                                <i class="fas fa-image text-gray-300 text-xl"></i>
+                                            @endif
+                                        </div>
+                                        <div>
+                                            <p class="text-sm font-semibold text-gray-900">{{ $course->name }}</p>
+                                            <p class="text-xs text-gray-500 mt-1">{{ $course->placed_learner }} placed • Rating {{ $course->rating }}</p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 text-sm text-gray-700">{{ $course->slug }}</td>
+                                <td class="px-6 py-4 text-sm text-gray-700">{{ $course->course_code_id }}</td>
+                                <td class="px-6 py-4 text-sm text-gray-700">{{ $course->duration }}</td>
+                                <td class="px-6 py-4 text-sm text-gray-900 text-right font-semibold">₹{{ number_format($course->price, 2) }}</td>
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center justify-center gap-3">
+                                        <button
+                                            class="action-icon edit"
+                                            title="Edit Course"
+                                            data-id="{{ $course->id }}"
+                                            data-name="{{ $course->name }}"
+                                            data-slug="{{ $course->slug }}"
+                                            data-code="{{ $course->course_code_id }}"
+                                            data-duration="{{ $course->duration }}"
+                                            data-price="{{ $course->price }}"
+                                            data-update-url="{{ route('admin.course.update', $course->id) }}"
+                                            onclick="openEditModal(this)"
+                                        >
+                                            <i class="fas fa-edit"></i>
+                                        </button>
 
-                <div class="course-body">
-                    <div class="course-title">{{ $course->name }}</div>
-                    <div class="course-meta">
-                        <p><i class="fas fa-link mr-1"></i> {{ $course->slug }}</p>
-                        <p><i class="fas fa-hashtag mr-1"></i> {{ $course->course_code_id }}</p>
-                        <p><i class="fas fa-clock mr-1"></i> {{ $course->duration }}</p>
-                    </div>
-                    <div class="course-price">₹{{ number_format($course->price, 2) }}</div>
+                                        @php $detailId = $course->course_detail_id ?? null; @endphp
+                                        @if ($detailId)
+                                            <a href="{{ route('course.edit', $detailId) }}" class="action-icon details" title="Edit Course Details">
+                                                <i class="fas fa-pen-to-square"></i>
+                                            </a>
+                                        @endif
 
-                    <div class="course-actions">
-                        <!-- EDIT -> opens shared Tailwind modal with data-* -->
-                        <button
-                            class="edit"
-                            title="Edit Course"
-                            data-id="{{ $course->id }}"
-                            data-name="{{ $course->name }}"
-                            data-slug="{{ $course->slug }}"
-                            data-code="{{ $course->course_code_id }}"
-                            data-duration="{{ $course->duration }}"
-                            data-price="{{ $course->price }}"
-                            data-update-url="{{ route('admin.course.update', $course->id) }}"
-                            onclick="openEditModal(this)"
-                        >
-                            <i class="fas fa-edit"></i>
-                        </button>
-
-                        <!-- Optional details icon: navigates to full edit page -->
-                        <a href="{{ route('admin.course.edit', $course->id) }}" class="detail" title="Open Full Editor">
-                            <i class="fas fa-book-open"></i>
-                        </a>
-
-                        <!-- DELETE -> opens confirm modal -->
-                        <button type="button"
-                                class="delete"
-                                title="Delete Course"
-                                data-delete-url="{{ route('admin.course.delete', $course->id) }}"
-                                data-name="{{ $course->name }}"
-                                onclick="openDeleteModal(this)">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </div>
-                </div>
+                                        <button type="button"
+                                            class="action-icon delete"
+                                            title="Delete Course"
+                                            data-delete-url="{{ route('admin.course.delete', $course->id) }}"
+                                            data-name="{{ $course->name }}"
+                                            onclick="openDeleteModal(this)">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="6" class="px-6 py-10 text-center text-gray-500">
+                                    <div class="flex flex-col items-center justify-center gap-3">
+                                        <i class="fas fa-inbox text-3xl"></i>
+                                        <p>No courses found. Start by adding a new course!</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
             </div>
-            @empty
-            <div class="col-span-full text-center text-gray-600">
-                <i class="fas fa-inbox text-4xl mb-2"></i>
-                <p>No courses found. Start by adding a new course!</p>
-            </div>
-            @endforelse
         </div>
 
         <!-- Pagination -->

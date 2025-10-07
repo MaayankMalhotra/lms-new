@@ -36,4 +36,9 @@ class Course extends Model
     {
         return $this->hasMany(Folder::class);
     }
+
+    public function detail()
+    {
+        return $this->hasOne(CourseDetail::class, 'course_id');
+    }
 }

@@ -3,84 +3,64 @@
 @section('content')
 <style>
     body {
-        /* ✅ Better clean background */
         background: url("https://img.freepik.com/free-vector/education-pattern-background-doodle-style_53876-115365.jpg") no-repeat center center fixed;
         background-size: cover;
     }
 
-    .card-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-        gap: 1.5rem;
-    }
-
-    .internship-card {
-        background: rgba(255, 255, 255, 0.95);
-        backdrop-filter: blur(8px);
-        border-radius: 1rem;
-        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
-        overflow: hidden;
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-
-    .internship-card:hover {
-        transform: translateY(-6px);
-        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.25);
-    }
-
-    .internship-logo {
-        width: 100%;
-        height: 160px;
-        object-fit: contain;
-        background: #f9fafb;
-        padding: 1rem;
-    }
-
-    .internship-body {
-        padding: 1rem 1.2rem;
-    }
-
-    .internship-title {
-        font-size: 1.25rem;
-        font-weight: 700;
-        color: #1f2937;
-    }
-
-    .internship-meta {
-        margin-top: 0.5rem;
-        font-size: 0.9rem;
+    .listing-table thead th {
+        font-size: 0.75rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
         color: #6b7280;
     }
 
-    .internship-price {
-        margin-top: 0.75rem;
-        font-size: 1.1rem;
-        font-weight: 600;
+    .listing-table tbody tr:hover {
+        background-color: rgba(59, 130, 246, 0.05);
+    }
+
+    .listing-table td {
+        vertical-align: middle;
+    }
+
+    .action-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 2.5rem;
+        height: 2.5rem;
+        border-radius: 9999px;
+        transition: background-color 0.2s, color 0.2s;
+    }
+
+    .action-icon.edit {
+        background-color: rgba(59, 130, 246, 0.1);
         color: #2563eb;
     }
 
-    .internship-actions {
-        margin-top: 1rem;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
+    .action-icon.edit:hover {
+        background-color: rgba(37, 99, 235, 0.2);
+        color: #1d4ed8;
     }
 
-    .internship-actions button,
-    .internship-actions a {
-        border: none;
-        background: none;
-        cursor: pointer;
-        font-size: 1.1rem;
-        transition: color 0.2s;
+    .action-icon.details {
+        background-color: rgba(34, 197, 94, 0.1);
+        color: #16a34a;
     }
 
-    .internship-actions .edit { color: #3b82f6; }
-    .internship-actions .edit:hover { color: #2563eb; }
-    .internship-actions .detail { color: #16a34a; }
-    .internship-actions .detail:hover { color: #15803d; }
-    .internship-actions .delete { color: #ef4444; }
-    .internship-actions .delete:hover { color: #b91c1c; }
+    .action-icon.details:hover {
+        background-color: rgba(22, 163, 74, 0.2);
+        color: #15803d;
+    }
+
+    .action-icon.delete {
+        background-color: rgba(239, 68, 68, 0.12);
+        color: #dc2626;
+    }
+
+    .action-icon.delete:hover {
+        background-color: rgba(239, 68, 68, 0.2);
+        color: #b91c1c;
+    }
 </style>
 
 <div class="min-h-screen bg-gray-100/60 p-8">
@@ -99,54 +79,78 @@
             </a>
         </div>
 
-        <!-- Internship Cards -->
-        <div class="card-grid">
-            @forelse($internships as $internship)
-            <div class="internship-card">
-                @if($internship->logo)
-                    <img src="{{ asset($internship->logo) }}" alt="{{ $internship->name }}" class="internship-logo">
-                @else
-                    {{-- ✅ Default logo image --}}
-                    <img src="{{ asset('images/default-internship.png') }}" alt="Default Internship Logo" class="internship-logo">
-                @endif
+        <div class="bg-white/95 backdrop-blur rounded-xl shadow-xl overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="min-w-full listing-table">
+                    <thead class="bg-gray-50/80">
+                        <tr>
+                            <th class="px-6 py-3 text-left">Internship</th>
+                            <th class="px-6 py-3 text-left">Duration</th>
+                            <th class="px-6 py-3 text-left">Projects</th>
+                            <th class="px-6 py-3 text-left">Applicants</th>
+                            <th class="px-6 py-3 text-left">Certification</th>
+                            <th class="px-6 py-3 text-right">Price</th>
+                            <th class="px-6 py-3 text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200/70">
+                        @forelse($internships as $internship)
+                            <tr>
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center gap-4">
+                                        <div class="w-14 h-14 rounded-lg border border-gray-200 bg-gray-50 flex items-center justify-center overflow-hidden">
+                                            @if($internship->logo)
+                                                <img src="{{ asset($internship->logo) }}" alt="{{ $internship->name }}" class="object-contain w-full h-full">
+                                            @else
+                                                <img src="{{ asset('images/default-internship.png') }}" alt="Default Internship Logo" class="object-contain w-full h-full">
+                                            @endif
+                                        </div>
+                                        <div>
+                                            <p class="text-sm font-semibold text-gray-900">{{ $internship->name }}</p>
+                                            <p class="text-xs text-gray-500 mt-1">Last updated {{ $internship->updated_at->diffForHumans() }}</p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 text-sm text-gray-700">{{ $internship->duration }}</td>
+                                <td class="px-6 py-4 text-sm text-gray-700">{{ $internship->project }}</td>
+                                <td class="px-6 py-4 text-sm text-gray-700">{{ $internship->applicant }}</td>
+                                <td class="px-6 py-4 text-sm text-gray-700">{{ $internship->certified_button }}</td>
+                                <td class="px-6 py-4 text-sm text-gray-900 text-right font-semibold">₹{{ number_format($internship->price, 2) }}</td>
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center justify-center gap-3">
+                                        <button onclick="openEditModal(`{{ route('admin.internship.edit', $internship->id) }}`)" class="action-icon edit" title="Edit Internship">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
 
-                <div class="internship-body">
-                    <div class="internship-title">{{ $internship->name }}</div>
-                    <div class="internship-meta">
-                        <p><i class="fas fa-certificate mr-1 text-blue-400"></i> {{ $internship->certified_button }}</p>
-                        <p><i class="fas fa-clock mr-1 text-blue-400"></i> {{ $internship->duration }}</p>
-                        <p><i class="fas fa-project-diagram mr-1 text-blue-400"></i> {{ $internship->project }} Projects</p>
-                        <p><i class="fas fa-users mr-1 text-blue-400"></i> {{ $internship->applicant }} Applicants</p>
-                    </div>
-                    <div class="internship-price">₹{{ number_format($internship->price, 2) }}</div>
+                                        @if($internship->has_details)
+                                            <a href="{{ route('course.edit.int', $internship->internship_detail_id) }}" class="action-icon details" title="Edit Internship Details">
+                                                <i class="fas fa-pen-to-square"></i>
+                                            </a>
+                                        @endif
 
-                    <div class="internship-actions">
-                        <button onclick="openEditModal(`{{ route('admin.internship.edit', $internship->id) }}`)" class="edit" title="Edit Internship">
-                            <i class="fas fa-edit"></i>
-                        </button>
-
-                        @if($internship->has_details)
-                        <a href="{{ route('course.edit.int', $internship->internship_detail_id) }}" class="detail" title="Edit Internship Details">
-                            <i class="fas fa-book"></i>
-                        </a>
-                        @endif
-
-                        <form action="{{ route('admin.internship.destroy', $internship->id) }}" method="POST" style="display:inline;">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="delete" onclick="return confirm('Are you sure you want to delete this internship?')" title="Delete Internship">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </form>
-                    </div>
-                </div>
+                                        <form action="{{ route('admin.internship.destroy', $internship->id) }}" method="POST" class="inline-flex">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="action-icon delete" onclick="return confirm('Are you sure you want to delete this internship?')" title="Delete Internship">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="7" class="px-6 py-10 text-center text-gray-500">
+                                    <div class="flex flex-col items-center justify-center gap-3">
+                                        <i class="fas fa-inbox text-3xl"></i>
+                                        <p>No internships found. Start by adding a new internship program!</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
             </div>
-            @empty
-            <div class="col-span-full text-center text-gray-600">
-                <i class="fas fa-inbox text-4xl mb-2"></i>
-                <p>No internships found. Start by adding a new internship program!</p>
-            </div>
-            @endforelse
         </div>
 
         <!-- Pagination -->

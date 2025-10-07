@@ -7,67 +7,50 @@
         background-size: cover;
     }
 
-    .card-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-        gap: 1.5rem;
+    .listing-table thead th {
+        font-size: 0.75rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #6b7280;
     }
 
-    .batch-card {
-        background: rgba(255, 255, 255, 0.95);
-        backdrop-filter: blur(6px);
-        border-radius: 1rem;
-        box-shadow: 0 6px 14px rgba(0, 0, 0, 0.15);
-        overflow: hidden;
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-        padding: 1.25rem;
+    .listing-table tbody tr:hover {
+        background-color: rgba(59, 130, 246, 0.05);
     }
 
-    .batch-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 18px rgba(0, 0, 0, 0.25);
+    .listing-table td {
+        vertical-align: middle;
     }
 
-    .batch-title {
-        font-size: 1.2rem;
-        font-weight: 700;
-        color: #1f2937;
-        margin-bottom: 0.5rem;
+    .action-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 2.5rem;
+        height: 2.5rem;
+        border-radius: 9999px;
+        transition: background-color 0.2s, color 0.2s;
     }
 
-    .batch-meta {
-        font-size: 0.9rem;
-        color: #4b5563;
-        margin-bottom: 0.25rem;
-    }
-
-    .batch-price {
-        margin-top: 0.75rem;
-        font-size: 1.05rem;
-        font-weight: 600;
+    .action-icon.edit {
+        background-color: rgba(59, 130, 246, 0.1);
         color: #2563eb;
     }
 
-    .batch-actions {
-        margin-top: 1rem;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
+    .action-icon.edit:hover {
+        background-color: rgba(37, 99, 235, 0.2);
+        color: #1d4ed8;
     }
 
-    .batch-actions button,
-    .batch-actions a {
-        border: none;
-        background: none;
-        cursor: pointer;
-        font-size: 1.1rem;
-        transition: color 0.2s;
+    .action-icon.delete {
+        background-color: rgba(239, 68, 68, 0.12);
+        color: #dc2626;
     }
 
-    .batch-actions .edit { color: #3b82f6; }
-    .batch-actions .edit:hover { color: #2563eb; }
-    .batch-actions .delete { color: #ef4444; }
-    .batch-actions .delete:hover { color: #b91c1c; }
+    .action-icon.delete:hover {
+        background-color: rgba(239, 68, 68, 0.2);
+        color: #b91c1c;
+    }
 </style>
 
 <div class="p-6">
@@ -97,51 +80,68 @@
         </a>
     </div>
 
-    <!-- Batch Cards -->
-    <div class="card-grid">
-        @forelse ($batches as $batch)
-            <div class="batch-card">
-                <!-- ✅ Start - End Date in Title -->
-                <div class="batch-title">
-                    <i class="fas fa-calendar-alt text-blue-400 mr-2"></i>
-                    {{ $batch->start_date ? \Carbon\Carbon::parse($batch->start_date)->format('d M Y') : 'N/A' }}
-                     – 
-                    {{ $batch->end_date ? \Carbon\Carbon::parse($batch->end_date)->format('d M Y') : 'N/A' }}
-                </div>
-
-                <!-- Meta Info -->
-                <div class="batch-meta"><i class="fas fa-info-circle mr-1 text-blue-400"></i>Status: {{ $batch->status ?? 'N/A' }}</div>
-                <div class="batch-meta"><i class="fas fa-clock mr-1 text-blue-400"></i>Duration: {{ $batch->duration ?? 'N/A' }}</div>
-                <div class="batch-meta"><i class="fas fa-calendar-week mr-1 text-blue-400"></i>Days: {{ $batch->days ?? 'N/A' }}</div>
-                <div class="batch-meta"><i class="fas fa-hourglass-start mr-1 text-blue-400"></i>Time Slot: {{ $batch->time_slot ?? 'N/A' }}</div>
-                <div class="batch-meta"><i class="fas fa-tag mr-1 text-blue-400"></i>Discount: {{ $batch->discount_info ?? 'N/A' }}</div>
-                <div class="batch-meta"><i class="fas fa-users mr-1 text-blue-400"></i>Slots: {{ $batch->slots_available }}/{{ $batch->slots_filled }}</div>
-                <div class="batch-meta"><i class="fas fa-book mr-1 text-blue-400"></i>Course: {{ $batch->course->name ?? 'N/A' }}</div>
-                <div class="batch-meta"><i class="fas fa-chalkboard-teacher mr-1 text-blue-400"></i>Teacher: {{ $batch->teacher->name ?? 'N/A' }}</div>
-
-                <!-- Price -->
-                <div class="batch-price">₹{{ number_format($batch->price, 2) }}</div>
-
-                <!-- Actions -->
-                <div class="batch-actions">
-                    <button onclick="openEditModal({{ $batch->id }})" class="edit" title="Edit Batch">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <form action="{{ route('admin.batches.destroy', $batch->id) }}" method="POST" style="display:inline;">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="delete" onclick="return confirm('Are you sure you want to delete this batch?')" title="Delete Batch">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </form>
-                </div>
-            </div>
-        @empty
-            <div class="col-span-full text-center text-gray-600">
-                <i class="fas fa-inbox text-4xl mb-2"></i>
-                <p>No batches found.</p>
-            </div>
-        @endforelse
+    <div class="bg-white/95 backdrop-blur rounded-xl shadow-xl overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="min-w-full listing-table">
+                <thead class="bg-gray-50/80">
+                    <tr>
+                        <th class="px-6 py-3 text-left">Schedule</th>
+                        <th class="px-6 py-3 text-left">Status</th>
+                        <th class="px-6 py-3 text-left">Duration</th>
+                        <th class="px-6 py-3 text-left">Time Slot</th>
+                        <th class="px-6 py-3 text-left">Slots</th>
+                        <th class="px-6 py-3 text-left">Course</th>
+                        <th class="px-6 py-3 text-left">Teacher</th>
+                        <th class="px-6 py-3 text-right">Price</th>
+                        <th class="px-6 py-3 text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200/70">
+                    @forelse ($batches as $batch)
+                        @php
+                            $start = $batch->start_date ? \Carbon\Carbon::parse($batch->start_date)->format('d M Y') : 'N/A';
+                            $end = $batch->end_date ? \Carbon\Carbon::parse($batch->end_date)->format('d M Y') : 'N/A';
+                        @endphp
+                        <tr>
+                            <td class="px-6 py-4 text-sm text-gray-900">
+                                <div class="font-semibold">{{ $start }} – {{ $end }}</div>
+                                <div class="text-xs text-gray-500 mt-1">Days: {{ $batch->days ?? 'N/A' }}</div>
+                            </td>
+                            <td class="px-6 py-4 text-sm text-gray-700">{{ $batch->status ?? 'N/A' }}</td>
+                            <td class="px-6 py-4 text-sm text-gray-700">{{ $batch->duration ?? 'N/A' }}</td>
+                            <td class="px-6 py-4 text-sm text-gray-700">{{ $batch->time_slot ?? 'N/A' }}</td>
+                            <td class="px-6 py-4 text-sm text-gray-700">{{ $batch->slots_available }}/{{ $batch->slots_filled }}</td>
+                            <td class="px-6 py-4 text-sm text-gray-700">{{ $batch->course->name ?? 'N/A' }}</td>
+                            <td class="px-6 py-4 text-sm text-gray-700">{{ $batch->teacher->name ?? 'N/A' }}</td>
+                            <td class="px-6 py-4 text-sm text-right text-gray-900 font-semibold">₹{{ number_format($batch->price, 2) }}</td>
+                            <td class="px-6 py-4">
+                                <div class="flex items-center justify-center gap-3">
+                                    <button onclick="openEditModal({{ $batch->id }})" class="action-icon edit" title="Edit Batch">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <form action="{{ route('admin.batches.destroy', $batch->id) }}" method="POST" class="inline-flex">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="action-icon delete" onclick="return confirm('Are you sure you want to delete this batch?')" title="Delete Batch">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="9" class="px-6 py-10 text-center text-gray-500">
+                                <div class="flex flex-col items-center justify-center gap-3">
+                                    <i class="fas fa-inbox text-3xl"></i>
+                                    <p>No batches found.</p>
+                                </div>
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
     </div>
 
     <!-- Pagination (if paginate() used in controller) -->
