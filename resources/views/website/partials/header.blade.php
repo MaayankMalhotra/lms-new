@@ -105,7 +105,7 @@
                         class="dropdown-content absolute bg-black/90 rounded-lg p-2 min-w-[200px] mt-2 shadow-lg z-50">
                         <a href="{{ route('website.course') }}"
                             class="block px-4 py-2 text-white hover:bg-orange-500 rounded-md transition-colors">Courses</a>
-                        <a href="{{ route('website.internship_details') }}"
+                        <a href="{{ route('website.internship') }}"
                             class="block px-4 py-2 text-white hover:bg-orange-500 rounded-md transition-colors">Internships</a>
                         
                     </div>
@@ -182,7 +182,7 @@
                     <div id="mobile-offer-dropdown" class="mobile-dropdown-content">
                         <a href="{{ route('website.course') }}"
                             class="block px-4 py-2 text-white hover:bg-orange-500 rounded-md transition-colors">Courses</a>
-                        <a href="{{ route('website.internship_details') }}"
+                        <a href="{{ route('website.internship') }}"
                             class="block px-4 py-2 text-white hover:bg-orange-500 rounded-md transition-colors">Internships</a>
                         
                     </div>
