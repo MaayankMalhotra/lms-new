@@ -347,7 +347,7 @@
                                 <p><i class="fas fa-users"></i> <span class="font-bold">{{ $course->placed_count }}+ Placed</span></p>
                                 <p>⭐ {{ $course->rating }} ({{ $course->student_count }}+ students)</p>
                             </div>
-                            <button class="mt-4 w-full bg-[#ff7b00] text-white py-2 rounded-lg font-bold hover:bg-[#ff5500] transition-all">Register Now</button>
+                            <a href="{{ route('website.course') }}" class="mt-4 block w-full bg-[#ff7b00] text-white py-2 rounded-lg font-bold text-center hover:bg-[#ff5500] transition-all">Register Now</a>
                         </div>
                     @endforeach
                 </div>
@@ -369,7 +369,7 @@
                             <img src="{{ $upcomingCourse->image }}" class="w-12 h-12 mx-auto my-4 transition-transform hover:[transform:rotateY(180deg)]" alt="{{ $upcomingCourse->title }}" />
                             <p class="text-gray-600"><i class="fas fa-calendar"></i> Start Date: <span class="font-bold">{{ \Carbon\Carbon::parse($upcomingCourse->start_date)->format('F d, Y') }}</span></p>
                             <p class="text-green-600 mt-2"><i class="fas fa-check-circle"></i> {{ $upcomingCourse->slots_open ? 'Slots Open' : 'Slots Closed' }}</p>
-                            <button class="mt-4 w-full bg-[#ff7b00] text-white py-2 rounded-lg font-bold hover:bg-[#ff5500] transition-all">Pre-register Now</button>
+                            <a href="{{ route('website.course') }}" class="mt-4 block w-full bg-[#ff7b00] text-white py-2 rounded-lg font-bold text-center hover:bg-[#ff5500] transition-all">Pre-register Now</a>
                         </div>
                     @endforeach
                 </div>
@@ -393,7 +393,7 @@
                                 <p>⭐ {{ $internship->rating }} ({{ $internship->applicant_count }}+ applicants)</p>
                             </div>
                             <span class="inline-block bg-[#ffd700] text-[#333] px-3 py-1 rounded-full text-sm font-bold mt-2">{{ $internship->certification }}</span>
-                            <button class="mt-4 w-full bg-[#ff7b00] text-white py-2 rounded-lg font-bold hover:bg-[#ff5500] transition-all">Register Now</button>
+                            <a href="{{ route('website.internship') }}" class="mt-4 block w-full bg-[#ff7b00] text-white py-2 rounded-lg font-bold text-center hover:bg-[#ff5500] transition-all">Register Now</a>
                         </div>
                     @endforeach
                 </div>
@@ -812,21 +812,32 @@ document.addEventListener("DOMContentLoaded", function () {
     const loader = document.getElementById("page-loader");
     const popup  = document.getElementById("user-popup");
     const closeBtn = document.getElementById("close-popup");
-    const form   = document.getElementById("userForm");
+    const popupForm = document.getElementById("popupForm");
 
-    setTimeout(() => {
-        loader.style.display = "none";
-        popup.classList.remove("hidden");
-    }, 2000);
+    if (loader) {
+        setTimeout(() => {
+            loader.style.display = "none";
+            if (popup) {
+                popup.classList.remove("hidden");
+            }
+        }, 2000);
+    } else if (popup) {
+        setTimeout(() => popup.classList.remove("hidden"), 2000);
+    }
 
-    closeBtn.addEventListener("click", () => popup.classList.add("hidden"));
-    form.addEventListener("submit", (e) => {
-        e.preventDefault();
-        const data = Object.fromEntries(new FormData(form).entries());
-        console.log("User Popup Data:", data);
-        alert("🎉 Thank you, " + data.name + "! Your details have been saved.");
-        popup.classList.add("hidden");
-    });
+    if (closeBtn && popup) {
+        closeBtn.addEventListener("click", () => popup.classList.add("hidden"));
+    }
+
+    if (popupForm && popup) {
+        popupForm.addEventListener("submit", (e) => {
+            e.preventDefault();
+            const data = Object.fromEntries(new FormData(popupForm).entries());
+            console.log("User Popup Data:", data);
+            alert("🎉 Thank you, " + data.name + "! Your details have been saved.");
+            popup.classList.add("hidden");
+        });
+    }
 
     /* Tabs logic */
     const tabs = document.querySelectorAll(".nav-tab");
@@ -840,11 +851,16 @@ document.addEventListener("DOMContentLoaded", function () {
 
         tab.setAttribute("data-active", "true");
         const targetTab = tab.dataset.tab;
-        document.getElementById(targetTab).classList.remove("hidden");
+        const targetPane = document.getElementById(targetTab);
+        if (targetPane) {
+            targetPane.classList.remove("hidden");
+        }
 
         const viewAllId = `viewAll${targetTab.replace("study", "")}`;
         const viewAll = document.getElementById(viewAllId);
-        if (viewAll) viewAll.classList.remove("hidden");
+        if (viewAll) {
+            viewAll.classList.remove("hidden");
+        }
     }
     tabs.forEach(tab => tab.addEventListener("click", function (e) { e.preventDefault(); activateTab(this); }));
     if (tabs[0]) activateTab(tabs[0]);
