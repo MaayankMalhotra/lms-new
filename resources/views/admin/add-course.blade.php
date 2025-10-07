@@ -12,6 +12,23 @@
                 <p class="text-gray-500">Fill in the details to add a new course to the platform</p>
             </div>
 
+            @if(session('success'))
+                <div class="mb-6 p-4 rounded-lg bg-green-50 text-green-700 border border-green-200">
+                    {{ session('success') }}
+                </div>
+            @endif
+
+            @if ($errors->any())
+                <div class="mb-6 p-4 rounded-lg bg-red-50 text-red-700 border border-red-200">
+                    <div class="font-semibold mb-2">Please fix the errors below:</div>
+                    <ul class="list-disc pl-5">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
             <form action="{{ route('admin.course.store') }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 
@@ -24,8 +41,12 @@
                                 <i class="fas fa-book mr-2 text-blue-400"></i>Course Name
                             </label>
                             <input type="text" name="name" required 
-                                   class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+                                   value="{{ old('name') }}"
+                                   class="w-full px-4 py-3 rounded-lg border {{ $errors->has('name') ? 'border-red-400' : 'border-gray-200' }} focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
                                    placeholder="Advanced Web Development">
+                            @error('name')
+                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
                         </div>
 
                         <div class="relative">
@@ -33,8 +54,12 @@
                                 <i class="fas fa-hashtag mr-2 text-blue-400"></i>Course Code Id
                             </label>
                             <input type="text" name="course_code_id" required 
-                                   class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+                                   value="{{ old('course_code_id') }}"
+                                   class="w-full px-4 py-3 rounded-lg border {{ $errors->has('course_code_id') ? 'border-red-400' : 'border-gray-200' }} focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
                                    placeholder="adv-web-dev">
+                            @error('course_code_id')
+                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
                         </div>
                     </div>
 
@@ -44,14 +69,17 @@
                             <i class="fas fa-image mr-2 text-blue-400"></i>Course Logo
                         </label>
                         <div class="flex items-center justify-center w-full">
-                            <label class="flex flex-col w-full h-32 border-4 border-dashed hover:border-gray-300 hover:bg-gray-50 transition-all rounded-xl cursor-pointer">
+                            <label class="flex flex-col w-full h-32 border-4 border-dashed hover:border-gray-300 hover:bg-gray-50 transition-all rounded-xl cursor-pointer {{ $errors->has('logo') ? 'border-red-400' : '' }}">
                                 <div class="flex flex-col items-center justify-center pt-7">
                                     <i class="fas fa-cloud-upload-alt text-3xl text-gray-400 mb-2"></i>
                                     <p class="text-sm text-gray-500">Drag & drop or click to upload</p>
                                 </div>
-                                <input type="file" name="logo" class="opacity-0">
+                                <input type="file" name="logo" accept="image/*" class="opacity-0">
                             </label>
                         </div>
+                        @error('logo')
+                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
                     </div>
 
                     <!-- Duration & Learners -->
@@ -60,18 +88,26 @@
                             <label class="block text-sm font-medium text-gray-700 mb-2">
                                 <i class="fas fa-clock mr-2 text-blue-400"></i>Course Duration
                             </label>
-                            <input type="text" name="duration" 
-                                   class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+                            <input type="text" name="duration" required
+                                   value="{{ old('duration') }}"
+                                   class="w-full px-4 py-3 rounded-lg border {{ $errors->has('duration') ? 'border-red-400' : 'border-gray-200' }} focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
                                    placeholder="300 hours / 3 months">
+                            @error('duration')
+                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
                         </div>
 
                         <div class="relative">
                             <label class="block text-sm font-medium text-gray-700 mb-2">
                                 <i class="fas fa-users mr-2 text-blue-400"></i>Placed Learners
                             </label>
-                            <input type="number" name="placed_learner" required 
-                                   class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+                            <input type="number" name="placed_learner" required min="0" step="1"
+                                   value="{{ old('placed_learner') }}"
+                                   class="w-full px-4 py-3 rounded-lg border {{ $errors->has('placed_learner') ? 'border-red-400' : 'border-gray-200' }} focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
                                    placeholder="Enter number">
+                            @error('placed_learner')
+                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
                         </div>
                     </div>
 
@@ -82,8 +118,12 @@
                                 <i class="fas fa-link mr-2 text-blue-400"></i>Course Slug
                             </label>
                             <input type="text" name="slug" required 
-                                   class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+                                   value="{{ old('slug') }}"
+                                   class="w-full px-4 py-3 rounded-lg border {{ $errors->has('slug') ? 'border-red-400' : 'border-gray-200' }} focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
                                    placeholder="advance-web-development-course">
+                            @error('slug')
+                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
                         </div>
 
                         <div class="relative">
@@ -91,9 +131,13 @@
                                 <i class="fas fa-star mr-2 text-blue-400"></i>Course Rating : Example - 4.8 (17K+ students)
                             </label>
                             <div class="relative">
-                                <input type="text" name="rating" step="0.1" 
-                                       class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+                                <input type="text" name="rating" required
+                                       value="{{ old('rating') }}"
+                                       class="w-full px-4 py-3 rounded-lg border {{ $errors->has('rating') ? 'border-red-400' : 'border-gray-200' }} focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
                                        placeholder="4.8 (17K+ students)">
+                                @error('rating')
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
                             </div>
                         </div>
                     </div>
@@ -104,9 +148,13 @@
                             <i class="fas fa-tag mr-2 text-blue-400"></i>Course Price
                         </label>
                         <div class="relative">
-                            <input type="text" name="price" 
-                                   class="w-full pl-8 pr-4 py-3 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
-                                   placeholder="Rs .10,999">
+                            <input type="number" name="price" required min="0" step="0.01"
+                                   value="{{ old('price') }}"
+                                   class="w-full pl-8 pr-4 py-3 rounded-lg border {{ $errors->has('price') ? 'border-red-400' : 'border-gray-200' }} focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+                                   placeholder="10999">
+                            @error('price')
+                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
                         </div>
                     </div>
                 </div>

@@ -14,11 +14,11 @@
       <div class="footer-section">
         <h3 class="text-lg font-semibold mb-4">Quick Nav</h3>
         <ul class="space-y-2">
-          <li><a href="#" class="text-gray-400 hover:text-white transition duration-300">Home</a></li>
-          <li><a href="course.html" class="text-gray-400 hover:text-white transition duration-300">Courses</a></li>
-          <li><a href="internship_coures.html" class="text-gray-400 hover:text-white transition duration-300">Internships</a></li>
-          <li><a href="webinar.html" class="text-gray-400 hover:text-white transition duration-300">Workshops</a></li>
-          <li><a href="#" class="text-gray-400 hover:text-white transition duration-300">Store</a></li>
+          <li><a href="{{ route('home-page') }}" class="text-gray-400 hover:text-white transition duration-300">Home</a></li>
+          <li><a href="{{ route('website.course') }}" class="text-gray-400 hover:text-white transition duration-300">Courses</a></li>
+          <li><a href="{{ route('website.internship_details') }}" class="text-gray-400 hover:text-white transition duration-300">Internships</a></li>
+          <li><a href="https://wa.me/919876543210?text=Hi%20I%20am%20interested%20in%20upcoming%20workshops%20%F0%9F%93%9A" target="_blank" rel="noopener" class="text-gray-400 hover:text-white transition duration-300">Workshops</a></li>
+          <li><a href="https://wa.me/919876543210?text=Hi%20I%20want%20to%20know%20about%20the%20store%20%F0%9F%9A%9A" target="_blank" rel="noopener" class="text-gray-400 hover:text-white transition duration-300">Store</a></li>
         </ul>
       </div>
 
@@ -26,11 +26,11 @@
       <div class="footer-section">
         <h3 class="text-lg font-semibold mb-4">Know</h3>
         <ul class="space-y-2">
-          <li><a href="about.html" class="text-gray-400 hover:text-white transition duration-300">About Us</a></li>
-          <li><a href="#" class="text-gray-400 hover:text-white transition duration-300">Our Mission</a></li>
-          <li><a href="#" class="text-gray-400 hover:text-white transition duration-300">Services</a></li>
-          <li><a href="#" class="text-gray-400 hover:text-white transition duration-300">Social Impact</a></li>
-          <li><a href="#" class="text-gray-400 hover:text-white transition duration-300">Get in Touch</a></li>
+          <li><a href="{{ route('about-page') }}" class="text-gray-400 hover:text-white transition duration-300">About Us</a></li>
+          <li><a href="https://wa.me/919876543210?text=Hi%20tell%20me%20more%20about%20your%20mission%20%F0%9F%9A%80" target="_blank" rel="noopener" class="text-gray-400 hover:text-white transition duration-300">Our Mission</a></li>
+          <li><a href="https://wa.me/919876543210?text=Hi%20I%20need%20details%20on%20your%20services%20%F0%9F%94%8D" target="_blank" rel="noopener" class="text-gray-400 hover:text-white transition duration-300">Services</a></li>
+          <li><a href="https://wa.me/919876543210?text=Hi%20share%20your%20social%20impact%20initiatives%20%F0%9F%8C%8F" target="_blank" rel="noopener" class="text-gray-400 hover:text-white transition duration-300">Social Impact</a></li>
+          <li><a href="{{ route('website.contact') }}" class="text-gray-400 hover:text-white transition duration-300">Get in Touch</a></li>
         </ul>
       </div>
 
@@ -38,13 +38,16 @@
       <div class="footer-section">
         <h3 class="text-lg font-semibold mb-4">Follow Us</h3>
         <div class="flex space-x-4">
-          <a href="#" class="social-icon glass bg-gray-800 p-3 rounded-lg hover:bg-gray-700 transition duration-300">
+          <a href="https://www.facebook.com/ThinkChamp" target="_blank" rel="noopener noreferrer" title="Facebook" aria-label="Facebook"
+             class="social-icon glass bg-gray-800 p-3 rounded-lg hover:bg-gray-700 transition duration-300">
             <i class="fab fa-facebook-f text-white"></i>
           </a>
-          <a href="#" class="social-icon glass bg-gray-800 p-3 rounded-lg hover:bg-gray-700 transition duration-300">
+          <a href="https://twitter.com/ThinkChamp" target="_blank" rel="noopener noreferrer" title="Twitter" aria-label="Twitter"
+             class="social-icon glass bg-gray-800 p-3 rounded-lg hover:bg-gray-700 transition duration-300">
             <i class="fab fa-twitter text-white"></i>
           </a>
-          <a href="#" class="social-icon glass bg-gray-800 p-3 rounded-lg hover:bg-gray-700 transition duration-300">
+          <a href="https://www.instagram.com/ThinkChamp" target="_blank" rel="noopener noreferrer" title="Instagram" aria-label="Instagram"
+             class="social-icon glass bg-gray-800 p-3 rounded-lg hover:bg-gray-700 transition duration-300">
             <i class="fab fa-instagram text-white"></i>
           </a>
         </div>

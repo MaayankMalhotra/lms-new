@@ -189,6 +189,19 @@ Route::get('/course', function () {
     return view('website.course', compact('courses'));
 })->name('website.course');
 
+// Internship listing page (mirrors /course)
+Route::get('/internship', function () {
+    if (Auth::user() && Auth::user()->role == 1) {
+        return to_route('admin.dash');
+    } elseif (Auth::user() && Auth::user()->role == 2) {
+        return to_route('trainer.dashboard');
+    } elseif (Auth::user() && Auth::user()->role == 3) {
+        return to_route('student.dashboard');
+    }
+    $internships = Internship::all();
+    return view('website.internship_course', compact('internships'));
+})->name('website.internship');
+
 // Route::get('/internship_details', function () {
 //     if (Auth::user() && Auth::user()->role == 1) {
 //         return to_route('admin.dash');
