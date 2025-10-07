@@ -55,6 +55,45 @@
             </main>
         </div>
     </div>
+@stack('scripts')
 </body>
 <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
+<script>
+    (function () {
+        try {
+            const stored = localStorage.getItem('adminPanelBg');
+            if (!stored) {
+                return;
+            }
+
+            const parsed = JSON.parse(stored);
+            if (!parsed || typeof parsed !== 'object') {
+                return;
+            }
+
+            const {
+                image,
+                size = 'cover',
+                repeat = 'no-repeat',
+                position = 'center center',
+                color = ''
+            } = parsed;
+
+            if (!image) {
+                return;
+            }
+
+            const body = document.body;
+            body.style.backgroundImage = `url('${image}')`;
+            body.style.backgroundSize = size;
+            body.style.backgroundRepeat = repeat;
+            body.style.backgroundPosition = position;
+            if (color) {
+                body.style.backgroundColor = color;
+            }
+        } catch (error) {
+            console.warn('Unable to apply stored admin background', error);
+        }
+    })();
+</script>
 </html>

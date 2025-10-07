@@ -25,6 +25,12 @@
                 <i class="fas fa-home mr-3 text-lg"></i> Dashboard
             </a>
         </li>
+        <li>
+            <a href="{{ route('admin.background.settings') }}"
+                class="flex items-center p-3 {{ request()->routeIs('admin.background.settings') ? 'bg-[#ff9800] text-white' : 'hover:bg-[#ff9800] hover:text-white' }} rounded transition">
+                <i class="fas fa-image mr-3 text-lg"></i> Panel Background
+            </a>
+        </li>
 
         @if (auth()->user()->role == 3)
             <!-- Student Quiz -->

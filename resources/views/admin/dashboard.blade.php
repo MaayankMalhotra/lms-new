@@ -62,6 +62,23 @@
                 </div>
             </div>
 
+            {{-- Pending Student Fees --}}
+            <div class="bg-white shadow-lg rounded-xl p-6 flex items-center space-x-4 hover:shadow-xl transition">
+                <div class="w-14 h-14 flex items-center justify-center bg-orange-100 rounded-full">
+                    <img src="https://cdn-icons-png.flaticon.com/128/3500/3500833.png" class="w-9 h-9" alt="">
+                </div>
+                <div>
+                    <h3 class="text-2xl font-bold text-gray-700">₹{{ number_format((float)$pendingFeesAmount, 2) }}</h3>
+                    <p class="text-gray-500 text-sm">Pending Student Fees</p>
+                    <p class="text-xs text-gray-400 mt-1">
+                        {{ $pendingFeesStudents }} student{{ $pendingFeesStudents === 1 ? '' : 's' }} pending
+                        @if ($pendingFeesNextDueDate)
+                            • Next due {{ $pendingFeesNextDueDate }}
+                        @endif
+                    </p>
+                </div>
+            </div>
+
             {{-- Monthly Growth --}}
             @php $growthUp = (float)$monthlyGrowth >= 0; @endphp
             <div class="bg-white shadow-lg rounded-xl p-6 flex items-center space-x-4 hover:shadow-xl transition">

@@ -49,6 +49,10 @@ use App\Http\Controllers\HireController;
  use App\Models\Student;
 use App\Models\Assignment;
 use App\Models\Quiz;
+use App\Models\Payment;
+use App\Models\User;
+use App\Models\Trainer;
+use Carbon\Carbon;
 
 
 
@@ -260,15 +264,6 @@ Route::get('/trainer-dashboard', function () {
     //     return view('admin.dashboard');
     // })->name('admin.dash');
 
-   
-
-
-use App\Models\Payment;
-use App\Models\Trainer;
-use Carbon\Carbon;
-  use App\Models\User;
-
-
 Route::get('/dashboard', function () {
     // 1. Registrations
  
@@ -336,6 +331,54 @@ $activeStudents = DB::table('users')
     //     'totalTrainers' => $totalTrainers,
     // ]);
 
+    $pendingFeesAmount = 0;
+    $pendingFeeStudentIds = [];
+    $nextPendingFeeDueDate = null;
+
+    Payment::where('payment_method', 'emi')
+        ->whereNotNull('emi_schedule')
+        ->chunk(100, function ($payments) use (&$pendingFeesAmount, &$pendingFeeStudentIds, &$nextPendingFeeDueDate) {
+            foreach ($payments as $payment) {
+                $schedule = $payment->emi_schedule;
+
+                if (!is_array($schedule) || empty($schedule)) {
+                    continue;
+                }
+
+                $pendingForPayment = 0;
+
+                foreach ($schedule as $installment) {
+                    $status = $installment['status'] ?? 'pending';
+
+                    if ($status === 'paid') {
+                        continue;
+                    }
+
+                    $pendingForPayment += (float) ($installment['amount'] ?? 0);
+
+                    if (!empty($installment['due_date'])) {
+                        try {
+                            $dueDate = Carbon::parse($installment['due_date']);
+
+                            if (is_null($nextPendingFeeDueDate) || $dueDate->lt($nextPendingFeeDueDate)) {
+                                $nextPendingFeeDueDate = $dueDate;
+                            }
+                        } catch (\Exception $e) {
+                            // Ignore invalid date formats
+                        }
+                    }
+                }
+
+                if ($pendingForPayment > 0) {
+                    $pendingFeesAmount += $pendingForPayment;
+                    $pendingFeeStudentIds[$payment->user_id] = true;
+                }
+            }
+        });
+
+    $pendingFeesStudents = count($pendingFeeStudentIds);
+    $pendingFeesNextDueDate = $nextPendingFeeDueDate ? $nextPendingFeeDueDate->format('d M Y') : null;
+
     return view('admin.dashboard', compact(
         'totalRegistrations',
         'thisMonthRegistrations',
@@ -345,7 +388,10 @@ $activeStudents = DB::table('users')
           'thisMonthRevenue',    // ✅ new
         'lastMonthRevenue'  ,   // ✅ new
         'monthlyGrowth',
-        'totalTrainers'
+        'totalTrainers',
+        'pendingFeesAmount',
+        'pendingFeesStudents',
+        'pendingFeesNextDueDate'
     ));
 })->name('admin.dash');
 
@@ -360,6 +406,10 @@ $activeStudents = DB::table('users')
             Route::put('/{course}', [CourseController::class, 'update'])->name('update');
             Route::delete('/{course}', [CourseController::class, 'destroy'])->name('delete');
         });
+
+        Route::get('/background-settings', function () {
+            return view('admin.background-settings');
+        })->name('background.settings');
 
         Route::prefix('internship')->name('internship.')->group(function () {
             Route::get('/add', [InternshipController::class, 'create'])->name('add');
