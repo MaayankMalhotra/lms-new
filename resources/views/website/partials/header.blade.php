@@ -243,53 +243,73 @@
             });
         });
 
-        // Desktop dropdowns
-        function setupDesktopDropdown(buttonId, dropdownId, chevronId) {
-            const button = document.getElementById(buttonId);
-            const dropdown = document.getElementById(dropdownId);
-            const chevron = document.getElementById(chevronId);
+        const desktopDropdownConfig = [
+            { buttonId: 'courses-btn', dropdownId: 'courses-dropdown', chevronId: 'courses-chevron' },
+            { buttonId: 'offer-btn', dropdownId: 'offer-dropdown', chevronId: 'offer-chevron' },
+            { buttonId: 'update-btn', dropdownId: 'update-dropdown', chevronId: 'update-chevron' }
+        ];
 
-            if (button && dropdown && chevron) {
-                button.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    dropdown.classList.toggle('is-open');
-                    chevron.classList.toggle('rotate-180');
-                });
+        const desktopDropdowns = desktopDropdownConfig.map(({ buttonId, dropdownId, chevronId }) => ({
+            button: document.getElementById(buttonId),
+            dropdown: document.getElementById(dropdownId),
+            chevron: document.getElementById(chevronId)
+        })).filter(({ button, dropdown, chevron }) => button && dropdown && chevron);
 
-                // Close when clicking elsewhere
-                document.addEventListener('click', function() {
-                    dropdown.classList.remove('is-open');
-                    chevron.classList.remove('rotate-180');
-                });
+        const closeAllDesktopDropdowns = () => {
+            desktopDropdowns.forEach(({ dropdown, chevron }) => {
+                dropdown.classList.remove('is-open');
+                chevron.classList.remove('rotate-180');
+            });
+        };
 
-                // Prevent dropdown from closing when clicking inside
-                dropdown.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                });
-            }
-        }
+        desktopDropdowns.forEach(({ button, dropdown, chevron }) => {
+            button.addEventListener('click', function (e) {
+                e.stopPropagation();
+                const isOpen = dropdown.classList.contains('is-open');
+                closeAllDesktopDropdowns();
 
-        // Mobile dropdowns
-        function setupMobileDropdown(buttonId, dropdownId, chevronId) {
-            const button = document.getElementById(buttonId);
-            const dropdown = document.getElementById(dropdownId);
-            const chevron = document.getElementById(chevronId);
+                if (!isOpen) {
+                    dropdown.classList.add('is-open');
+                    chevron.classList.add('rotate-180');
+                }
+            });
 
-            if (button && dropdown && chevron) {
-                button.addEventListener('click', function() {
-                    dropdown.classList.toggle('is-open');
-                    chevron.classList.toggle('rotate-180');
-                });
-            }
-        }
+            dropdown.addEventListener('click', function (e) {
+                e.stopPropagation();
+            });
+        });
 
-        // Initialize dropdowns
-        setupDesktopDropdown('courses-btn', 'courses-dropdown', 'courses-chevron');
-        setupDesktopDropdown('offer-btn', 'offer-dropdown', 'offer-chevron');
-        setupDesktopDropdown('update-btn', 'update-dropdown', 'update-chevron');
+        document.addEventListener('click', closeAllDesktopDropdowns);
 
-        setupMobileDropdown('mobile-courses-btn', 'mobile-courses-dropdown', 'mobile-courses-chevron');
-        setupMobileDropdown('mobile-offer-btn', 'mobile-offer-dropdown', 'mobile-offer-chevron');
-        setupMobileDropdown('mobile-update-btn', 'mobile-update-dropdown', 'mobile-update-chevron');
+        const mobileDropdownConfig = [
+            { buttonId: 'mobile-courses-btn', dropdownId: 'mobile-courses-dropdown', chevronId: 'mobile-courses-chevron' },
+            { buttonId: 'mobile-offer-btn', dropdownId: 'mobile-offer-dropdown', chevronId: 'mobile-offer-chevron' },
+            { buttonId: 'mobile-update-btn', dropdownId: 'mobile-update-dropdown', chevronId: 'mobile-update-chevron' }
+        ];
+
+        const mobileDropdowns = mobileDropdownConfig.map(({ buttonId, dropdownId, chevronId }) => ({
+            button: document.getElementById(buttonId),
+            dropdown: document.getElementById(dropdownId),
+            chevron: document.getElementById(chevronId)
+        })).filter(({ button, dropdown, chevron }) => button && dropdown && chevron);
+
+        const closeAllMobileDropdowns = () => {
+            mobileDropdowns.forEach(({ dropdown, chevron }) => {
+                dropdown.classList.remove('is-open');
+                chevron.classList.remove('rotate-180');
+            });
+        };
+
+        mobileDropdowns.forEach(({ button, dropdown, chevron }) => {
+            button.addEventListener('click', function () {
+                const isOpen = dropdown.classList.contains('is-open');
+                closeAllMobileDropdowns();
+
+                if (!isOpen) {
+                    dropdown.classList.add('is-open');
+                    chevron.classList.add('rotate-180');
+                }
+            });
+        });
     });
 </script>
