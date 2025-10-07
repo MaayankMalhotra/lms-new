@@ -639,28 +639,40 @@
             <div class="space-y-4">
                 <div class="text-center space-y-4">
                     <h2 class="text-3xl lg:text-5xl font-bold bg-gradient-to-r from-orange-500 to-amber-600 bg-clip-text text-transparent">Testimonials</h2>
-                    <p class="text-xl lg:text-2xl font-semibold text-gray-800">Our Students Are Our Strength.<br>See What They Say About Us</p>
+                    <p class="text-xl lg:text-2xl font-semibold text-black">Our Students Are Our Strength.<br>See What They Say About Us</p>
                 </div>
                 <div class="swiper testimonialSwiper relative">
                     <div class="swiper-wrapper">
-                        @foreach($testimonials as $testimonial)
-                            <div class="swiper-slide">
-                                <div class="bg-white p-8 rounded-3xl shadow-lg border border-gray-100 relative">
-                                    <p class="text-gray-600 text-lg relative z-10">{{ $testimonial->content }}</p>
-                                    <div class="flex items-center gap-6 mt-8">
-                                        <img src="{{ asset('storage/' . $testimonial->image) }}" alt="{{ $testimonial->name }}" class="w-20 h-20 rounded-full border-4 border-white shadow-lg">
-                                        <div>
-                                            <h4 class="text-xl font-bold text-gray-800">{{ $testimonial->name }}</h4>
-                                            <p class="text-gray-600">{{ $testimonial->designation }}</p>
-                                            <div class="flex items-center mt-2">
-                                                <div class="flex text-amber-400">{!! str_repeat('★', floor($testimonial->rating)) !!}{!! str_repeat('☆', 5 - floor($testimonial->rating)) !!}</div>
-                                                <span class="ml-2 text-gray-500">{{ $testimonial->rating }}/5</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        @endforeach
+@foreach($testimonials as $testimonial)
+    <div class="swiper-slide">
+        <div class="bg-white p-8 rounded-3xl shadow-lg border border-gray-100 relative">
+            {{-- Testimonial Content --}}
+            <p class="text-gray-800 text-lg font-medium relative z-10">
+                {{ $testimonial->content }}
+            </p>
+
+            {{-- Author Info --}}
+            <div class="flex items-center gap-6 mt-8">
+                <img src="{{ asset('storage/' . $testimonial->image) }}" 
+                     alt="{{ $testimonial->name }}" 
+                     class="w-20 h-20 rounded-full border-4 border-white shadow-lg">
+
+                <div>
+                    <h4 class="text-xl font-bold text-gray-900">{{ $testimonial->name }}</h4>
+                    <p class="text-gray-700">{{ $testimonial->designation }}</p>
+
+                    <div class="flex items-center mt-2">
+                        <div class="flex text-amber-400">
+                            {!! str_repeat('★', floor($testimonial->rating)) !!}
+                            {!! str_repeat('☆', 5 - floor($testimonial->rating)) !!}
+                        </div>
+                        <span class="ml-2 text-gray-800 font-medium">{{ $testimonial->rating }}/5</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+@endforeach
                     </div>
                     <div class="flex items-center justify-center gap-4 mt-8">
                         <div class="swiper-button-prev carousel-prev"></div>

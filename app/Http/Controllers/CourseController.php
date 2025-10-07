@@ -18,39 +18,38 @@ class CourseController extends Controller
 
   public function storeCourse(Request $request)
 {
-    // Dump the request data for debugging
-   // dd($request->all());
+    // Validate request (redirects back with errors automatically on failure)
+    $validated = $request->validate([
+        'name'            => 'required|string|max:255',
+        'course_code_id'  => 'required|string|max:255|unique:courses,course_code_id',
+        'logo'            => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:4096',
+        'duration'        => 'required|string|max:255',
+        'placed_learner'  => 'required|integer|min:0',
+        'slug'            => 'required|string|max:255|unique:courses,slug',
+        // Keep rating flexible (stored as string in UI e.g. "4.8 (17K+ students)")
+        'rating'          => 'required|string|max:255',
+        'price'           => 'required|numeric|min:0',
+    ]);
 
-    try {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'course_code_id' => 'required|unique:courses|max:255',
-            'logo' => 'nullable|image',
-            'duration' => 'required',
-            'placed_learner' => 'required',
-            'slug' => 'required|unique:courses|max:255',
-            'rating' => 'required',
-            'price' => 'required|numeric',
-        ]);
-    } catch (\Illuminate\Validation\ValidationException $e) {
-        // Dump the validation errors and stop execution
-        dd($e->errors());
-    }
-
+    // Handle logo upload to public/courses and save relative path
     if ($request->hasFile('logo')) {
+        $destPath = public_path('courses');
+        if (!is_dir($destPath)) {
+            @mkdir($destPath, 0755, true);
+        }
         $image = $request->file('logo');
         $imageName = time() . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
-        $image->move(public_path('courses'), $imageName);
-
-        // Store only relative path
+        $image->move($destPath, $imageName);
         $validated['logo'] = 'courses/' . $imageName;
     }
 
     // Create the course using mass assignment
-    $data = Course::create($validated);
-    Log::info('Course created successfully', ['course' => $data]);
+    $course = Course::create($validated);
+    Log::info('Course created successfully', ['course' => $course]);
 
-    return redirect()->route('admin.course.add')->with('success', 'Course created successfully!');
+    return redirect()
+        ->route('admin.course.add')
+        ->with('success', 'Course created successfully!');
 }
 
 //     public function courseList()

@@ -51,7 +51,7 @@
                 <div class="bg-amber-300 text-black py-2 px-4 rounded-lg text-center mb-4 font-bold text-center">
                     {{ $internship->certified_button }}
                 </div>
-                <a href="{{ route('internship.register', $internship->id) }}" 
+                <a href="{{ route('website.internship_details', $internship->id) }}" 
                            class="block w-full bg-orange-500 text-white py-2.5 rounded-lg hover:bg-orange-600 transition-colors text-center font-semibold">
                             Register Now
                         </a>
