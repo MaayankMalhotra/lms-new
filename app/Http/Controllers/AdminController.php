@@ -267,6 +267,8 @@ public function storePlacement(Request $request)
         }
 
         // Insert into database
+        $isActive = ($request->is_active ?? 1) ? 1 : 0;
+
         DB::insert("
             INSERT INTO home_placements (name, qualification, image, tags, company, package, is_active, created_at, updated_at)
             VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
@@ -277,7 +279,7 @@ public function storePlacement(Request $request)
             $request->tags,
             $request->company,
             $request->package,
-            $request->is_active ? 1 : 0,
+            $isActive,
         ]);
 
         return redirect()->route('admin.home')->with('success', 'Placement added successfully.');
