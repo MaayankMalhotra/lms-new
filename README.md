@@ -39,9 +39,3 @@ If you only need to run PHPUnit directly, you can also use:
 ```
 
 Both commands require the Composer dependencies to be installed so that `vendor/autoload.php` exists.
-
-## Quick application health-check
-
-After you start the Laravel development server (for example with `php artisan serve`), visit
-`http://localhost:8000/health-check` in your browser or with `curl`. The route responds with a plain
-`OK` message so you can quickly confirm the application is running.
