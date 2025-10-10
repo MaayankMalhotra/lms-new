@@ -18,7 +18,7 @@ class Payment extends Model
         ];
     public function student()
     {
-        return $this->belongsTo(User::class, 'student_id');
+        return $this->belongsTo(User::class, 'user_id');
     }
 
     public function batch()

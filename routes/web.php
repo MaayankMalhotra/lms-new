@@ -118,6 +118,12 @@ Route::get('/codex-works', function () {
     return view('codex');
 })->name('codex.works');
 
+// Static route that can be hit to ensure the application is responding
+Route::get('/health-check', function () {
+    return response('OK', 200)
+        ->header('Content-Type', 'text/plain');
+})->name('health-check');
+
 
 
 Route::get('/about', function () {
