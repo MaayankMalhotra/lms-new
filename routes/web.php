@@ -126,14 +126,8 @@ Route::get('/health-check', function () {
 
 
 
+
 Route::get('/about', function () {
-    if (Auth::user() && Auth::user()->role == 1) {
-        return to_route('admin.dash');
-    } elseif (Auth::user() && Auth::user()->role == 2) {
-        return to_route('trainer.dashboard');
-    } elseif (Auth::user() && Auth::user()->role == 3) {
-        return to_route('student.dashboard');
-    }
     return view('website.about');
 })->name('about-page');
 

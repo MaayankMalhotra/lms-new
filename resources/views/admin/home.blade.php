@@ -103,7 +103,7 @@
                 @forelse($placements as $placement)
                     <div class="record-card">
                         @if($placement->image)
-                            <img src="{{ asset($placement->image) }}" alt="{{ $placement->name }}">
+                            <img src="{{ asset('storage/' . ltrim($placement->image, '/')) }}" alt="{{ $placement->name }}">
                         @endif
                         <div class="record-body">
                             <div class="record-title">{{ $placement->name }}</div>
@@ -124,11 +124,11 @@
         <!-- Courses -->
         <div id="tab-courses" class="tab-pane hidden">
             <h2 class="text-2xl font-bold text-[#2c0b57] mb-4">Add Course</h2>
-            <form action="{{ route('admin.courses.store') }}" method="POST" class="bg-white p-6 rounded-xl shadow-lg mb-8">
+            <form action="{{ route('admin.courses.store') }}" method="POST" enctype="multipart/form-data" class="bg-white p-6 rounded-xl shadow-lg mb-8">
                 @csrf
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <input type="text" name="title" placeholder="Title" required class="p-3 border rounded-lg">
-                    <input type="text" name="image" placeholder="Image URL" required class="p-3 border rounded-lg">
+                    <input type="file" name="image" accept="image/*" required class="p-3 border rounded-lg">
                     <input type="text" name="duration" placeholder="Duration" required class="p-3 border rounded-lg">
                     <input type="number" name="placed_count" placeholder="Placed Count" class="p-3 border rounded-lg">
                     <input type="number" name="rating" placeholder="Rating" step="0.1" class="p-3 border rounded-lg">
@@ -141,7 +141,12 @@
             <div class="card-grid">
                 @forelse($courses as $course)
                     <div class="record-card">
-                        <img src="{{ $course->image }}" alt="{{ $course->title }}">
+                        @php
+                            $courseImage = $course->image ? (\Illuminate\Support\Str::startsWith($course->image, ['http://', 'https://']) ? $course->image : asset('storage/' . ltrim($course->image, '/'))) : null;
+                        @endphp
+                        @if($courseImage)
+                            <img src="{{ $courseImage }}" alt="{{ $course->title }}">
+                        @endif
                         <div class="record-body">
                             <div class="record-title">{{ $course->title }}</div>
                             <div class="record-meta">Duration: {{ $course->duration }} <br> Rating: {{ $course->rating }} ⭐</div>
@@ -161,11 +166,11 @@
         <!-- Upcoming Courses -->
         <div id="tab-upcoming-courses" class="tab-pane hidden">
             <h2 class="text-2xl font-bold text-[#2c0b57] mb-4">Add Upcoming Course</h2>
-            <form action="{{ route('admin.upcoming_courses.store') }}" method="POST" class="bg-white p-6 rounded-xl shadow-lg mb-8">
+            <form action="{{ route('admin.upcoming_courses.store') }}" method="POST" enctype="multipart/form-data" class="bg-white p-6 rounded-xl shadow-lg mb-8">
                 @csrf
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <input type="text" name="title" placeholder="Title" required class="p-3 border rounded-lg">
-                    <input type="text" name="image" placeholder="Image URL" required class="p-3 border rounded-lg">
+                    <input type="file" name="image" accept="image/*" required class="p-3 border rounded-lg">
                     <input type="date" name="start_date" required class="p-3 border rounded-lg">
                 </div>
                 <button type="submit" class="mt-4 w-full bg-gradient-to-r from-[#ff7300] to-[#ff4500] text-white py-3 rounded-lg font-bold">Add Upcoming Course</button>
@@ -175,7 +180,12 @@
             <div class="card-grid">
                 @forelse($upcomingCourses as $course)
                     <div class="record-card">
-                        <img src="{{ $course->image }}" alt="{{ $course->title }}">
+                        @php
+                            $upcomingImage = $course->image ? (\Illuminate\Support\Str::startsWith($course->image, ['http://', 'https://']) ? $course->image : asset('storage/' . ltrim($course->image, '/'))) : null;
+                        @endphp
+                        @if($upcomingImage)
+                            <img src="{{ $upcomingImage }}" alt="{{ $course->title }}">
+                        @endif
                         <div class="record-body">
                             <div class="record-title">{{ $course->title }}</div>
                             <div class="record-meta">Starts: {{ $course->start_date }}</div>
@@ -195,13 +205,16 @@
         <!-- Internships -->
         <div id="tab-internships" class="tab-pane hidden">
             <h2 class="text-2xl font-bold text-[#2c0b57] mb-4">Add Internship</h2>
-            <form action="{{ route('admin.internships.store') }}" method="POST" class="bg-white p-6 rounded-xl shadow-lg mb-8">
+            <form action="{{ route('admin.internships.store') }}" method="POST" enctype="multipart/form-data" class="bg-white p-6 rounded-xl shadow-lg mb-8">
                 @csrf
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <input type="text" name="title" placeholder="Title" required class="p-3 border rounded-lg">
-                    <input type="text" name="image" placeholder="Image URL" required class="p-3 border rounded-lg">
+                    <input type="file" name="image" accept="image/*" required class="p-3 border rounded-lg">
                     <input type="text" name="duration" placeholder="Duration" required class="p-3 border rounded-lg">
                     <input type="number" name="project_count" placeholder="Project Count" class="p-3 border rounded-lg">
+                    <input type="number" name="rating" placeholder="Rating" step="0.1" class="p-3 border rounded-lg">
+                    <input type="number" name="applicant_count" placeholder="Applicant Count" class="p-3 border rounded-lg">
+                    <input type="text" name="certification" placeholder="Certification" class="p-3 border rounded-lg">
                 </div>
                 <button type="submit" class="mt-4 w-full bg-gradient-to-r from-[#ff7300] to-[#ff4500] text-white py-3 rounded-lg font-bold">Add Internship</button>
             </form>
@@ -210,7 +223,12 @@
             <div class="card-grid">
                 @forelse($internships as $internship)
                     <div class="record-card">
-                        <img src="{{ $internship->image }}" alt="{{ $internship->title }}">
+                        @php
+                            $internshipImage = $internship->image ? (\Illuminate\Support\Str::startsWith($internship->image, ['http://', 'https://']) ? $internship->image : asset('storage/' . ltrim($internship->image, '/'))) : null;
+                        @endphp
+                        @if($internshipImage)
+                            <img src="{{ $internshipImage }}" alt="{{ $internship->title }}">
+                        @endif
                         <div class="record-body">
                             <div class="record-title">{{ $internship->title }}</div>
                             <div class="record-meta">Duration: {{ $internship->duration }} <br> Projects: {{ $internship->project_count }}</div>
@@ -236,6 +254,9 @@
                     <input type="text" name="name" placeholder="Name" required class="p-3 border rounded-lg">
                     <input type="file" name="image" required class="p-3 border rounded-lg">
                     <input type="text" name="specialization" placeholder="Specialization" required class="p-3 border rounded-lg">
+                    <input type="number" name="teaching_hours" placeholder="Teaching Hours" min="0" required class="p-3 border rounded-lg">
+                    <input type="url" name="linkedin_url" placeholder="LinkedIn URL" class="p-3 border rounded-lg">
+                    <input type="url" name="facebook_url" placeholder="Facebook URL" class="p-3 border rounded-lg">
                 </div>
                 <button type="submit" class="mt-4 w-full bg-gradient-to-r from-[#ff7300] to-[#ff4500] text-white py-3 rounded-lg font-bold">Add Instructor</button>
             </form>
@@ -244,7 +265,12 @@
             <div class="card-grid">
                 @forelse($instructors as $instructor)
                     <div class="record-card">
-                        <img src="{{ $instructor->image }}" alt="{{ $instructor->name }}">
+                        @php
+                            $instructorImage = $instructor->image ? (\Illuminate\Support\Str::startsWith($instructor->image, ['http://', 'https://']) ? $instructor->image : asset('storage/' . ltrim($instructor->image, '/'))) : null;
+                        @endphp
+                        @if($instructorImage)
+                            <img src="{{ $instructorImage }}" alt="{{ $instructor->name }}">
+                        @endif
                         <div class="record-body">
                             <div class="record-title">{{ $instructor->name }}</div>
                             <div class="record-meta">{{ $instructor->specialization }}</div>
@@ -279,7 +305,12 @@
             <div class="card-grid">
                 @forelse($testimonials as $testimonial)
                     <div class="record-card">
-                        <img src="{{ $testimonial->image }}" alt="{{ $testimonial->name }}">
+                        @php
+                            $testimonialImage = $testimonial->image ? (\Illuminate\Support\Str::startsWith($testimonial->image, ['http://', 'https://']) ? $testimonial->image : asset('storage/' . ltrim($testimonial->image, '/'))) : null;
+                        @endphp
+                        @if($testimonialImage)
+                            <img src="{{ $testimonialImage }}" alt="{{ $testimonial->name }}">
+                        @endif
                         <div class="record-body">
                             <div class="record-title">{{ $testimonial->name }}</div>
                             <div class="record-meta">{{ $testimonial->designation }}</div>

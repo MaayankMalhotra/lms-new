@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use App\Models\User; 
 use Illuminate\Support\Facades\Storage; // Import Storage facade
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 class AdminController extends Controller
 {
     public function trainer_management(){
@@ -345,22 +346,18 @@ public function storePlacement(Request $request)
     // Courses
     public function storeCourse(Request $request)
     {
-        // $request->validate([
-        //     'title' => 'required|string|max:255',
-        //     'image' => 'required|string|max:255',
-        //     'duration' => 'required|string|max:255',
-        //     'placed_count' => 'required|integer|min:0',
-        //     'rating' => 'required|numeric|min:0|max:5',
-        //     'student_count' => 'required|integer|min:0',
-        //     'is_active' => 'boolean',
-        // ]);
-//dd($request->all());
+        if (!($request->hasFile('image') && $request->file('image')->isValid())) {
+            return redirect()->back()->with('error', 'Please upload a valid course image.')->withInput();
+        }
+
+        $imagePath = $request->file('image')->store('home/courses', 'public');
+
         DB::insert("
             INSERT INTO home_courses (title, image, duration, placed_count, rating, student_count, is_active, created_at, updated_at)
             VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
         ", [
             $request->title,
-            $request->image,
+            $imagePath,
             $request->duration,
             $request->placed_count,
             $request->rating,
@@ -373,15 +370,20 @@ public function storePlacement(Request $request)
 
     public function updateCourse(Request $request, $id)
     {
-        $request->validate([
-            'title' => 'required|string|max:255',
-            'image' => 'required|string|max:255',
-            'duration' => 'required|string|max:255',
-            'placed_count' => 'required|integer|min:0',
-            'rating' => 'required|numeric|min:0|max:5',
-            'student_count' => 'required|integer|min:0',
-            'is_active' => 'boolean',
-        ]);
+        $course = DB::table('home_courses')->where('id', $id)->first();
+        if (!$course) {
+            return redirect()->route('admin.home')->with('error', 'Course not found.');
+        }
+
+        $imagePath = $course->image;
+        if ($request->hasFile('image') && $request->file('image')->isValid()) {
+            if ($imagePath && !Str::startsWith($imagePath, ['http://', 'https://'])) {
+                Storage::disk('public')->delete($imagePath);
+            }
+            $imagePath = $request->file('image')->store('home/courses', 'public');
+        } elseif ($request->filled('image') && Str::startsWith($request->image, ['http://', 'https://'])) {
+            $imagePath = $request->image;
+        }
 
         DB::update("
             UPDATE home_courses
@@ -389,7 +391,7 @@ public function storePlacement(Request $request)
             WHERE id = ?
         ", [
             $request->title,
-            $request->image,
+            $imagePath,
             $request->duration,
             $request->placed_count,
             $request->rating,
@@ -403,6 +405,11 @@ public function storePlacement(Request $request)
 
     public function deleteCourse($id)
     {
+        $course = DB::table('home_courses')->where('id', $id)->first();
+        if ($course && $course->image && !Str::startsWith($course->image, ['http://', 'https://'])) {
+            Storage::disk('public')->delete($course->image);
+        }
+
         DB::delete("DELETE FROM home_courses WHERE id = ?", [$id]);
         return redirect()->route('admin.home')->with('success', 'Course deleted successfully.');
     }
@@ -410,20 +417,18 @@ public function storePlacement(Request $request)
     // Upcoming Courses
     public function storeUpcomingCourse(Request $request)
     {
-        // $request->validate([
-        //     'title' => 'required|string|max:255',
-        //     'image' => 'required|string|max:255',
-        //     'start_date' => 'required|date',
-        //     'slots_open' => 'boolean',
-        //     'is_active' => 'boolean',
-        // ]);
+        if (!($request->hasFile('image') && $request->file('image')->isValid())) {
+            return redirect()->back()->with('error', 'Please upload a valid upcoming course image.')->withInput();
+        }
+
+        $imagePath = $request->file('image')->store('home/upcoming-courses', 'public');
 
         DB::insert("
             INSERT INTO home_upcoming_courses (title, image, start_date, slots_open, is_active, created_at, updated_at)
             VALUES (?, ?, ?, ?, ?, NOW(), NOW())
         ", [
             $request->title,
-            $request->image,
+            $imagePath,
             $request->start_date,
             $request->slots_open ?? 1,
             $request->is_active ?? 1,
@@ -434,13 +439,20 @@ public function storePlacement(Request $request)
 
     public function updateUpcomingCourse(Request $request, $id)
     {
-        // $request->validate([
-        //     'title' => 'required|string|max:255',
-        //     'image' => 'required|string|max:255',
-        //     'start_date' => 'required|date',
-        //     'slots_open' => 'boolean',
-        //     'is_active' => 'boolean',
-        // ]);
+        $course = DB::table('home_upcoming_courses')->where('id', $id)->first();
+        if (!$course) {
+            return redirect()->route('admin.home')->with('error', 'Upcoming course not found.');
+        }
+
+        $imagePath = $course->image;
+        if ($request->hasFile('image') && $request->file('image')->isValid()) {
+            if ($imagePath && !Str::startsWith($imagePath, ['http://', 'https://'])) {
+                Storage::disk('public')->delete($imagePath);
+            }
+            $imagePath = $request->file('image')->store('home/upcoming-courses', 'public');
+        } elseif ($request->filled('image') && Str::startsWith($request->image, ['http://', 'https://'])) {
+            $imagePath = $request->image;
+        }
 
         DB::update("
             UPDATE home_upcoming_courses
@@ -448,7 +460,7 @@ public function storePlacement(Request $request)
             WHERE id = ?
         ", [
             $request->title,
-            $request->image,
+            $imagePath,
             $request->start_date,
             $request->slots_open ?? 1,
             $request->is_active ?? 1,
@@ -460,6 +472,11 @@ public function storePlacement(Request $request)
 
     public function deleteUpcomingCourse($id)
     {
+        $course = DB::table('home_upcoming_courses')->where('id', $id)->first();
+        if ($course && $course->image && !Str::startsWith($course->image, ['http://', 'https://'])) {
+            Storage::disk('public')->delete($course->image);
+        }
+
         DB::delete("DELETE FROM home_upcoming_courses WHERE id = ?", [$id]);
         return redirect()->route('admin.home')->with('success', 'Upcoming Course deleted successfully.');
     }
@@ -467,28 +484,23 @@ public function storePlacement(Request $request)
     // Internships
     public function storeInternship(Request $request)
     {
-        // $request->validate([
-        //     'title' => 'required|string|max:255',
-        //     'image' => 'required|string|max:255',
-        //     'duration' => 'required|string|max:255',
-        //     'project_count' => 'required|integer|min:0',
-        //     'rating' => 'required|numeric|min:0|max:5',
-        //     'applicant_count' => 'required|integer|min:0',
-        //     'certification' => 'required|string|max:255',
-        //     'is_active' => 'boolean',
-        // ]);
+        if (!($request->hasFile('image') && $request->file('image')->isValid())) {
+            return redirect()->back()->with('error', 'Please upload a valid internship image.')->withInput();
+        }
+
+        $imagePath = $request->file('image')->store('home/internships', 'public');
 
         DB::insert("
             INSERT INTO home_internships (title, image, duration, project_count, rating, applicant_count, certification, is_active, created_at, updated_at)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
         ", [
             $request->title,
-            $request->image,
+            $imagePath,
             $request->duration,
             $request->project_count,
-            $request->rating,
-            $request->applicant_count,
-            $request->certification,
+            $request->rating ?? 0,
+            $request->applicant_count ?? 0,
+            $request->certification ?? '',
             $request->is_active ?? 1,
         ]);
 
@@ -497,16 +509,20 @@ public function storePlacement(Request $request)
 
     public function updateInternship(Request $request, $request_id)
     {
-        // $request->validate([
-        //     'title' => 'required|string|max:255',
-        //     'image' => 'required|string|max:255',
-        //     'duration' => 'required|string|max:255',
-        //     'project_count' => 'required|integer|min:0',
-        //     'rating' => 'required|numeric|min:0|max:5',
-        //     'applicant_count' => 'required|integer|min:0',
-        //     'certification' => 'required|string|max:255',
-        //     'is_active' => 'boolean',
-        // ]);
+        $internship = DB::table('home_internships')->where('id', $request_id)->first();
+        if (!$internship) {
+            return redirect()->route('admin.home')->with('error', 'Internship not found.');
+        }
+
+        $imagePath = $internship->image;
+        if ($request->hasFile('image') && $request->file('image')->isValid()) {
+            if ($imagePath && !Str::startsWith($imagePath, ['http://', 'https://'])) {
+                Storage::disk('public')->delete($imagePath);
+            }
+            $imagePath = $request->file('image')->store('home/internships', 'public');
+        } elseif ($request->filled('image') && Str::startsWith($request->image, ['http://', 'https://'])) {
+            $imagePath = $request->image;
+        }
 
         DB::update("
             UPDATE home_internships
@@ -514,12 +530,12 @@ public function storePlacement(Request $request)
             WHERE id = ?
         ", [
             $request->title,
-            $request->image,
+            $imagePath,
             $request->duration,
             $request->project_count,
-            $request->rating,
-            $request->applicant_count,
-            $request->certification,
+            $request->rating ?? $internship->rating,
+            $request->applicant_count ?? $internship->applicant_count,
+            $request->certification ?? $internship->certification,
             $request->is_active ?? 1,
             $request_id,
         ]);
@@ -529,6 +545,11 @@ public function storePlacement(Request $request)
 
     public function deleteInternship($id)
     {
+        $internship = DB::table('home_internships')->where('id', $id)->first();
+        if ($internship && $internship->image && !Str::startsWith($internship->image, ['http://', 'https://'])) {
+            Storage::disk('public')->delete($internship->image);
+        }
+
         DB::delete("DELETE FROM home_internships WHERE id = ?", [$id]);
         return redirect()->route('admin.home')->with('success', 'Internship deleted successfully.');
     }
