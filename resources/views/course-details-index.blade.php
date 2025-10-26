@@ -86,6 +86,23 @@
             background-color: #ecfdf5;
             border-radius: 6px;
         }
+        .alert {
+            font-size: 0.875rem;
+            margin-bottom: 1rem;
+            padding: 0.75rem 1rem;
+            border-radius: 6px;
+            border: 1px solid transparent;
+        }
+        .alert-error {
+            background-color: #fef2f2;
+            color: #b91c1c;
+            border-color: #fecaca;
+        }
+        .alert-error ul {
+            list-style: disc;
+            margin: 0.5rem 0 0;
+            padding-left: 1.25rem;
+        }
         .collapsible-section {
             border: 1px solid #e5e7eb;
             border-radius: 6px;
@@ -177,6 +194,21 @@
             <div class="success">{{ session('success') }}</div>
         @endif
 
+        @if (session('error'))
+            <div class="alert alert-error">{{ session('error') }}</div>
+        @endif
+
+        @if ($errors->any())
+            <div class="alert alert-error">
+                <strong>Please correct the following errors:</strong>
+                <ul>
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
         <form method="POST" action="{{ route('course.store') }}" enctype="multipart/form-data">
             @csrf
             <div class="form-grid">
@@ -194,8 +226,11 @@
                             <div class="field-container">
                                 <label for="course_id">Course Name</label>
                                 <select name="course_id" id="course_id" required>
+                                    <option value="" disabled {{ old('course_id') ? '' : 'selected' }}>Select a course</option>
                                     @foreach($course_name as $course)
-                                        <option value="{{ $course->id }}">{{ $course->name }}</option>
+                                        <option value="{{ $course->id }}" {{ (string) old('course_id') === (string) $course->id ? 'selected' : '' }}>
+                                            {{ $course->name }}
+                                        </option>
                                     @endforeach
                                 </select>
                                 @error('course_id')
@@ -517,10 +552,14 @@
                     <div class="collapsible-content">
                         <div class="field-container">
                             <label for="instructor_ids">Select Instructors</label>
+                            @php
+                                $selectedInstructors = collect(old('instructor_ids', []))->map(fn ($value) => (string) $value)->all();
+                            @endphp
                             <select name="instructor_ids[]" id="instructor_ids" multiple required>
-                                <option value="">Select Instructor</option>
                                 @foreach($instructors as $instructor)
-                                    <option value="{{ $instructor->id }}">{{ $instructor->name }}</option>
+                                    <option value="{{ $instructor->id }}" {{ in_array((string) $instructor->id, $selectedInstructors, true) ? 'selected' : '' }}>
+                                        {{ $instructor->name }}
+                                    </option>
                                 @endforeach
                             </select>
                             @error('instructor_ids')
@@ -1070,17 +1109,6 @@
                 closeAfterSelect: false
             });
 
-            @if ($errors->any())
-                let errorMessages = '';
-                @foreach ($errors->all() as $error)
-                    errorMessages += '{{ $error }}\n';
-                @endforeach
-                alert('Validation Errors:\n' + errorMessages);
-            @endif
-
-            @if (session('error'))
-                alert('Backend Error:\n{{ session('error') }}');
-            @endif
         });
     </script>
 @endsection
