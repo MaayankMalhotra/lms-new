@@ -234,8 +234,11 @@ class CourseDetailsController extends Controller
                 }
             }
 
+            $course = Course::findOrFail($request->course_id);
+
             CourseDetail::create([
-                'course_id' => $request->course_id,
+                'course_name' => $course->name,
+                'course_id' => $course->id,
                 'course_description' => $request->course_description,
                 'course_rating' => $request->course_rating,
                 'course_rating_student_number' => $request->course_rating_student_number,
@@ -356,7 +359,7 @@ class CourseDetailsController extends Controller
         $courseDetail = CourseDetail::findOrFail($id);
 
         $validated = $request->validate([
-            'course_id' => 'required',
+            'course_id' => 'required|exists:courses,id',
             'course_description' => 'nullable|string',
             'course_rating' => 'nullable|numeric|min:0|max:5',
             'course_rating_student_number' => 'nullable|string',
@@ -436,9 +439,11 @@ class CourseDetailsController extends Controller
             }
         }
 
+        $course = Course::findOrFail($request->course_id);
+
         $courseDetail->update([
-            'course_name' => $request->course_name,
-            'course_id' => $request->course_id,
+            'course_name' => $course->name,
+            'course_id' => $course->id,
             'course_description' => $request->course_description,
             'course_rating' => $request->course_rating,
             'course_rating_student_number' => $request->course_rating_student_number,

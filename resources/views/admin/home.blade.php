@@ -8,6 +8,7 @@
         background: url("https://img.freepik.com/free-vector/education-pattern-background-doodle-style_53876-115365.jpg") no-repeat center center fixed;
         background-size: cover;
     }
+    [x-cloak] { display: none !important; }
     .card-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -101,7 +102,7 @@
             <h2 class="text-2xl font-bold text-[#2c0b57] mb-4">Existing Placements</h2>
             <div class="card-grid">
                 @forelse($placements as $placement)
-                    <div class="record-card">
+                    <div class="record-card" x-data="{ open: false }">
                         @if($placement->image)
                             <img src="{{ asset('storage/' . ltrim($placement->image, '/')) }}" alt="{{ $placement->name }}">
                         @endif
@@ -109,12 +110,40 @@
                             <div class="record-title">{{ $placement->name }}</div>
                             <div class="record-meta">{{ $placement->qualification }} <br> {{ $placement->company }} – {{ $placement->package }}</div>
                             <div class="record-actions">
-                                <a href="{{ route('admin.placements.update', $placement->id) }}" class="edit"><i class="fas fa-edit"></i></a>
+                                <button type="button" class="edit" @click="open = !open" aria-label="Edit {{ $placement->name }}">
+                                    <i class="fas fa-edit"></i>
+                                </button>
                                 <form action="{{ route('admin.placements.delete', $placement->id) }}" method="POST" onsubmit="return confirm('Delete this?')">
                                     @csrf @method('DELETE')
                                     <button class="delete"><i class="fas fa-trash"></i></button>
                                 </form>
                             </div>
+                            <form x-show="open" x-transition x-cloak
+                                  style="display: none;"
+                                  action="{{ route('admin.placements.update', $placement->id) }}"
+                                  method="POST"
+                                  enctype="multipart/form-data"
+                                  class="mt-4 border-t border-gray-200 pt-4 grid gap-3">
+                                @csrf
+                                @method('PUT')
+                                <input type="text" name="name" value="{{ $placement->name }}" placeholder="Name" required class="p-2 border rounded-lg">
+                                <input type="text" name="qualification" value="{{ $placement->qualification }}" placeholder="Qualification" required class="p-2 border rounded-lg">
+                                <label class="block text-sm font-semibold text-gray-600">
+                                    Update Image
+                                    <input type="file" name="image" accept="image/*" class="mt-1 p-2 border rounded-lg w-full">
+                                </label>
+                                <input type="text" name="tags" value="{{ $placement->tags }}" placeholder="Tags" class="p-2 border rounded-lg">
+                                <input type="text" name="company" value="{{ $placement->company }}" placeholder="Company" required class="p-2 border rounded-lg">
+                                <input type="text" name="package" value="{{ $placement->package }}" placeholder="Package" required class="p-2 border rounded-lg">
+                                <label class="inline-flex items-center space-x-2">
+                                    <input type="checkbox" name="is_active" value="1" {{ $placement->is_active ? 'checked' : '' }} class="h-4 w-4">
+                                    <span class="text-sm text-gray-600">Active</span>
+                                </label>
+                                <div class="flex items-center gap-2">
+                                    <button type="submit" class="px-4 py-2 bg-[#ff7300] text-white rounded-lg font-semibold">Save</button>
+                                    <button type="button" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg font-semibold" @click="open = false">Cancel</button>
+                                </div>
+                            </form>
                         </div>
                     </div>
                 @empty <p>No Placements yet.</p> @endforelse
