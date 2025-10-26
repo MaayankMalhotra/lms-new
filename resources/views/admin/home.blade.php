@@ -577,9 +577,7 @@
         hideAllEditForms();
 
         document.querySelectorAll(".toggle-edit").forEach(button => {
-            button.addEventListener("click", function (event) {
-                event.preventDefault();
-                event.stopPropagation();
+            button.addEventListener("click", function () {
                 const targetId = this.getAttribute("data-target");
                 if (!targetId) {
                     return;
@@ -598,9 +596,7 @@
         });
 
         document.querySelectorAll(".cancel-edit").forEach(button => {
-            button.addEventListener("click", function (event) {
-                event.preventDefault();
-                event.stopPropagation();
+            button.addEventListener("click", function () {
                 const targetId = this.getAttribute("data-target");
                 if (!targetId) {
                     return;

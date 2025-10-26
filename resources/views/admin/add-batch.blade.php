@@ -18,7 +18,7 @@
         </div>
     @endif
 
-            <form id="batchForm" action="{{ route('admin.batches.store') }}" method="POST" enctype="multipart/form-data">
+            <form id="batchForm" action="{{ url('/admin/batches/store') }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 
                 <div class="space-y-6">
