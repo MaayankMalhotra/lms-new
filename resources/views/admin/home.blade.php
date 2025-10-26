@@ -8,7 +8,6 @@
         background: url("https://img.freepik.com/free-vector/education-pattern-background-doodle-style_53876-115365.jpg") no-repeat center center fixed;
         background-size: cover;
     }
-    [x-cloak] { display: none !important; }
     .card-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -102,7 +101,7 @@
             <h2 class="text-2xl font-bold text-[#2c0b57] mb-4">Existing Placements</h2>
             <div class="card-grid">
                 @forelse($placements as $placement)
-                    <div class="record-card" x-data="{ open: false }">
+                    <div class="record-card">
                         @if($placement->image)
                             <img src="{{ asset('storage/' . ltrim($placement->image, '/')) }}" alt="{{ $placement->name }}">
                         @endif
@@ -110,7 +109,7 @@
                             <div class="record-title">{{ $placement->name }}</div>
                             <div class="record-meta">{{ $placement->qualification }} <br> {{ $placement->company }} – {{ $placement->package }}</div>
                             <div class="record-actions">
-                                <button type="button" class="edit" @click="open = !open" aria-label="Edit {{ $placement->name }}">
+                                <button type="button" class="edit toggle-edit" data-target="placement-edit-{{ $placement->id }}" aria-label="Edit {{ $placement->name }}">
                                     <i class="fas fa-edit"></i>
                                 </button>
                                 <form action="{{ route('admin.placements.delete', $placement->id) }}" method="POST" onsubmit="return confirm('Delete this?')">
@@ -118,12 +117,13 @@
                                     <button class="delete"><i class="fas fa-trash"></i></button>
                                 </form>
                             </div>
-                            <form x-show="open" x-transition x-cloak
+                            <form id="placement-edit-{{ $placement->id }}"
+                                  class="edit-form mt-4 border-t border-gray-200 pt-4 grid gap-3"
                                   style="display: none;"
+                                  data-display="grid"
                                   action="{{ route('admin.placements.update', $placement->id) }}"
                                   method="POST"
-                                  enctype="multipart/form-data"
-                                  class="mt-4 border-t border-gray-200 pt-4 grid gap-3">
+                                  enctype="multipart/form-data">
                                 @csrf
                                 @method('PUT')
                                 <input type="text" name="name" value="{{ $placement->name }}" placeholder="Name" required class="p-2 border rounded-lg">
@@ -141,7 +141,7 @@
                                 </label>
                                 <div class="flex items-center gap-2">
                                     <button type="submit" class="px-4 py-2 bg-[#ff7300] text-white rounded-lg font-semibold">Save</button>
-                                    <button type="button" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg font-semibold" @click="open = false">Cancel</button>
+                                    <button type="button" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg font-semibold cancel-edit" data-target="placement-edit-{{ $placement->id }}">Cancel</button>
                                 </div>
                             </form>
                         </div>
@@ -180,12 +180,41 @@
                             <div class="record-title">{{ $course->title }}</div>
                             <div class="record-meta">Duration: {{ $course->duration }} <br> Rating: {{ $course->rating }} ⭐</div>
                             <div class="record-actions">
-                                <a href="{{ route('admin.courses.update', $course->id) }}" class="edit"><i class="fas fa-edit"></i></a>
+                                <button type="button" class="edit toggle-edit" data-target="course-edit-{{ $course->id }}" aria-label="Edit {{ $course->title }}">
+                                    <i class="fas fa-edit"></i>
+                                </button>
                                 <form action="{{ route('admin.courses.delete', $course->id) }}" method="POST" onsubmit="return confirm('Delete this?')">
                                     @csrf @method('DELETE')
                                     <button class="delete"><i class="fas fa-trash"></i></button>
                                 </form>
                             </div>
+                            <form id="course-edit-{{ $course->id }}"
+                                  class="edit-form mt-4 border-t border-gray-200 pt-4 grid gap-3"
+                                  style="display: none;"
+                                  data-display="grid"
+                                  action="{{ route('admin.courses.update', $course->id) }}"
+                                  method="POST"
+                                  enctype="multipart/form-data">
+                                @csrf
+                                @method('PUT')
+                                <input type="text" name="title" value="{{ $course->title }}" placeholder="Title" required class="p-2 border rounded-lg">
+                                <label class="block text-sm font-semibold text-gray-600">
+                                    Update Image
+                                    <input type="file" name="image" accept="image/*" class="mt-1 p-2 border rounded-lg w-full">
+                                </label>
+                                <input type="text" name="duration" value="{{ $course->duration }}" placeholder="Duration" required class="p-2 border rounded-lg">
+                                <input type="number" name="placed_count" value="{{ $course->placed_count }}" placeholder="Placed Count" class="p-2 border rounded-lg">
+                                <input type="number" step="0.1" name="rating" value="{{ $course->rating }}" placeholder="Rating" class="p-2 border rounded-lg">
+                                <input type="number" name="student_count" value="{{ $course->student_count }}" placeholder="Student Count" class="p-2 border rounded-lg">
+                                <label class="inline-flex items-center space-x-2">
+                                    <input type="checkbox" name="is_active" value="1" {{ $course->is_active ? 'checked' : '' }} class="h-4 w-4">
+                                    <span class="text-sm text-gray-600">Active</span>
+                                </label>
+                                <div class="flex items-center gap-2">
+                                    <button type="submit" class="px-4 py-2 bg-[#ff7300] text-white rounded-lg font-semibold">Save</button>
+                                    <button type="button" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg font-semibold cancel-edit" data-target="course-edit-{{ $course->id }}">Cancel</button>
+                                </div>
+                            </form>
                         </div>
                     </div>
                 @empty <p>No Courses yet.</p> @endforelse
@@ -217,14 +246,41 @@
                         @endif
                         <div class="record-body">
                             <div class="record-title">{{ $course->title }}</div>
-                            <div class="record-meta">Starts: {{ $course->start_date }}</div>
+                            <div class="record-meta">Starts: {{ $course->start_date }} <br> Slots Open: {{ $course->slots_open }}</div>
                             <div class="record-actions">
-                                <a href="{{ route('admin.upcoming_courses.update', $course->id) }}" class="edit"><i class="fas fa-edit"></i></a>
+                                <button type="button" class="edit toggle-edit" data-target="upcoming-course-edit-{{ $course->id }}" aria-label="Edit {{ $course->title }}">
+                                    <i class="fas fa-edit"></i>
+                                </button>
                                 <form action="{{ route('admin.upcoming_courses.delete', $course->id) }}" method="POST" onsubmit="return confirm('Delete this?')">
                                     @csrf @method('DELETE')
                                     <button class="delete"><i class="fas fa-trash"></i></button>
                                 </form>
                             </div>
+                            <form id="upcoming-course-edit-{{ $course->id }}"
+                                  class="edit-form mt-4 border-t border-gray-200 pt-4 grid gap-3"
+                                  style="display: none;"
+                                  data-display="grid"
+                                  action="{{ route('admin.upcoming_courses.update', $course->id) }}"
+                                  method="POST"
+                                  enctype="multipart/form-data">
+                                @csrf
+                                @method('PUT')
+                                <input type="text" name="title" value="{{ $course->title }}" placeholder="Title" required class="p-2 border rounded-lg">
+                                <label class="block text-sm font-semibold text-gray-600">
+                                    Update Image
+                                    <input type="file" name="image" accept="image/*" class="mt-1 p-2 border rounded-lg w-full">
+                                </label>
+                                <input type="date" name="start_date" value="{{ $course->start_date }}" required class="p-2 border rounded-lg">
+                                <input type="number" name="slots_open" value="{{ $course->slots_open }}" placeholder="Slots Open" class="p-2 border rounded-lg">
+                                <label class="inline-flex items-center space-x-2">
+                                    <input type="checkbox" name="is_active" value="1" {{ $course->is_active ? 'checked' : '' }} class="h-4 w-4">
+                                    <span class="text-sm text-gray-600">Active</span>
+                                </label>
+                                <div class="flex items-center gap-2">
+                                    <button type="submit" class="px-4 py-2 bg-[#ff7300] text-white rounded-lg font-semibold">Save</button>
+                                    <button type="button" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg font-semibold cancel-edit" data-target="upcoming-course-edit-{{ $course->id }}">Cancel</button>
+                                </div>
+                            </form>
                         </div>
                     </div>
                 @empty <p>No Upcoming Courses yet.</p> @endforelse
@@ -262,12 +318,42 @@
                             <div class="record-title">{{ $internship->title }}</div>
                             <div class="record-meta">Duration: {{ $internship->duration }} <br> Projects: {{ $internship->project_count }}</div>
                             <div class="record-actions">
-                                <a href="{{ route('admin.internships.update', $internship->id) }}" class="edit"><i class="fas fa-edit"></i></a>
+                                <button type="button" class="edit toggle-edit" data-target="internship-edit-{{ $internship->id }}" aria-label="Edit {{ $internship->title }}">
+                                    <i class="fas fa-edit"></i>
+                                </button>
                                 <form action="{{ route('admin.internships.delete', $internship->id) }}" method="POST" onsubmit="return confirm('Delete this?')">
                                     @csrf @method('DELETE')
                                     <button class="delete"><i class="fas fa-trash"></i></button>
                                 </form>
                             </div>
+                            <form id="internship-edit-{{ $internship->id }}"
+                                  class="edit-form mt-4 border-t border-gray-200 pt-4 grid gap-3"
+                                  style="display: none;"
+                                  data-display="grid"
+                                  action="{{ route('admin.internships.update', $internship->id) }}"
+                                  method="POST"
+                                  enctype="multipart/form-data">
+                                @csrf
+                                @method('PUT')
+                                <input type="text" name="title" value="{{ $internship->title }}" placeholder="Title" required class="p-2 border rounded-lg">
+                                <label class="block text-sm font-semibold text-gray-600">
+                                    Update Image
+                                    <input type="file" name="image" accept="image/*" class="mt-1 p-2 border rounded-lg w-full">
+                                </label>
+                                <input type="text" name="duration" value="{{ $internship->duration }}" placeholder="Duration" required class="p-2 border rounded-lg">
+                                <input type="number" name="project_count" value="{{ $internship->project_count }}" placeholder="Project Count" class="p-2 border rounded-lg">
+                                <input type="number" step="0.1" name="rating" value="{{ $internship->rating }}" placeholder="Rating" class="p-2 border rounded-lg">
+                                <input type="number" name="applicant_count" value="{{ $internship->applicant_count }}" placeholder="Applicant Count" class="p-2 border rounded-lg">
+                                <input type="text" name="certification" value="{{ $internship->certification }}" placeholder="Certification" class="p-2 border rounded-lg">
+                                <label class="inline-flex items-center space-x-2">
+                                    <input type="checkbox" name="is_active" value="1" {{ $internship->is_active ? 'checked' : '' }} class="h-4 w-4">
+                                    <span class="text-sm text-gray-600">Active</span>
+                                </label>
+                                <div class="flex items-center gap-2">
+                                    <button type="submit" class="px-4 py-2 bg-[#ff7300] text-white rounded-lg font-semibold">Save</button>
+                                    <button type="button" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg font-semibold cancel-edit" data-target="internship-edit-{{ $internship->id }}">Cancel</button>
+                                </div>
+                            </form>
                         </div>
                     </div>
                 @empty <p>No Internships yet.</p> @endforelse
@@ -302,14 +388,43 @@
                         @endif
                         <div class="record-body">
                             <div class="record-title">{{ $instructor->name }}</div>
-                            <div class="record-meta">{{ $instructor->specialization }}</div>
+                            <div class="record-meta">{{ $instructor->specialization }} <br> Teaching Hours: {{ $instructor->teaching_hours }}</div>
                             <div class="record-actions">
-                                <a href="{{ route('admin.instructors.update', $instructor->id) }}" class="edit"><i class="fas fa-edit"></i></a>
+                                <button type="button" class="edit toggle-edit" data-target="instructor-edit-{{ $instructor->id }}" aria-label="Edit {{ $instructor->name }}">
+                                    <i class="fas fa-edit"></i>
+                                </button>
                                 <form action="{{ route('admin.instructors.delete', $instructor->id) }}" method="POST" onsubmit="return confirm('Delete this?')">
                                     @csrf @method('DELETE')
                                     <button class="delete"><i class="fas fa-trash"></i></button>
                                 </form>
                             </div>
+                            <form id="instructor-edit-{{ $instructor->id }}"
+                                  class="edit-form mt-4 border-t border-gray-200 pt-4 grid gap-3"
+                                  style="display: none;"
+                                  data-display="grid"
+                                  action="{{ route('admin.instructors.update', $instructor->id) }}"
+                                  method="POST"
+                                  enctype="multipart/form-data">
+                                @csrf
+                                @method('PUT')
+                                <input type="text" name="name" value="{{ $instructor->name }}" placeholder="Name" required class="p-2 border rounded-lg">
+                                <label class="block text-sm font-semibold text-gray-600">
+                                    Update Image
+                                    <input type="file" name="image" accept="image/*" class="mt-1 p-2 border rounded-lg w-full">
+                                </label>
+                                <input type="text" name="specialization" value="{{ $instructor->specialization }}" placeholder="Specialization" required class="p-2 border rounded-lg">
+                                <input type="number" name="teaching_hours" value="{{ $instructor->teaching_hours }}" placeholder="Teaching Hours" min="0" required class="p-2 border rounded-lg">
+                                <input type="url" name="linkedin_url" value="{{ $instructor->linkedin_url }}" placeholder="LinkedIn URL" class="p-2 border rounded-lg">
+                                <input type="url" name="facebook_url" value="{{ $instructor->facebook_url }}" placeholder="Facebook URL" class="p-2 border rounded-lg">
+                                <label class="inline-flex items-center space-x-2">
+                                    <input type="checkbox" name="is_active" value="1" {{ $instructor->is_active ? 'checked' : '' }} class="h-4 w-4">
+                                    <span class="text-sm text-gray-600">Active</span>
+                                </label>
+                                <div class="flex items-center gap-2">
+                                    <button type="submit" class="px-4 py-2 bg-[#ff7300] text-white rounded-lg font-semibold">Save</button>
+                                    <button type="button" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg font-semibold cancel-edit" data-target="instructor-edit-{{ $instructor->id }}">Cancel</button>
+                                </div>
+                            </form>
                         </div>
                     </div>
                 @empty <p>No Instructors yet.</p> @endforelse
@@ -342,15 +457,43 @@
                         @endif
                         <div class="record-body">
                             <div class="record-title">{{ $testimonial->name }}</div>
-                            <div class="record-meta">{{ $testimonial->designation }}</div>
+                            <div class="record-meta">{{ $testimonial->designation }} <br> Rating: {{ $testimonial->rating }}</div>
                             <p class="text-gray-600">{{ $testimonial->content }}</p>
                             <div class="record-actions">
-                                <a href="{{ route('admin.testimonials.update', $testimonial->id) }}" class="edit"><i class="fas fa-edit"></i></a>
+                                <button type="button" class="edit toggle-edit" data-target="testimonial-edit-{{ $testimonial->id }}" aria-label="Edit {{ $testimonial->name }}">
+                                    <i class="fas fa-edit"></i>
+                                </button>
                                 <form action="{{ route('admin.testimonials.delete', $testimonial->id) }}" method="POST" onsubmit="return confirm('Delete this?')">
                                     @csrf @method('DELETE')
                                     <button class="delete"><i class="fas fa-trash"></i></button>
                                 </form>
                             </div>
+                            <form id="testimonial-edit-{{ $testimonial->id }}"
+                                  class="edit-form mt-4 border-t border-gray-200 pt-4 grid gap-3"
+                                  style="display: none;"
+                                  data-display="grid"
+                                  action="{{ route('admin.testimonials.update', $testimonial->id) }}"
+                                  method="POST"
+                                  enctype="multipart/form-data">
+                                @csrf
+                                @method('PUT')
+                                <input type="text" name="name" value="{{ $testimonial->name }}" placeholder="Name" required class="p-2 border rounded-lg">
+                                <label class="block text-sm font-semibold text-gray-600">
+                                    Update Image
+                                    <input type="file" name="image" accept="image/*" class="mt-1 p-2 border rounded-lg w-full">
+                                </label>
+                                <input type="text" name="designation" value="{{ $testimonial->designation }}" placeholder="Designation" required class="p-2 border rounded-lg">
+                                <textarea name="content" placeholder="Content" required class="p-2 border rounded-lg">{{ $testimonial->content }}</textarea>
+                                <input type="number" step="0.1" name="rating" value="{{ $testimonial->rating }}" placeholder="Rating" min="0" max="5" required class="p-2 border rounded-lg">
+                                <label class="inline-flex items-center space-x-2">
+                                    <input type="checkbox" name="is_active" value="1" {{ $testimonial->is_active ? 'checked' : '' }} class="h-4 w-4">
+                                    <span class="text-sm text-gray-600">Active</span>
+                                </label>
+                                <div class="flex items-center gap-2">
+                                    <button type="submit" class="px-4 py-2 bg-[#ff7300] text-white rounded-lg font-semibold">Save</button>
+                                    <button type="button" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg font-semibold cancel-edit" data-target="testimonial-edit-{{ $testimonial->id }}">Cancel</button>
+                                </div>
+                            </form>
                         </div>
                     </div>
                 @empty <p>No Testimonials yet.</p> @endforelse
@@ -375,12 +518,33 @@
                             <div class="record-title">{{ $faq->question }}</div>
                             <p class="text-gray-600">{{ $faq->answer }}</p>
                             <div class="record-actions">
-                                <a href="{{ route('admin.faqs.update', $faq->id) }}" class="edit"><i class="fas fa-edit"></i></a>
+                                <button type="button" class="edit toggle-edit" data-target="faq-edit-{{ $faq->id }}" aria-label="Edit FAQ {{ $faq->id }}">
+                                    <i class="fas fa-edit"></i>
+                                </button>
                                 <form action="{{ route('admin.faqs.delete', $faq->id) }}" method="POST" onsubmit="return confirm('Delete this?')">
                                     @csrf @method('DELETE')
                                     <button class="delete"><i class="fas fa-trash"></i></button>
                                 </form>
                             </div>
+                            <form id="faq-edit-{{ $faq->id }}"
+                                  class="edit-form mt-4 border-t border-gray-200 pt-4 grid gap-3"
+                                  style="display: none;"
+                                  data-display="grid"
+                                  action="{{ route('admin.faqs.update', $faq->id) }}"
+                                  method="POST">
+                                @csrf
+                                @method('PUT')
+                                <input type="text" name="question" value="{{ $faq->question }}" placeholder="Question" required class="p-2 border rounded-lg">
+                                <textarea name="answer" placeholder="Answer" required class="p-2 border rounded-lg">{{ $faq->answer }}</textarea>
+                                <label class="inline-flex items-center space-x-2">
+                                    <input type="checkbox" name="is_active" value="1" {{ $faq->is_active ? 'checked' : '' }} class="h-4 w-4">
+                                    <span class="text-sm text-gray-600">Active</span>
+                                </label>
+                                <div class="flex items-center gap-2">
+                                    <button type="submit" class="px-4 py-2 bg-[#ff7300] text-white rounded-lg font-semibold">Save</button>
+                                    <button type="button" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg font-semibold cancel-edit" data-target="faq-edit-{{ $faq->id }}">Cancel</button>
+                                </div>
+                            </form>
                         </div>
                     </div>
                 @empty <p>No FAQs yet.</p> @endforelse
@@ -402,6 +566,47 @@
         }
         tabs.forEach(tab=>tab.addEventListener("click", ()=>activateTab(tab)));
         if(tabs.length>0) activateTab(tabs[0]);
+
+        const editForms = document.querySelectorAll(".edit-form");
+        function hideAllEditForms() {
+            editForms.forEach(form => {
+                form.style.display = "none";
+            });
+        }
+
+        hideAllEditForms();
+
+        document.querySelectorAll(".toggle-edit").forEach(button => {
+            button.addEventListener("click", function () {
+                const targetId = this.getAttribute("data-target");
+                if (!targetId) {
+                    return;
+                }
+                const form = document.getElementById(targetId);
+                if (!form) {
+                    return;
+                }
+                const wasVisible = form.style.display !== "none";
+                hideAllEditForms();
+                if (!wasVisible) {
+                    const desiredDisplay = form.dataset.display || "block";
+                    form.style.display = desiredDisplay;
+                }
+            });
+        });
+
+        document.querySelectorAll(".cancel-edit").forEach(button => {
+            button.addEventListener("click", function () {
+                const targetId = this.getAttribute("data-target");
+                if (!targetId) {
+                    return;
+                }
+                const form = document.getElementById(targetId);
+                if (form) {
+                    form.style.display = "none";
+                }
+            });
+        });
     });
 </script>
 @endsection

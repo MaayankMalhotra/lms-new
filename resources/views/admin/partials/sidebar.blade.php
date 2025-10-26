@@ -141,6 +141,12 @@
                     <i class="fas fa-home mr-3 text-lg"></i> Home Page
                 </a>
             </li>
+            <li>
+                <a href="{{ route('leads.index') }}"
+                    class="flex items-center p-3 {{ request()->routeIs('leads.index') ? 'bg-[#ff9800] text-white' : 'hover:bg-[#ff9800] hover:text-white' }} rounded transition">
+                    <i class="fas fa-address-book mr-3 text-lg"></i> Leads
+                </a>
+            </li>
             <!-- Courses -->
             <li x-data="{ isOpen: {{ request()->routeIs('admin.course.*') ? 'true' : 'false' }} }">
                 <a href="javascript:void(0)" @click="isOpen = !isOpen"
