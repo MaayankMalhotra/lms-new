@@ -92,7 +92,7 @@
                     </div>
                 </div>
 
-                <a href="{{ url('/about') }}"
+                <a href="{{ route('about-page') }}"
                     class="text-white hover:text-amber-400 transition-colors duration-300">About</a>
 
 
@@ -145,7 +145,7 @@
         <div id="mobile-menu" class="lg:hidden bg-[#2c0b57] px-4 pb-4">
             <div class="flex flex-col space-y-4">
                 <a href="{{ route('home-page') }}" class="text-white hover:text-amber-400 py-2">Home</a>
-                <a href="{{ url('/about') }}" class="text-white hover:text-amber-400 py-2">About</a>
+                <a href="{{ route('about-page') }}" class="text-white hover:text-amber-400 py-2">About</a>
 
                 <!-- Mobile Courses Dropdown -->
                 <div>
