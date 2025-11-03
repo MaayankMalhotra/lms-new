@@ -26,7 +26,7 @@
       <div class="footer-section">
         <h3 class="text-lg font-semibold mb-4">Know</h3>
         <ul class="space-y-2">
-          <li><a href="{{ route('about-page') }}" class="text-gray-400 hover:text-white transition duration-300">About Us</a></li>
+          <li><a href="{{ url('/about') }}" class="text-gray-400 hover:text-white transition duration-300">About Us</a></li>
           <li><a href="https://wa.me/919876543210?text=Hi%20tell%20me%20more%20about%20your%20mission%20%F0%9F%9A%80" target="_blank" rel="noopener" class="text-gray-400 hover:text-white transition duration-300">Our Mission</a></li>
           <li><a href="https://wa.me/919876543210?text=Hi%20I%20need%20details%20on%20your%20services%20%F0%9F%94%8D" target="_blank" rel="noopener" class="text-gray-400 hover:text-white transition duration-300">Services</a></li>
           <li><a href="https://wa.me/919876543210?text=Hi%20share%20your%20social%20impact%20initiatives%20%F0%9F%8C%8F" target="_blank" rel="noopener" class="text-gray-400 hover:text-white transition duration-300">Social Impact</a></li>
