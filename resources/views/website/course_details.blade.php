@@ -618,7 +618,7 @@
             }
 
             batches = allBatches.filter(batch => {
-                const requiredFields = ['id', 'date', 'price', 'slotsAvailable', 'slotsFilled', 'mode', 'status', 'startDate', 'discount_info'];
+                const requiredFields = ['id', 'date', 'price', 'slotsAvailable', 'slotsFilled', 'status', 'startDate'];
                 return requiredFields.every(field => batch[field] !== undefined && batch[field] !== null);
             });
             console.log('Filtered Batches:', batches);
@@ -632,7 +632,7 @@
 
             // Select the first batch by default
             if (batches.length > 0) {
-                selectBatch(batches[0].date);
+                selectBatch(batches[0].id);
             }
 
         } catch (error) {
@@ -655,6 +655,7 @@
             try {
                 const batchCard = document.createElement('div');
                 batchCard.classList.add('border', 'rounded-lg', 'p-4', 'text-center', 'relative', 'max-w-xs', 'batch-card');
+                batchCard.dataset.batchId = String(batch.id);
 
                 // Highlight the first batch by default
                 if (index === 0) {
@@ -667,7 +668,10 @@
                     batchCard.classList.add('border-gray-300');
                 }
 
-                batchCard.setAttribute('onclick', `selectBatch('${batch.date}')`);
+                const classSchedule = [batch.days, batch.duration].filter(Boolean).join(' | ') || 'Schedule to be announced';
+                const timeSlot = batch.timeSlot || batch.time_slot || 'Timing will be shared soon';
+                const mode = batch.mode || 'Online';
+                batchCard.addEventListener('click', () => selectBatch(batch.id));
 
                 const cardContent = `
                     <div class="batch-date text-sm text-gray-600 font-semibold">${batch.date}</div>
@@ -676,9 +680,9 @@
                             batch.status === 'started' ? 'Batch Started' :
                             batch.status === 'soon' ? 'Starting Soon' : 'Upcoming'
                         }</p>
-                        <p class="text-sm text-gray-600">SAT - SUN</p>
-                        <p class="text-sm text-gray-600">Weekend Class | 6 Months</p>
-                        <p class="text-sm text-gray-600 mt-2">08:00 PM TO 11:00 PM IST (GMT +5:30)</p>
+                        <p class="text-sm text-gray-600">${mode}</p>
+                        <p class="text-sm text-gray-600">${classSchedule}</p>
+                        <p class="text-sm text-gray-600 mt-2">${timeSlot}</p>
                     </div>
                 `;
                 batchCard.innerHTML = cardContent;
@@ -706,7 +710,11 @@
                 : `₹${batch.price.toLocaleString('en-IN')}`;
 
             // Update discount info (remove timer for upcoming batches)
-            document.getElementById('batch-discount').innerText = `${batch.discount_info}% OFF` || 'No discount available';
+            const discountInfo = batch.discount_info;
+            const discountText = discountInfo
+                ? `${discountInfo}${String(discountInfo).includes('%') ? '' : '%'} OFF`
+                : 'No discount available';
+            document.getElementById('batch-discount').innerText = discountText;
 
             // Update enroll button
             const enrollStartDate = new Date(batch.startDate);
@@ -732,17 +740,17 @@
     }
 
     // Function to select batch
-    function selectBatch(batchDate) {
-        const selectedBatch = batches.find(batch => batch.date === batchDate);
+    function selectBatch(batchId) {
+        const selectedBatch = batches.find(batch => String(batch.id) === String(batchId));
         if (!selectedBatch) {
-            console.error('Batch not found:', batchDate);
+            console.error('Batch not found:', batchId);
             return;
         }
         updateBatchDetails(selectedBatch);
         document.querySelectorAll('.batch-card').forEach(card => {
             card.classList.remove('active', 'border-orange-500');
             card.classList.add('border-gray-300');
-            if (card.querySelector('.batch-date').innerText === batchDate) {
+            if (card.dataset.batchId === String(batchId)) {
                 card.classList.add('active', 'border-orange-500');
                 card.classList.remove('border-gray-300');
             }

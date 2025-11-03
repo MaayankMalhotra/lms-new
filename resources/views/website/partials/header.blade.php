@@ -92,7 +92,10 @@
                     </div>
                 </div>
 
-                <a href="https://maayank-malhotra.ddns.net/about" class="text-white hover:text-amber-400 transition-colors duration-300">About</a>
+               <a href="{{ route('about-page.') }}" class="text-white hover:text-amber-400 transition-colors duration-300">
+  About
+</a>
+
 
                 <!-- What We Offer Dropdown -->
                 <div class="relative group">

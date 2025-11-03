@@ -409,7 +409,7 @@ public function storeInt(Request $request)
 
         $batches = Batch::where('course_id', $courseId)
             ->with('course', 'teacher')
-            ->get() 
+            ->get()
             ->map(function ($batch) {
                 return [
                     'id' => $batch->id,
@@ -417,7 +417,10 @@ public function storeInt(Request $request)
                     'price' => $batch->price,
                     'slotsAvailable' => $batch->slots_available,
                     'slotsFilled' => $batch->slots_filled,
-                    'mode' => $batch->course->mode ?? 'Online',
+                    'mode' => $batch->mode ?? optional($batch->course)->mode ?? 'Online',
+                    'days' => $batch->days,
+                    'duration' => $batch->duration,
+                    'timeSlot' => $batch->time_slot,
                     'status' => $batch->status === 'Batch Started' ? 'started' : ($batch->status === 'Upcoming' ? 'upcoming' : 'soon'),
                     'startDate' => $batch->start_date->toISOString(),
                     'discount_info' => $batch->discount_info,
@@ -437,7 +440,7 @@ public function storeInt(Request $request)
 
         $batches = InternshipBatch::where('internship_id', $courseId)
             ->with('internship', 'teacher')
-            ->get() 
+            ->get()
             ->map(function ($batch) {
                 return [
                     'id' => $batch->id,
@@ -445,7 +448,10 @@ public function storeInt(Request $request)
                     'price' => $batch->price,
                     'slotsAvailable' => $batch->slots_available,
                     'slotsFilled' => $batch->slots_filled,
-                    'mode' => $batch->course->mode ?? 'Online',
+                    'mode' => $batch->mode ?? optional($batch->course)->mode ?? optional($batch->internship)->mode ?? 'Online',
+                    'days' => $batch->days,
+                    'duration' => $batch->duration,
+                    'timeSlot' => $batch->time_slot,
                     'status' => $batch->status === 'Batch Started' ? 'started' : ($batch->status === 'Upcoming' ? 'upcoming' : 'soon'),
                     'startDate' => $batch->start_date->toISOString(),
                     'discount_info' => $batch->discount_info,
