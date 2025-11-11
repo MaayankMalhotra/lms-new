@@ -8,6 +8,10 @@
             min-height: 100vh;
             background-color: #f9fafb;
         }
+        body {
+            background-color: #ffffff !important;
+            background-image: none !important;
+        }
         .form-container {
             max-width: 900px;
             margin: 0 auto;

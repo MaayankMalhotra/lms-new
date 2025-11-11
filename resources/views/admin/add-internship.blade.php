@@ -18,6 +18,7 @@
     .icon-del { color:#ef4444 } .icon-del:hover{ color:#b91c1c }
     /* Modal */
     .modal-backdrop{ position:fixed; inset:0; background:rgba(0,0,0,.4); display:none; align-items:center; justify-content:center; z-index:60; }
+    .modal-backdrop.show{ display:flex; }
     .modal{ width:100%; max-width:700px; background:#fff; border-radius:16px; overflow:hidden; transform:translateY(8px); }
     .modal.show{ display:flex; }
 </style>
@@ -29,9 +30,9 @@
                 <h1 class="text-2xl font-bold text-gray-800"><i class="fas fa-briefcase mr-2 text-blue-500"></i>Internships</h1>
                 <p class="text-gray-500 text-sm">Manage internship programs</p>
             </div>
-            <a href="{{ route('admin.internship.add') }}" class="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700">
+            <button type="button" onclick="openAddModal()" class="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700">
                 <i class="fas fa-plus-circle mr-2"></i>Add Internship
-            </a>
+            </button>
         </div>
 
         @if(session('success'))
@@ -91,10 +92,76 @@
             <div class="mt-6">{{ $internships->links() }}</div>
         @endif
     </div>
-</div>
+        </div>
 
-<!-- EDIT MODAL -->
-<div id="editModal" class="modal-backdrop">
+        <!-- Add Internship Modal -->
+        <div id="addModal" class="modal-backdrop">
+            <div class="modal">
+                <div class="px-6 py-4 border-b flex items-center justify-between">
+                    <h3 class="text-lg font-semibold"><i class="fas fa-plus-circle mr-2 text-blue-600"></i>Add Internship</h3>
+                    <button onclick="closeAddModal()" class="text-gray-500 hover:text-gray-700"><i class="fas fa-times"></i></button>
+                </div>
+
+                <form id="addForm" action="{{ route('admin.internship.store') }}" method="POST" enctype="multipart/form-data" class="p-6 space-y-4">
+                    @csrf
+                    <input type="hidden" name="_form" value="add">
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Name</label>
+                            <input type="text" name="name" value="{{ old('name') }}" class="w-full border rounded px-3 py-2" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Duration</label>
+                            <input type="text" name="duration" value="{{ old('duration') }}" class="w-full border rounded px-3 py-2" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Projects</label>
+                            <input type="text" name="project" value="{{ old('project') }}" class="w-full border rounded px-3 py-2" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Applicant Stat</label>
+                            <input type="text" name="applicant" value="{{ old('applicant') }}" class="w-full border rounded px-3 py-2" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Certification Badge</label>
+                            <input type="text" name="certified_button" value="{{ old('certified_button') }}" class="w-full border rounded px-3 py-2" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Price (₹)</label>
+                            <input type="number" name="price" value="{{ old('price') }}" step="0.01" min="0" class="w-full border rounded px-3 py-2" required>
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700">Logo (optional)</label>
+                            <input type="file" name="logo" id="a-logo" accept="image/*" class="w-full border rounded px-3 py-2">
+                            <div class="mt-2">
+                                <img id="a-logo-preview" src="" alt="Logo preview" class="h-20 object-contain hidden">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="text-sm text-red-600">
+                        @if($errors->any() && old('_form') === 'add')
+                            @foreach($errors->all() as $error)
+                                <div>• {{ $error }}</div>
+                            @endforeach
+                        @else
+                            <span id="addErrors"></span>
+                        @endif
+                    </div>
+
+                    <div class="pt-3 flex items-center justify-end gap-2 border-t">
+                        <button type="button" onclick="closeAddModal()" class="px-4 py-2 rounded border">Cancel</button>
+                        <button type="submit" class="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700">
+                            Add Internship
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- EDIT MODAL -->
+        <div id="editModal" class="modal-backdrop">
     <div class="modal">
         <div class="px-6 py-4 border-b flex items-center justify-between">
             <h3 class="text-lg font-semibold"><i class="fas fa-edit mr-2 text-blue-600"></i>Edit Internship</h3>
@@ -200,6 +267,28 @@ function closeEditModal(){
     CURRENT_EDIT_ID = null;
 }
 
+function openAddModal(preserveValues = false){
+    const backdrop = document.getElementById('addModal');
+    if(!backdrop){ return; }
+    const form = document.getElementById('addForm');
+    if(form && !preserveValues){
+        form.reset();
+    }
+    const prev = document.getElementById('a-logo-preview');
+    if(prev){
+        prev.classList.add('hidden');
+        prev.src = '';
+    }
+    backdrop.classList.add('show');
+}
+
+function closeAddModal(){
+    const backdrop = document.getElementById('addModal');
+    if(backdrop){
+        backdrop.classList.remove('show');
+    }
+}
+
 document.getElementById('f-logo').addEventListener('change', function(e){
     const file = e.target.files?.[0];
     const prev = document.getElementById('f-logo-preview');
@@ -211,6 +300,21 @@ document.getElementById('f-logo').addEventListener('change', function(e){
         prev.classList.add('hidden'); prev.src = '';
     }
 });
+
+const addLogoInput = document.getElementById('a-logo');
+if(addLogoInput){
+    addLogoInput.addEventListener('change', function(e){
+        const file = e.target.files?.[0];
+        const prev = document.getElementById('a-logo-preview');
+        if(file && prev){
+            const reader = new FileReader();
+            reader.onload = (evt)=>{ prev.src = evt.target.result; prev.classList.remove('hidden'); }
+            reader.readAsDataURL(file);
+        } else if(prev){
+            prev.classList.add('hidden'); prev.src = '';
+        }
+    });
+}
 
 document.getElementById('editForm').addEventListener('submit', async function(e){
     e.preventDefault();
@@ -269,4 +373,10 @@ document.getElementById('editForm').addEventListener('submit', async function(e)
     }
 });
 </script>
+
+@if($errors->any() && old('_form') === 'add')
+<script>
+    document.addEventListener('DOMContentLoaded', () => openAddModal(true));
+</script>
+@endif
 @endsection

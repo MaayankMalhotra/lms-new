@@ -14,7 +14,11 @@ class InternshipController extends Controller
 {
     public function create()
     {
-        return view('admin.add-internship');
+        $internships = Internship::withExists(['detail as has_details'])
+            ->latest('created_at')
+            ->paginate(12);
+
+        return view('admin.add-internship', compact('internships'));
     }
 
     public function store(Request $request)

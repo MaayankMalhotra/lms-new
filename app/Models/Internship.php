@@ -30,4 +30,9 @@ class Internship extends Model
     {
         return $this->hasMany(InternshipFolder::class,'internship_id');
     }
+
+    public function detail()
+    {
+        return $this->hasOne(InternshipDetail::class, 'internship_id');
+    }
 }
