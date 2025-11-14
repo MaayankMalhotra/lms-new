@@ -37,7 +37,7 @@
 
 <!-- User Popup -->
 <div id="user-popup" class="fixed inset-0 bg-black/60 flex items-center justify-center hidden z-[9998]">
-    <div class="bg-white rounded-2xl shadow-2xl w-[95%] max-w-[550px] p-8 relative popup-animate max-h-[90vh] overflow-y-auto">
+    <div class="bg-white rounded-2xl shadow-2xl w-[88%] max-w-[420px] p-6 sm:p-7 relative popup-animate max-h-[90vh] overflow-y-auto">
         <button id="close-popup" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 text-2xl leading-none">&times;</button>
 
         <!-- ✅ Logo -->
@@ -47,31 +47,31 @@
                  class="h-16 object-contain">
         </div>
 
-        <h2 class="text-3xl font-bold text-gray-900 text-center mb-3">👋 Welcome!</h2>
-        <p class="text-gray-600 text-center mb-8">Enter your details to continue your journey 🚀</p>
+        <h2 class="text-2xl font-bold text-gray-900 text-center mb-2">👋 Welcome!</h2>
+        <p class="text-gray-600 text-center mb-6 text-sm sm:text-base">Enter your details to continue your journey 🚀</p>
 
         <!-- Popup Form -->
         <form id="popupForm" method="POST">
             @csrf
-            <div class="mb-5">
+            <div class="mb-4">
                 <label class="block text-sm font-medium">Full Name</label>
-                <input type="text" name="name" class="w-full mt-1 p-3 border rounded-lg" required />
+                <input type="text" name="name" class="w-full mt-1 p-3 border rounded-lg text-sm sm:text-base" required />
             </div>
-            <div class="mb-5">
+            <div class="mb-4">
                 <label class="block text-sm font-medium">Email Address</label>
-                <input type="email" name="email" class="w-full mt-1 p-3 border rounded-lg" />
+                <input type="email" name="email" class="w-full mt-1 p-3 border rounded-lg text-sm sm:text-base" />
             </div>
-            <div class="mb-8">
+            <div class="mb-6">
                 <label class="block text-sm font-medium">Phone Number</label>
-                <input type="tel" name="phone" class="w-full mt-1 p-3 border rounded-lg" />
+                <input type="tel" name="phone" class="w-full mt-1 p-3 border rounded-lg text-sm sm:text-base" />
             </div>
-            <button type="submit" class="w-full bg-orange-500 text-white py-3 rounded-lg font-bold text-lg shadow hover:bg-orange-600 transition">
+            <button type="submit" class="w-full bg-orange-500 text-white py-3 rounded-lg font-semibold text-base shadow hover:bg-orange-600 transition">
                 Submit
             </button>
         </form>
 
         <!-- ✅ Developer Credit -->
-        <div class="mt-6 text-center text-sm text-gray-500 leading-relaxed">
+        <div class="mt-5 text-center text-xs sm:text-sm text-gray-500 leading-relaxed">
             <p>Developed, Deployed, Maintained &amp; Upgraded by 
                <span class="font-semibold text-orange-500">Maayank Malhotra</span>
             </p>
@@ -317,17 +317,17 @@
         </p>
 
         <!-- Tabs -->
-        <div class="mt-8 overflow-x-auto hide-scrollbar">
-            <div class="inline-flex w-full md:w-auto md:justify-center">
-                <ul class="flex space-x-4 whitespace-nowrap">
-                    <li>
-                        <a href="#studyCourses" class="nav-tab text-base md:text-lg font-bold hover:text-[#ff7300] transition-all duration-300 data-[active=true]:text-white data-[active=true]:bg-[#ff7300] data-[active=true]:py-2 data-[active=true]:px-4 data-[active=true]:rounded-xl" data-tab="studyCourses" data-active="true">Courses</a>
+        <div class="mt-8">
+            <div class="flex justify-center">
+                <ul class="flex flex-wrap gap-3 sm:gap-4 w-full sm:w-auto justify-center">
+                    <li class="flex-1 min-w-[140px] sm:min-w-[160px] md:min-w-0">
+                        <a href="#studyCourses" class="nav-tab block w-full text-center text-sm sm:text-base md:text-lg font-bold px-3 py-2 rounded-xl border border-transparent hover:text-[#ff7300] transition-all duration-300 data-[active=true]:text-white data-[active=true]:bg-[#ff7300] data-[active=true]:border-[#ff7300]" data-tab="studyCourses" data-active="true">Courses</a>
                     </li>
-                    <li>
-                        <a href="#studyUpcoming" class="nav-tab text-base md:text-lg font-bold hover:text-[#ff7300] transition-all duration-300 data-[active=true]:text-white data-[active=true]:bg-[#ff7300] data-[active=true]:py-2 data-[active=true]:px-4 data-[active=true]:rounded-xl" data-tab="studyUpcoming">Upcoming Courses</a>
+                    <li class="flex-1 min-w-[140px] sm:min-w-[160px] md:min-w-0">
+                        <a href="#studyUpcoming" class="nav-tab block w-full text-center text-sm sm:text-base md:text-lg font-bold px-3 py-2 rounded-xl border border-transparent hover:text-[#ff7300] transition-all duration-300 data-[active=true]:text-white data-[active=true]:bg-[#ff7300] data-[active=true]:border-[#ff7300]" data-tab="studyUpcoming">Upcoming Courses</a>
                     </li>
-                    <li>
-                        <a href="#studyInternships" class="nav-tab text-base md:text-lg font-bold hover:text-[#ff7300] transition-all duration-300 data-[active=true]:text-white data-[active=true]:bg-[#ff7300] data-[active=true]:py-2 data-[active=true]:px-4 data-[active=true]:rounded-xl" data-tab="studyInternships">Internships</a>
+                    <li class="flex-1 min-w-[140px] sm:min-w-[160px] md:min-w-0">
+                        <a href="#studyInternships" class="nav-tab block w-full text-center text-sm sm:text-base md:text-lg font-bold px-3 py-2 rounded-xl border border-transparent hover:text-[#ff7300] transition-all duration-300 data-[active=true]:text-white data-[active=true]:bg-[#ff7300] data-[active=true]:border-[#ff7300]" data-tab="studyInternships">Internships</a>
                     </li>
                 </ul>
             </div>
@@ -341,13 +341,13 @@
                     @foreach($courses as $course)
                         <div class="study-box bg-white rounded-lg shadow-md p-6 text-center transition-all hover:scale-105 hover:shadow-lg">
                             <h3 class="text-xl font-bold text-[#2c0b57]">{{ $course->title }}</h3>
-                            <img src="{{ $course->image }}" class="w-12 h-12 mx-auto my-4 transition-transform hover:[transform:rotateY(180deg)]" alt="{{ $course->title }}" />
+                            <img src="{{ $course->image ?: asset('images/coursehead.png') }}" class="w-12 h-12 mx-auto my-4 transition-transform hover:[transform:rotateY(180deg)]" alt="{{ $course->title }}" />
                             <div class="text-gray-600 space-y-2">
                                 <p><i class="far fa-clock"></i> Duration: <span class="font-bold">{{ $course->duration }}</span></p>
                                 <p><i class="fas fa-users"></i> <span class="font-bold">{{ $course->placed_count }}+ Placed</span></p>
                                 <p>⭐ {{ $course->rating }} ({{ $course->student_count }}+ students)</p>
                             </div>
-                            <a href="{{ route('website.course') }}" class="mt-4 block w-full bg-[#ff7b00] text-white py-2 rounded-lg font-bold text-center hover:bg-[#ff5500] transition-all">Register Now</a>
+                            <a href="{{ route('website.course') }}" class="mt-4 block w-full bg-[#ff7b00] text-white py-2 rounded-lg font-bold text-center hover:bg-[#ff5500] transition-all">Register</a>
                         </div>
                     @endforeach
                 </div>
@@ -366,15 +366,15 @@
                     @foreach($upcomingCourses as $upcomingCourse)
                         <div class="study-box bg-white rounded-lg shadow-md p-6 text-center transition-all hover:scale-105 hover:shadow-lg">
                             <h3 class="text-xl font-bold text-[#2c0b57]">{{ $upcomingCourse->title }}</h3>
-                            <img src="{{ $upcomingCourse->image }}" class="w-12 h-12 mx-auto my-4 transition-transform hover:[transform:rotateY(180deg)]" alt="{{ $upcomingCourse->title }}" />
+                            <img src="{{ $upcomingCourse->image ?: asset('images/coursehead.png') }}" class="w-12 h-12 mx-auto my-4 transition-transform hover:[transform:rotateY(180deg)]" alt="{{ $upcomingCourse->title }}" />
                             <p class="text-gray-600"><i class="fas fa-calendar"></i> Start Date: <span class="font-bold">{{ \Carbon\Carbon::parse($upcomingCourse->start_date)->format('F d, Y') }}</span></p>
                             <p class="text-green-600 mt-2"><i class="fas fa-check-circle"></i> {{ $upcomingCourse->slots_open ? 'Slots Open' : 'Slots Closed' }}</p>
                             <a href="{{ route('website.course') }}" class="mt-4 block w-full bg-[#ff7b00] text-white py-2 rounded-lg font-bold text-center hover:bg-[#ff5500] transition-all">Pre-register Now</a>
                         </div>
                     @endforeach
                 </div>
-                <div id="viewAllUpcoming" class="text-center mt-8 hidden">
-                    <a href="#" class="inline-block bg-gradient-to-r from-[#ff7300] to-[#ff4500] text-white px-8 py-3 rounded-lg font-bold hover:shadow-lg hover:shadow-orange-300 transition-all">View All Upcoming Courses</a>
+                <div id="viewAllUpcoming" class="text-center mt-8">
+                    <a href="{{ route('website.course') }}" class="inline-block bg-gradient-to-r from-[#ff7300] to-[#ff4500] text-white px-8 py-3 rounded-lg font-bold hover:shadow-lg hover:shadow-orange-300 transition-all">View All Upcoming Courses</a>
                 </div>
             </div>
 
@@ -384,7 +384,7 @@
                     @foreach($internships as $internship)
                         <div class="study-box bg-white rounded-lg shadow-md p-6 text-center transition-all hover:scale-105 hover:shadow-lg">
                             <h4 class="text-xl font-bold text-[#2c0b57]">{{ $internship->title }}</h4>
-                            <img src="{{ $internship->image }}" class="w-12 h-12 mx-auto my-4 transition-transform hover:[transform:rotateY(180deg)]" alt="{{ $internship->title }}" />
+                            <img src="{{ $internship->image ?: asset('images/coursehead.png') }}" class="w-12 h-12 mx-auto my-4 transition-transform hover:[transform:rotateY(180deg)]" alt="{{ $internship->title }}" />
                             <div class="text-gray-600 space-y-2">
                                 <div class="flex justify-around">
                                     <span><i class="far fa-clock"></i> {{ $internship->duration }}</span>
@@ -393,12 +393,12 @@
                                 <p>⭐ {{ $internship->rating }} ({{ $internship->applicant_count }}+ applicants)</p>
                             </div>
                             <span class="inline-block bg-[#ffd700] text-[#333] px-3 py-1 rounded-full text-sm font-bold mt-2">{{ $internship->certification }}</span>
-                            <a href="{{ route('website.internship') }}" class="mt-4 block w-full bg-[#ff7b00] text-white py-2 rounded-lg font-bold text-center hover:bg-[#ff5500] transition-all">Register Now</a>
+                            <a href="{{ route('website.internship') }}" class="mt-4 block w-full bg-[#ff7b00] text-white py-2 rounded-lg font-bold text-center hover:bg-[#ff5500] transition-all">Register</a>
                         </div>
                     @endforeach
                 </div>
-                <div id="viewAllInternships" class="text-center mt-8 hidden">
-                    <a href="internship_coures.html" class="inline-block bg-gradient-to-r from-[#ff7300] to-[#ff4500] text-white px-8 py-3 rounded-lg font-bold hover:shadow-lg hover:shadow-orange-300 transition-all">View All Internships</a>
+                <div id="viewAllInternships" class="text-center mt-8">
+                    <a href="{{ route('website.internship') }}" class="inline-block bg-gradient-to-r from-[#ff7300] to-[#ff4500] text-white px-8 py-3 rounded-lg font-bold hover:shadow-lg hover:shadow-orange-300 transition-all">View All Internships</a>
                 </div>
             </div>
         </div>

@@ -46,7 +46,7 @@
                     data-course-slug="{{ $course->slug }}" 
                     onclick="redirectToCourseDetail(this)"
                 >
-                    Register Now
+                    Register
                 </button>
             </div>
             @endforeach
