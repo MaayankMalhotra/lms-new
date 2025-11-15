@@ -29,7 +29,7 @@
                     <thead class="text-xs text-gray-700 uppercase bg-gray-50">
                         <tr>
                             <th class="px-6 py-3">Date & Time</th>
-                            <th class="px-6 py-3">Batch</th> <!-- NEW -->
+                            <th class="px-6 py-3">Course / Batch</th> <!-- NEW -->
                             <th class="px-6 py-3">Status</th>
                             <th class="px-6 py-3">Action</th>
                         </tr>
@@ -44,7 +44,9 @@
 
                                     <!-- NEW: Batch -->
                                     <td class="px-6 py-4">
-                                        @if(!empty($slot->batch_name))
+                                        @if(!empty($slot->course_name))
+                                            <div class="font-medium text-gray-900">{{ $slot->course_name }}</div>
+                                        @elseif(!empty($slot->batch_name))
                                             <div class="font-medium text-gray-900">{{ $slot->batch_name }}</div>
                                             <div class="text-xs text-gray-500">
                                                 Starts {{ \Carbon\Carbon::parse($slot->batch_start_date)->format('d M Y') }}
@@ -98,7 +100,7 @@
                     <thead class="text-xs text-gray-700 uppercase bg-gray-50">
                         <tr>
                             <th class="px-6 py-3">Date & Time</th>
-                            <th class="px-6 py-3">Batch</th> <!-- NEW -->
+                            <th class="px-6 py-3">Course / Batch</th> <!-- NEW -->
                             <th class="px-6 py-3">Duration (min)</th>
                             <th class="px-6 py-3">Action</th>
                         </tr>
@@ -113,7 +115,9 @@
 
                                     <!-- NEW: Batch -->
                                     <td class="px-6 py-4">
-                                        @if(!empty($slot->batch_name))
+                                        @if(!empty($slot->course_name))
+                                            <div class="font-medium text-gray-900">{{ $slot->course_name }}</div>
+                                        @elseif(!empty($slot->batch_name))
                                             <div class="font-medium text-gray-900">{{ $slot->batch_name }}</div>
                                             <div class="text-xs text-gray-500">
                                                 Starts {{ \Carbon\Carbon::parse($slot->batch_start_date)->format('d M Y') }}

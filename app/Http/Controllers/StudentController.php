@@ -7,7 +7,6 @@ use App\Models\InterviewBooking;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\DB;
 
 class StudentController extends Controller
 {
@@ -133,10 +132,12 @@ public function viewAvailableSlots()
                 'available_slots.*',
                 'interview_bookings.status as booking_status',
                 'interview_bookings.meeting_link',
+                'courses.name as course_name',
                 'batches.batch_name',
-                DB::raw('batches.start_date as batch_start_date')
+                'batches.start_date as batch_start_date'
             )
             ->join('interview_bookings', 'interview_bookings.slot_id', '=', 'available_slots.id')
+            ->leftJoin('courses', 'courses.id', '=', 'available_slots.course_id')
             ->leftJoin('batches', 'batches.id', '=', 'available_slots.batch_id')
             ->where('interview_bookings.student_id', $studentId)
             ->where('available_slots.start_time', '>', $now)
@@ -149,10 +150,12 @@ public function viewAvailableSlots()
         $availableSlots = AvailableSlot::query()
             ->select(
                 'available_slots.*',
+                'courses.name as course_name',
                 'batches.batch_name',
-                DB::raw('batches.start_date as batch_start_date')
+                'batches.start_date as batch_start_date'
             )
             ->leftJoin('interview_bookings', 'interview_bookings.slot_id', '=', 'available_slots.id')
+            ->leftJoin('courses', 'courses.id', '=', 'available_slots.course_id')
             ->leftJoin('batches', 'batches.id', '=', 'available_slots.batch_id')
             ->whereNull('interview_bookings.id')
             ->where('available_slots.status', 'pending')

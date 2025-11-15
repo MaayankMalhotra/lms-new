@@ -10,7 +10,7 @@
             <p class="text-gray-500 mt-1">Update the details for this testimonial.</p>
         </div>
 
-        <form method="POST" action="{{ route('admin.testimonials.update', $testimonial->id) }}" enctype="multipart/form-data">
+        <form method="POST" action="{{ route('admin.testimonial.update', $testimonial->id) }}" enctype="multipart/form-data">
             @csrf
             @method('PUT')
 

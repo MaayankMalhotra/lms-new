@@ -307,7 +307,7 @@ public function update(Request $request, Internship $internship)
             ->with('internship')
             ->get()
             ->map(function ($enrollment) {
-                $total = $enrollment->internship->contents()->count();
+                $total = $enrollment->internship ? $enrollment->internship->contents()->count() : 0;
                 $completed = $enrollment->submissions()->count();
                 $enrollment->progress = $total ? ($completed / $total) * 100 : 0;
 

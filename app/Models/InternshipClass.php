@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Carbon\Carbon;
+
 class InternshipClass extends Model
 {
     protected $fillable = [
@@ -22,20 +23,23 @@ class InternshipClass extends Model
         'duration_minutes' => 'integer',
         'status' => 'string',
     ];
-  public function recordings()
+
+    public function recording()
     {
-        return $this->belongsToMany(InternshipRecording::class, 'recordings');
+        return $this->belongsTo(InternshipRecording::class, 'recording_id');
     }
+
     public function batch()
     {
-        return $this->belongsTo(InternshipBatch::class,'batch_id');
+        return $this->belongsTo(InternshipBatch::class, 'batch_id');
     }
 
     public function folder()
     {
         return $this->belongsTo(InternshipFolder::class); // Assuming Folder model exists
     }
-     public function enrollment()
+    
+    public function enrollment()
     {
         return $this->belongsTo(InternshipEnrollment::class, 'batch_id', 'batch_id');
     }

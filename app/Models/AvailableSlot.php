@@ -9,7 +9,7 @@ class AvailableSlot extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['teacher_id', 'start_time', 'duration_minutes', 'slot_number', 'status', 'is_booked','batch_id'];
+    protected $fillable = ['teacher_id', 'course_id', 'start_time', 'duration_minutes', 'slot_number', 'status', 'is_booked', 'batch_id'];
 
     protected $casts = [
         'start_time' => 'datetime',
@@ -20,6 +20,11 @@ class AvailableSlot extends Model
     public function teacher()
     {
         return $this->belongsTo(User::class, 'teacher_id');
+    }
+
+    public function course()
+    {
+        return $this->belongsTo(Course::class, 'course_id');
     }
 
     public function booking()

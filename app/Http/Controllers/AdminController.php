@@ -707,27 +707,30 @@ public function storePlacement(Request $request)
     // Testimonials
     public function storeTestimonial(Request $request)
     {
-        // $request->validate([
-        //     'name' => 'required|string|max:255',
-        //     'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
-        //     'content' => 'required|string',
-        //     'designation' => 'required|string|max:255',
-        //     'rating' => 'required|numeric|min:0|max:5',
-        //     'is_active' => 'boolean',
-        // ]);
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'content' => 'required|string',
+            'designation' => 'required|string|max:255',
+            'rating' => 'required|numeric|min:0|max:5',
+            'is_active' => 'boolean',
+        ]);
 
-        $imagePath = $request->file('image')->store('testimonials', 'public');
+        $imagePath = null;
+        if ($request->hasFile('image')) {
+            $imagePath = $request->file('image')->store('testimonials', 'public');
+        }
 
         DB::insert("
             INSERT INTO home_testimonials (name, image, content, designation, rating, is_active, created_at, updated_at)
             VALUES (?, ?, ?, ?, ?, ?, NOW(), NOW())
         ", [
-            $request->name,
+            $validated['name'],
             $imagePath,
-            $request->content,
-            $request->designation,
-            $request->rating,
-            $request->is_active ?? 1,
+            $validated['content'],
+            $validated['designation'],
+            $validated['rating'],
+            $validated['is_active'] ?? 1,
         ]);
 
         return redirect()->route('admin.home')->with('success', 'Testimonial added successfully.');

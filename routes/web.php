@@ -651,10 +651,10 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/admin/career-highlight/delete-all', [CareerHighlightController::class, 'deleteAll'])->name('admin.career_highlight.deleteAll');
     Route::get('/testimonials/index', [TestimonialController::class, 'index'])->name('admin.testimonials.index');
     Route::get('/testimonials/create', [TestimonialController::class, 'create'])->name('admin.testimonials.create');
-   // Route::post('/testimonials/', [TestimonialController::class, 'store'])->name('admin.testimonials.store');
+    Route::post('/testimonials', [TestimonialController::class, 'store'])->name('admin.testimonial.store');
     Route::get('/testimonials/{testimonial}/edit', [TestimonialController::class, 'edit'])->name('admin.testimonials.edit');
-   // Route::put('/testimonials/{testimonial}', [TestimonialController::class, 'update'])->name('admin.testimonials.update');
-    Route::delete('/testimonials/{testimonial}', [TestimonialController::class, 'destroy'])->name('admin.testimonials.destroy');
+    Route::put('/testimonials/{testimonial}', [TestimonialController::class, 'update'])->name('admin.testimonial.update');
+    Route::delete('/testimonials/{testimonial}', [TestimonialController::class, 'destroy'])->name('admin.testimonial.destroy');
     Route::get('/youtubereview/index', [YouTubeReviewController::class, 'index'])->name('admin.youtubereview.index');
     Route::get('/youtubereview/create', [YouTubeReviewController::class, 'create'])->name('admin.youtubereview.create');
     Route::post('/youtubereview', [YouTubeReviewController::class, 'store'])->name('admin.youtubereview.store'); 

@@ -10,7 +10,7 @@
             <p class="text-gray-500 mt-1">Fill in the details to create a new testimonial entry.</p>
         </div>
 
-        <form method="POST" action="{{ route('admin.testimonials.store') }}" enctype="multipart/form-data">
+        <form method="POST" action="{{ route('admin.testimonial.store') }}" enctype="multipart/form-data">
             @csrf
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">

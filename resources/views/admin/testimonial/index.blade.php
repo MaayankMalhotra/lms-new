@@ -17,6 +17,13 @@
             </a>
         </div>
 
+        @if (session('success'))
+            <div class="mb-6 flex items-center gap-2 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800 shadow-sm">
+                <i class="fas fa-check-circle text-green-500"></i>
+                <span>{{ session('success') }}</span>
+            </div>
+        @endif
+
         <!-- Testimonials Grid -->
         @if($testimonials->isEmpty())
             <div class="p-12 text-center text-gray-500 bg-white rounded-xl shadow-md">
@@ -58,7 +65,7 @@
                                class="text-blue-500 hover:text-blue-600">
                                 <i class="fas fa-edit"></i>
                             </a>
-                            <form action="{{ route('admin.testimonials.destroy', $testimonial->id) }}" method="POST" onsubmit="return confirmDelete()">
+                            <form action="{{ route('admin.testimonial.destroy', $testimonial->id) }}" method="POST" onsubmit="return confirmDelete()">
                                 @csrf @method('DELETE')
                                 <button type="submit" class="text-red-500 hover:text-red-600">
                                     <i class="fas fa-trash"></i>

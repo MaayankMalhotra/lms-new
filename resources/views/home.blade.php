@@ -489,7 +489,7 @@
         <!-- Testimonials -->
         <div id="tab-testimonials" class="tab-pane hidden">
             <h2 class="text-2xl font-bold text-[#2c2c44] mb-4">Add Testimonial</h2>
-            <form action="{{ route('admin.testimonials') }}" method="POST" enctype="multipart/form-data" class="bg-white p-6 rounded-xl shadow-lg card mb-8">
+            <form action="{{ route('admin.testimonials.store') }}" method="POST" enctype="multipart/form-data" class="bg-white p-6 rounded-xl shadow-lg card mb-8">
                 @csrf
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>

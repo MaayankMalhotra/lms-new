@@ -516,12 +516,12 @@
                         <i class="fas fa-plus-circle mr-2"></i> Show Career Highlights
                     </a>
                 </li>
-                <li>
+                {{-- <li>
                     <a href="{{ route('admin.testimonials.index') }}"
                         class="flex items-center p-2 text-sm {{ request()->routeIs('admin.testimonials.index') ? 'bg-[#ff9800] text-white' : 'hover:bg-[#ff9800]/20' }} rounded transition">
                         <i class="fas fa-plus-circle mr-2"></i> Show testimonial
                     </a>
-                </li>
+                </li> --}}
                 <li>
                     <a href="{{ route('admin.youtubereview.index') }}"
                         class="flex items-center p-2 text-sm {{ request()->routeIs('admin.youtubereview.index') ? 'bg-[#ff9800] text-white' : 'hover:bg-[#ff9800]/20' }} rounded transition">

@@ -75,7 +75,7 @@
                             <!-- Left: Internship Details -->
                             <div class="flex-1">
                                 <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
-                                    {{ $enrollment->internship->name }}
+                                    {{ optional($enrollment->internship)->name ?? 'Internship removed' }}
                                 </h3>
                                 <div class="mt-4 flex flex-col sm:flex-row sm:items-center sm:space-x-6">
                                     <!-- Status -->

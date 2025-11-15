@@ -12,31 +12,22 @@
 
                 <!-- Batch dropdown (shows start_date) -->
                 <div>
-                    <label for="batch_id" class="block text-sm font-medium text-gray-700">Batch</label>
+                    <label for="course_id" class="block text-sm font-medium text-gray-700">Course</label>
                     <select
-                        name="batch_id"
-                        id="batch_id"
+                        name="course_id"
+                        id="course_id"
                         required
                         class="mt-1 block w-full border p-2 rounded bg-white"
                     >
-                        <option value="" disabled selected>-- Select a batch --</option>
-                        @forelse($batches as $batch)
-                            @php $start = \Carbon\Carbon::parse($batch->start_date); @endphp
-                            <option
-                                value="{{ $batch->id }}"
-                                data-start="{{ $start->toDateString() }}"
-                                {{ old('batch_id') == $batch->id ? 'selected' : '' }}
-                            >
-                                {{ $batch->batch_name }} — starts {{ $start->format('d M Y') }}
+                        <option value="" disabled selected>-- Select a course --</option>
+                        @forelse($courses as $course)
+                            <option value="{{ $course->id }}" {{ old('course_id') == $course->id ? 'selected' : '' }}>
+                                {{ $course->name }}
                             </option>
                         @empty
-                            <option value="" disabled>No batches found</option>
+                            <option value="" disabled>No courses assigned yet</option>
                         @endforelse
                     </select>
-
-                    <p id="selectedBatchStartWrap" class="text-xs text-gray-500 mt-1 hidden">
-                        Starts on: <span id="selectedBatchStart"></span>
-                    </p>
                 </div>
 
                 <div>
@@ -66,7 +57,7 @@
                         <tr>
                             <th class="px-6 py-3">Start Time</th>
                             <th class="px-6 py-3">Duration (min)</th>
-                            <th class="px-6 py-3">Batch</th>
+                            <th class="px-6 py-3">Course / Batch</th>
                             <th class="px-6 py-3">Slot Number</th>
                             <th class="px-6 py-3">Status</th>
                             <th class="px-6 py-3">Booked</th>
@@ -83,7 +74,9 @@
 
                                 <!-- Uses join fields: batch_name + batch_start_date -->
                                 <td class="px-6 py-4">
-                                    @if(!empty($slot->batch_name))
+                                    @if(!empty($slot->course_name))
+                                        <div class="font-medium text-gray-900">{{ $slot->course_name }}</div>
+                                    @elseif(!empty($slot->batch_name))
                                         <div class="font-medium text-gray-900">{{ $slot->batch_name }}</div>
                                         <div class="text-xs text-gray-500">
                                             Starts {{ \Carbon\Carbon::parse($slot->batch_start_date)->format('d M Y') }}
@@ -117,24 +110,4 @@
         @endif
     </div>
 
-    <script>
-        const batchSelect = document.getElementById('batch_id');
-        const wrap = document.getElementById('selectedBatchStartWrap');
-        const out  = document.getElementById('selectedBatchStart');
-
-        function updateBatchStart() {
-            const opt = batchSelect?.options[batchSelect.selectedIndex];
-            const start = opt ? opt.getAttribute('data-start') : '';
-            if (start) {
-                out.textContent = start;
-                wrap.classList.remove('hidden');
-            } else {
-                wrap.classList.add('hidden');
-                out.textContent = '';
-            }
-        }
-
-        batchSelect?.addEventListener('change', updateBatchStart);
-        document.addEventListener('DOMContentLoaded', updateBatchStart);
-    </script>
 @endsection

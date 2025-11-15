@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Attendance;
 use App\Models\Batch;
 use Illuminate\Http\Request;
+use App\Models\Folder;
 use App\Models\Student;
 use App\Models\Enrollment;
 use App\Models\LiveClass;
@@ -102,30 +103,53 @@ class StudentClassController extends Controller
 
         public function recordings()
     {
-        // Get the authenticated student's ID
-        $studentId = Auth::user()->id;
+        $student = Auth::user();
+        $enrollment = $student->enrollments()
+            ->where('status', 'active')
+            ->with(['batch.course'])
+            ->first();
 
-        // Get the student's batch ID from the Enrollment model
-        $enrollment = Enrollment::where('user_id', $studentId)->first();
+        $folders = collect();
+        $batch = null;
+        $course = null;
+        $recordingsCount = 0;
+        $errorMessage = null;
+
         if (!$enrollment) {
-            return view('student.recordings.recording', ['recordings' => []])->with('error', 'No enrollment found');
+            $errorMessage = 'No active enrollment found for your account.';
+            return view('student.recordings.recording', compact('folders', 'batch', 'course', 'recordingsCount'))
+                ->with('error', $errorMessage);
         }
-        $batchId = $enrollment->batch_id;
 
-        // Get the course_id from the batch
-        $batch = Batch::findOrFail($batchId);
-        $courseId = $batch->course_id;
+        $batch = $enrollment->batch;
+        if (!$batch) {
+            $errorMessage = 'Your enrollment is missing a batch assignment.';
+            return view('student.recordings.recording', compact('folders', 'batch', 'course', 'recordingsCount'))
+                ->with('error', $errorMessage);
+        }
 
-        // Fetch recordings where the folder's course_id matches, and both are unlocked
-        $recordings = Recording::with(['topic.folder'])
-            ->whereHas('topic.folder', function ($query) use ($courseId) {
-                $query->where('course_id', $courseId)->where('locked', '0');
-            })
-            ->where('locked', '0')
-            ->orderBy('created_at', 'desc')
+        $course = $batch->course;
+        if (!$course) {
+            $errorMessage = 'No course data is available for your batch.';
+            return view('student.recordings.recording', compact('folders', 'batch', 'course', 'recordingsCount'))
+                ->with('error', $errorMessage);
+        }
+
+        $course->load('batches');
+
+        $folders = Folder::where('course_id', $course->id)
+            ->where('locked', 0)
+            ->with(['topics.recordings' => function ($query) {
+                $query->where('locked', 0)->orderBy('created_at', 'desc');
+            }])
             ->get();
 
-        return view('student.recordings.recording', compact('recordings'));
+        $recordingsCount = $folders
+            ->flatMap(fn ($folder) => $folder->topics)
+            ->flatMap(fn ($topic) => $topic->recordings)
+            ->count();
+
+        return view('student.recordings.recording', compact('folders', 'batch', 'course', 'recordingsCount'));
     }
 
     public function assignment(){

@@ -3,13 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\AvailableSlot;
+use App\Models\Course;
 use App\Models\InterviewBooking;
+use App\Models\TrainerDetail;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\Batch;
-use Carbon\Carbon;
-
-use Illuminate\Support\Facades\DB;
 
 
 class TeacherController extends Controller
@@ -20,27 +19,31 @@ class TeacherController extends Controller
     //     return view('teacher.slots', compact('slots'));
     // }
 
-  public function index()
+    public function index()
     {
-        // Slots + batch info via LEFT JOIN (no relations)
         $slots = AvailableSlot::query()
             ->select(
                 'available_slots.*',
+                'courses.name as course_name',
                 'batches.batch_name',
-                DB::raw('batches.start_date as batch_start_date')
+                'batches.start_date as batch_start_date'
             )
+            ->leftJoin('courses', 'courses.id', '=', 'available_slots.course_id')
             ->leftJoin('batches', 'batches.id', '=', 'available_slots.batch_id')
             ->where('available_slots.teacher_id', Auth::id())
             ->orderByDesc('available_slots.start_time')
             ->get();
 
-        // Batches for dropdown (no relations)
-        $batches = DB::table('batches')
-            ->select('id', 'batch_name', 'start_date')
-            ->orderBy('batch_name')
-            ->get();
+        $trainerDetail = TrainerDetail::where('user_id', Auth::id())->first();
+        $courseIds = $trainerDetail?->course_ids ?? [];
 
-        return view('teacher.slots', compact('slots', 'batches'));
+        $coursesQuery = Course::orderBy('name');
+        if (!empty($courseIds)) {
+            $coursesQuery->whereIn('id', $courseIds);
+        }
+        $courses = $coursesQuery->get();
+
+        return view('teacher.slots', compact('slots', 'courses'));
     }
 
     // public function createSlot(Request $request)
@@ -61,26 +64,26 @@ class TeacherController extends Controller
 
     
 
-public function createSlot(Request $request)
-{
-    $request->validate([
-        'batch_id'         => 'required|exists:batches,id',
-        'start_time'       => 'required|date',
-        'duration_minutes' => 'required|integer|min:15',
-    ]);
+    public function createSlot(Request $request)
+    {
+        $request->validate([
+            'course_id'        => 'required|exists:courses,id',
+            'start_time'       => 'required|date',
+            'duration_minutes' => 'required|integer|min:15',
+        ]);
 
-    $start = Carbon::parse($request->start_time);
+        $start = Carbon::parse($request->start_time);
 
-    AvailableSlot::create([
-        'teacher_id'       => Auth::id(),
-        'batch_id'         => $request->batch_id,          // <-- added
-        'start_time'       => $start,
-        'duration_minutes' => (int) $request->duration_minutes,
-        // 'slot_number'    => $this->nextSlotNumber(Auth::id(), $start), // optional auto-numbering
-    ]);
+        AvailableSlot::create([
+            'teacher_id'       => Auth::id(),
+            'course_id'        => $request->course_id,
+            'batch_id'         => null,
+            'start_time'       => $start,
+            'duration_minutes' => (int) $request->duration_minutes,
+        ]);
 
-    return redirect()->route('teacher.slots')->with('success', 'Slot created.');
-}
+        return redirect()->route('teacher.slots')->with('success', 'Slot created.');
+    }
 
     // public function viewBookings()
     // {
