@@ -138,7 +138,7 @@
                 <span id="duration">0:00</span>
             </div>
         </div>
-        <div id="uiOverlay" class="pointer-events-none absolute inset-x-0 top-16 bottom-16 bg-transparent"></div>
+        <div id="uiOverlay" class="absolute inset-x-0 top-16 bottom-16 bg-transparent hidden"></div>
     </div>
 </div>
 
@@ -251,12 +251,19 @@
                     allowfullscreen
                 ></iframe>
             `;
-            uiOverlay.style.display = 'block';
+            if (uiOverlay) {
+                uiOverlay.style.display = 'block';
+            }
             if (window.YT && window.YT.Player) {
                 player = new window.YT.Player('youtubePlayer', {
                     events: {
                         onReady: function (event) {
                             player = event.target;
+                            try {
+                                player.playVideo();
+                            } catch (error) {
+                                console.warn('Autoplay failed', error);
+                            }
                             updateSeekBar();
                             setInterval(updateSeekBar, 1000);
                         },
@@ -273,7 +280,9 @@
                     Your browser does not support the video tag.
                 </video>
             `;
-            uiOverlay.style.display = 'none';
+            if (uiOverlay) {
+                uiOverlay.style.display = 'none';
+            }
             video = document.getElementById('modalVideo');
             video.load();
             video.play().catch(error => console.warn('Autoplay blocked', error));
@@ -335,6 +344,11 @@
     }
     #seekBar::-webkit-slider-thumb {
         background: #6366f1;
+    }
+    #uiOverlay {
+        pointer-events: auto;
+        cursor: not-allowed;
+        z-index: 15;
     }
 </style>
 
