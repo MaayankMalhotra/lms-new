@@ -134,6 +134,7 @@ Route::get('/health-check', function () {
 
 Route::prefix('shop')->as('shop.')->group(function () {
     Route::get('/', [ShopAssistantController::class, 'index'])->name('index');
+    Route::get('/discover', [StorefrontController::class, 'landing'])->name('landing');
     Route::post('/chat', [ShopAssistantController::class, 'chat'])->name('chat');
     Route::get('/search', [StorefrontController::class, 'search'])->name('search');
     Route::get('/category/{category:slug}', [StorefrontController::class, 'category'])->name('category');

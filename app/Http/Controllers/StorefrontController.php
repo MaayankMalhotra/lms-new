@@ -32,6 +32,24 @@ class StorefrontController extends Controller
         ));
     }
 
+    public function landing(): View
+    {
+        $categories = Category::withCount('products')->orderBy('sort_order')->get();
+
+        $products = Product::with(['images', 'categories'])
+            ->published()
+            ->latest('published_at')
+            ->get();
+
+        $heroProduct = $products->first();
+
+        return view('shop.landing', [
+            'categories' => $categories,
+            'products' => $products,
+            'heroProduct' => $heroProduct,
+        ]);
+    }
+
     public function category(Category $category): View
     {
         $category->load(['products' => fn ($query) => $query->with(['images', 'categories'])->published()]);

@@ -9,14 +9,7 @@
                 <p class="text-sm font-semibold text-[#007185]">Aromea AI · Conversational Commerce</p>
                 <p class="text-xs text-gray-500">Ask for perfumes, sneakers, ritual kits, gifts, or say "view cart".</p>
             </div>
-            <div id="chat-log" class="space-y-6 overflow-y-auto px-6 py-8" style="max-height: 70vh;">
-                <div class="flex gap-3">
-                    <div class="flex h-10 w-10 items-center justify-center rounded-full bg-[#232f3e] text-sm font-semibold text-white">AI</div>
-                    <div class="rounded-2xl bg-gray-100 px-4 py-3 text-sm text-slate-900">
-                        Hey there! I'm your personal shopper. Tell me what you're looking for—perfumes, sneakers, ritual kits, gifts—and I'll drop the best options right here.
-                    </div>
-                </div>
-            </div>
+            <div id="chat-log" class="space-y-6 overflow-y-auto px-6 py-8" style="max-height: 70vh;"></div>
             <form id="chat-form" class="border-t border-gray-200 px-6 py-4 flex gap-3">
                 <input type="text" id="chat-input" class="flex-1 rounded-full border border-gray-300 px-4 py-2 text-sm focus:border-[#007185] focus:outline-none" placeholder="Type your request..." autocomplete="off">
                 <button type="submit" class="rounded-full bg-[#ffd814] px-5 py-2 text-sm font-semibold text-[#111]">Send</button>
@@ -83,6 +76,11 @@
             chatLog.appendChild(wrapper);
             chatLog.scrollTop = chatLog.scrollHeight;
         };
+
+        const initialGreeting = @json($initialGreeting);
+        if (initialGreeting) {
+            appendMessage('bot', initialGreeting);
+        }
 
         chatForm.addEventListener('submit', async (event) => {
             event.preventDefault();

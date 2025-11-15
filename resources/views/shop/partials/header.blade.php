@@ -52,6 +52,12 @@
             @endforeach
             <a href="{{ route('shop.search', ['q' => 'gift']) }}" class="whitespace-nowrap hover:text-[#febd69]">Gift Studio</a>
             <a href="{{ route('cart.index') }}" class="whitespace-nowrap hover:text-[#febd69]">Today's Deals</a>
+            @if(request()->routeIs('shop.landing'))
+                <a href="{{ route('shop.index') }}"
+                    class="ml-auto inline-flex items-center gap-2 rounded-full border border-white/30 px-4 py-1 text-xs font-semibold uppercase tracking-wide hover:border-white">
+                    <i class="fa fa-robot text-sm"></i> Chat with AI
+                </a>
+            @endif
         </div>
     </div>
 </header>
