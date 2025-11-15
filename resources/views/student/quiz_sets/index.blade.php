@@ -26,6 +26,13 @@
         @else
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 @foreach($quizSets as $set)
+                    @php
+                        $attempt = $attempts[$set->id] ?? null;
+                        $answered = $attempt ? $attempt->answers->count() : 0;
+                        $correct = $attempt->score ?? 0;
+                        $incorrect = $attempt ? max($answered - $correct, 0) : 0;
+                        $unanswered = max($set->total_quizzes - $answered, 0);
+                    @endphp
                     <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-all duration-300">
                         <h2 class="text-2xl font-semibold text-indigo-600 mb-3">
                             {{ $set->title }}
@@ -39,10 +46,29 @@
                         <p class="text-gray-600 mb-4">
                             <span class="font-medium">Batch:</span> {{ $set->batch->start_date ?? 'N/A' }}
                         </p>
-                        @if($student->studentQuizSetAttempts->where('quiz_set_id', $set->id)->first())
-                            <p class="text-green-600 font-semibold">
-                                Your Score: {{ $student->studentQuizSetAttempts->where('quiz_set_id', $set->id)->first()->score }} / {{ $set->total_quizzes }}
-                            </p>
+                        @if($attempt)
+                            <div class="space-y-2 text-sm text-gray-600 mt-4">
+                                <div class="flex justify-between">
+                                    <span class="font-semibold text-gray-800">Score</span>
+                                    <span class="text-green-600 font-semibold">{{ $correct }} / {{ $set->total_quizzes }}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Correct Answers</span>
+                                    <span class="text-green-600 font-semibold">{{ $correct }}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Incorrect Answers</span>
+                                    <span class="text-red-500 font-semibold">{{ $incorrect }}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Not Attempted</span>
+                                    <span class="text-orange-500 font-semibold">{{ $unanswered }}</span>
+                                </div>
+                            </div>
+                            <a href="{{ route('student.quiz_attempt', $attempt->id) }}"
+                               class="mt-4 inline-flex items-center justify-center w-full bg-indigo-50 text-indigo-700 px-4 py-2 rounded-lg font-semibold hover:bg-indigo-100 transition">
+                                View Detailed Report
+                            </a>
                         @else
                             <a href="{{ route('student.quiz_sets.take', $set->id) }}"
                                class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-all duration-200">

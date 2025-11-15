@@ -99,6 +99,12 @@
                     <i class="fas fa-chalkboard mr-3 text-lg"></i> My Classes
                 </a>
             </li>
+            <li>
+                <a href="{{ route('student.orders') }}"
+                    class="flex items-center p-3 {{ request()->routeIs('student.orders') ? 'bg-[#ff9800] text-white' : 'hover:bg-[#ff9800] hover:text-white' }} rounded transition">
+                    <i class="fas fa-receipt mr-3 text-lg"></i> My Orders
+                </a>
+            </li>
             <!-- Attendance -->
             <li>
                 <a href="{{ route('student.attendance') }}"

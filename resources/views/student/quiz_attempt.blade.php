@@ -41,13 +41,13 @@
                     </div>
                     <div class="card-body">
                         <div class="alert alert-info mb-4" role="alert">
-                            <strong>Tera Score:</strong> {{ $attempt->score }} / {{ $attempt->quizSet->total_quizzes }}
+                            <strong>Your Score:</strong> {{ $attempt->score }} / {{ $attempt->quizSet->total_quizzes }}
                         </div>
 
                         @foreach ($attempt->quizSet->quizzes as $index => $quiz)
                             <div class="card quiz-card mb-4 border-0 shadow">
                                 <div class="card-header bg-light">
-                                    <h5 class="card-title mb-0 font-weight-bold">Sawaal {{ $index + 1 }}: {{ $quiz->question }}</h5>
+                                    <h5 class="card-title mb-0 font-weight-bold">Question {{ $index + 1 }}: {{ $quiz->question }}</h5>
                                 </div>
                                 <div class="card-body">
                                     @php
@@ -56,18 +56,18 @@
                                     @endphp
 
                                     <p class="mb-2">
-                                        <strong>Tera Jawab:</strong> 
+                                        <strong>Your Answer:</strong> 
                                         @if ($studentAnswer)
                                             <span class="badge {{ $isCorrect ? 'badge-success' : 'badge-danger' }} p-2">
                                                 {{ $quiz->{'option_' . $studentAnswer->student_answer} }}
-                                                ({{ $isCorrect ? 'Sahi' : 'Galat' }})
+                                                ({{ $isCorrect ? 'Correct' : 'Incorrect' }})
                                             </span>
                                         @else
-                                            <span class="badge badge-warning p-2">Tune iska jawab nahi diya</span>
+                                            <span class="badge badge-warning p-2">You skipped this question</span>
                                         @endif
                                     </p>
                                     <p class="mb-4">
-                                        <strong>Sahi Jawab:</strong> 
+                                        <strong>Correct Answer:</strong> 
                                         <span class="badge badge-success p-2">{{ $quiz->{'option_' . $quiz->correct_option} }}</span>
                                     </p>
 
@@ -78,7 +78,7 @@
                                                 <span class="option-badge {{ $quiz->correct_option == $i ? 'option-correct' : ($studentAnswer && $studentAnswer->student_answer == $i && !$isCorrect ? 'option-incorrect' : 'option-neutral') }}">
                                                     {{ $quiz->{'option_' . $i} }}
                                                     @if ($studentAnswer && $studentAnswer->student_answer == $i)
-                                                        <small>(Tera choice)</small>
+                                                        <small>(Your choice)</small>
                                                     @endif
                                                 </span>
                                             @endfor
@@ -89,7 +89,7 @@
                         @endforeach
 
                         <a href="{{ route('student.quiz_sets') }}" class="btn btn-primary btn-lg mt-4">
-                            Wapas Quiz Sets Pe Jao
+                            Back to Quiz Sets
                         </a>
                     </div>
                 </div>

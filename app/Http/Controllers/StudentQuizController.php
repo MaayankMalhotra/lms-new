@@ -15,10 +15,19 @@ class StudentQuizController extends Controller
     public function index()
     {
         $student = Auth::user();
-        
         $enrolledBatches = $student->enrollments()->pluck('batch_id');
-        $quizSets = QuizSet::whereIn('batch_id', $enrolledBatches)->get();
-        return view('student.quiz_sets.index', compact('quizSets', 'student'));
+
+        $quizSets = QuizSet::with(['batch.course'])
+            ->whereIn('batch_id', $enrolledBatches)
+            ->get();
+
+        $attempts = $student->studentQuizSetAttempts()
+            ->with('answers')
+            ->whereIn('quiz_set_id', $quizSets->pluck('id'))
+            ->get()
+            ->keyBy('quiz_set_id');
+
+        return view('student.quiz_sets.index', compact('quizSets', 'student', 'attempts'));
     }
 
     public function takeQuiz($id)
@@ -262,8 +271,8 @@ public function submitQuiz(Request $request, $id)
     }
 
     $attempt->update(['score' => $correctCount]);
-    return redirect()->route('student.quiz_sets')
-        ->with('success', "Your score is $correctCount/{$quizSet->total_quizzes}");
+    return redirect()->route('student.quiz_attempt', $attempt->id)
+        ->with('success', "Quiz submitted! You scored $correctCount out of {$quizSet->total_quizzes}.");
 }
 
            // extra code

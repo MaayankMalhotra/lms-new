@@ -897,6 +897,7 @@ Route::post('/mentor-applications', [MentorApplicationController::class, 'store'
 
 use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\StudentController;
+use App\Http\Controllers\StudentOrderController;
 use App\Http\Controllers\ResumeController;
 
 Route::get('/MaayankMalhotraResume', [ResumeController::class, 'index'])->name('resume.index');
@@ -915,6 +916,9 @@ Route::post('/teacher/update-slot-status/{slotId}', [TeacherController::class, '
     Route::get('/student/slots', [StudentController::class, 'viewAvailableSlots'])->name('student.slots');
     Route::post('/student/book/{slotId}', [StudentController::class, 'bookSlot'])->name('student.book');
     Route::get('/student/interview', [StudentController::class, 'joinInterview'])->name('student.interview');
+    Route::get('/student/orders', [StudentOrderController::class, 'index'])
+        ->middleware('auth')
+        ->name('student.orders');
 use App\Http\Controllers\LeadController;
 
 Route::post('/leads/store', [LeadController::class, 'store'])->name('leads.store');
