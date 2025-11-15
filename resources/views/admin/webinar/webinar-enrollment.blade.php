@@ -11,10 +11,20 @@
                 </h2>
                 <p class="text-gray-600 mt-1">Manage all webinar enrollments from the panel below.</p>
             </div>
-            <button id="send-confirmation-btn"
-                class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg shadow">
-                Send Confirmation Mail
-            </button>
+            <div class="flex items-center gap-3">
+                @php
+                    $exportParams = array_filter(['webinar_id' => request('webinar_id')]);
+                @endphp
+                <a href="{{ route('admin.webinar.enrollments.export', $exportParams) }}"
+                   class="bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-lg shadow text-sm flex items-center gap-2">
+                    <i class="fas fa-file-csv"></i>
+                    Export CSV
+                </a>
+                <button id="send-confirmation-btn"
+                    class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg shadow">
+                    Send Confirmation Mail
+                </button>
+            </div>
         </div>
 
         <!-- Filter -->

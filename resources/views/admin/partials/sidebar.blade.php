@@ -31,6 +31,14 @@
                 <i class="fas fa-image mr-3 text-lg"></i> Panel Background
             </a>
         </li>
+        @if(auth()->user()->role === 1)
+            <li>
+                <a href="{{ route('admin.demoVideoUploader') }}"
+                    class="flex items-center p-3 {{ request()->routeIs('admin.demo-video-uploader') ? 'bg-[#ff9800] text-white' : 'hover:bg-[#ff9800] hover:text-white' }} rounded transition">
+                    <i class="fas fa-film mr-3 text-lg"></i> Demo Video Uploader
+                </a>
+            </li>
+        @endif
 
         @if (auth()->user()->role == 3)
             <!-- Student Quiz -->
@@ -145,6 +153,12 @@
                 <a href="{{ route('leads.index') }}"
                     class="flex items-center p-3 {{ request()->routeIs('leads.index') ? 'bg-[#ff9800] text-white' : 'hover:bg-[#ff9800] hover:text-white' }} rounded transition">
                     <i class="fas fa-address-book mr-3 text-lg"></i> Leads
+                </a>
+            </li>
+            <li>
+                <a href="{{ route('admin.mentor-applications.index') }}"
+                    class="flex items-center p-3 {{ request()->routeIs('admin.mentor-applications.index') ? 'bg-[#ff9800] text-white' : 'hover:bg-[#ff9800] hover:text-white' }} rounded transition">
+                    <i class="fas fa-user-tie mr-3 text-lg"></i> Mentor Applications
                 </a>
             </li>
             <!-- Courses -->

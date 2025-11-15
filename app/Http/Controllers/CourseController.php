@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Course;
 use App\Models\CourseDetail;
+use App\Models\User;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -262,17 +263,22 @@ public function courseDetails($slug)
     // Slug se course ki row database se fetch karo
     // $course = Course::where('slug', $slug)->first();
     // $course_details = CourseDetail::where('course_id', $course->id)->first();
-    $course = Course::where('slug', $slug)->first();
-    $course_details = CourseDetail::where('course_id', $course->id)
-        ->join('courses', 'courses.id', '=', 'course_details.course_id')
-        ->select('course_details.*', 'courses.name')
-        ->first();
-        // dd($course_details);
-    if (!$course) {
-        return view('website.course_details')->with('error', 'Course not found!');
-    }
+        $course = Course::where('slug', $slug)->first();
+        $course_details = CourseDetail::where('course_id', $course->id)->first();
+        $course_details?->loadMissing('course');
 
-    // Course details ke saath view pe bhejo
-    return view('website.course_details', ['course' => $course,'course_details' => $course_details]);
-}
+        if (!$course) {
+            return view('website.course_details')->with('error', 'Course not found!');
+        }
+
+        $instructorIds = $course_details->instructor_ids ?? [];
+        $instructors = User::whereIn('id', array_filter($instructorIds))->get();
+
+        // Course details ke saath view pe bhejo
+        return view('website.course_details', [
+            'course' => $course,
+            'course_details' => $course_details,
+            'instructors' => $instructors,
+        ]);
+    }
 }

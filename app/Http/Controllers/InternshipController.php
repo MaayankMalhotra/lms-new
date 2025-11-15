@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Internship;
 use App\Models\InternshipDetail;
 use App\Models\InternshipEnrollment;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -186,6 +187,32 @@ public function update(Request $request, Internship $internship)
         $internship->delete();
 
         return redirect()->route('admin.internship.list')->with('success', 'Internship deleted successfully!');
+    }
+
+    public function updateDemoVideo(Request $request, InternshipDetail $internshipDetail)
+    {
+        if (!Auth::check() || Auth::user()->role !== 1) {
+            abort(403);
+        }
+
+        $data = $request->validate([
+            'module_index' => 'required|integer|min:0',
+            'video_url' => 'required|url',
+        ]);
+
+        $modules = $internshipDetail->demo_syllabus ?? [];
+        if (!isset($modules[$data['module_index']])) {
+            return response()->json(['message' => 'Module not found'], 404);
+        }
+
+        $modules[$data['module_index']]['video_url'] = trim($data['video_url']);
+        $internshipDetail->update(['demo_syllabus' => $modules]);
+
+        return response()->json([
+            'status' => 'ok',
+            'message' => 'Demo video saved',
+            'video_url' => $modules[$data['module_index']]['video_url'],
+        ]);
     }
 
     public function contentCreate()
@@ -376,16 +403,20 @@ public function internshipDetails($id)
     // $course = Course::where('slug', $slug)->first();
     // $course_details = CourseDetail::where('course_id', $course->id)->first();
     $course = Internship::where('id', $id)->first();
-    $course_details = InternshipDetail::where('internship_id', $course->id)
-        ->join('internships', 'internships.id', '=', 'internship_details.internship_id')
-        ->select('internship_details.*', 'internships.name')
-        ->first();
+    $course_details = InternshipDetail::where('internship_id', $course->id)->first();
+    $course_details?->loadMissing('internship');
+    $instructorIds = $course_details->instructor_ids ?? [];
+    $instructors = User::whereIn('id', array_filter($instructorIds))->get();
         // dd($course_details);
     if (!$course) {
         return view('website.internship_details')->with('error', 'internships not found!');
     }
 
     // Course details ke saath view pe bhejo
-    return view('website.internship_details', ['course' => $course,'course_details' => $course_details]);
+    return view('website.internship_details', [
+        'course' => $course,
+        'course_details' => $course_details,
+        'instructors' => $instructors,
+    ]);
 }
 }

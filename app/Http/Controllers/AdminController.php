@@ -2,13 +2,19 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Batch;
 use App\Models\Course;
+use App\Models\Internship;
+use App\Models\InternshipDetail;
+use App\Models\CourseDetail;
+use App\Models\Payment;
 use App\Models\TrainerDetail;
+use App\Models\User; 
+use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
-use App\Models\User; 
-use Illuminate\Support\Facades\Storage; // Import Storage facade
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage; // Import Storage facade
 use Illuminate\Support\Str;
 class AdminController extends Controller
 {
@@ -139,6 +145,14 @@ public function student_management()
         return view('admin.studentmanagement', compact('students'));
     }
 
+    public function demoVideoUploader()
+    {
+        $courseDetails = CourseDetail::with('course')->get();
+        $internshipDetails = InternshipDetail::with('internship')->get();
+
+        return view('admin.demo-video-uploader', compact('courseDetails', 'internshipDetails'));
+    }
+
     public function editStudent($id)
     {
         $student = User::findOrFail($id);
@@ -210,6 +224,59 @@ public function student_management()
             'placements', 'courses', 'upcomingCourses', 'internships',
             'instructors', 'testimonials', 'faqs'
         ));
+    }
+
+    public function pendingSummary(Request $request)
+    {
+        $courseId = $request->query('course_id');
+        $batchId = $request->query('batch_id');
+
+        $baseQuery = Payment::query()->where('status', 'pending');
+
+        if ($courseId) {
+            $baseQuery->whereHas('batch', fn($q) => $q->where('course_id', $courseId));
+        }
+        if ($batchId) {
+            $baseQuery->where('batch_id', $batchId);
+        }
+
+        $totalPendingAmount = (clone $baseQuery)->sum('amount');
+        $pendingCount = (clone $baseQuery)->count();
+        $nextDueRaw = (clone $baseQuery)->orderBy('created_at')->value('created_at');
+        $nextDueDate = $nextDueRaw ? Carbon::parse($nextDueRaw)->format('d M, Y') : null;
+
+        $filteredBatches = Batch::when($courseId, function ($query) use ($courseId) {
+                $query->where('course_id', $courseId);
+            })
+            ->orderBy('batch_name')
+            ->get(['id', 'batch_name', 'course_id']);
+
+        $topBatchAggregates = Payment::query()
+            ->selectRaw('batch_id, SUM(amount) as total_amount, COUNT(*) as count')
+            ->where('status', 'pending')
+            ->when($courseId, fn($q) => $q->whereHas('batch', fn($q) => $q->where('course_id', $courseId)))
+            ->when($batchId, fn($q) => $q->where('batch_id', $batchId))
+            ->groupBy('batch_id')
+            ->orderByDesc('total_amount')
+            ->limit(3)
+            ->get();
+
+        $topBatches = $topBatchAggregates->map(function ($row) {
+            $batch = Batch::find($row->batch_id);
+            return [
+                'name'   => $batch->batch_name ?? "Batch #{$row->batch_id}",
+                'amount' => (float) $row->total_amount,
+                'count'  => (int) $row->count,
+            ];
+        });
+
+        return response()->json([
+            'total_amount' => (float) $totalPendingAmount,
+            'count'        => $pendingCount,
+            'next_due'     => $nextDueDate,
+            'batches'      => $filteredBatches,
+            'top_batches'  => $topBatches,
+        ]);
     }
 
     // Placements

@@ -4,24 +4,27 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers;
 use App\Models\CodingQuestion;
+use App\Models\Course;
 use Illuminate\Http\Request;
 
 class CodingQuestionController extends Controller
 {
     public function index()
     {
-        $codingQuestions = CodingQuestion::paginate(10);
+        $codingQuestions = CodingQuestion::with('course')->paginate(10);
         return view('admin.coding_questions.index', compact('codingQuestions'));
     }
 
     public function create()
     {
-        return view('admin.coding_questions.create');
+        $courses = Course::orderBy('name')->get();
+        return view('admin.coding_questions.create', compact('courses'));
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
+            'course_id' => 'required|exists:courses,id',
             'title' => 'required|string|max:255',
             'description' => 'required|string',
             'solutions' => 'required|array|min:1',
@@ -30,6 +33,7 @@ class CodingQuestionController extends Controller
 
         // Save the coding question with solutions as JSON
         CodingQuestion::create([
+            'course_id' => $validated['course_id'],
             'title' => $validated['title'],
             'description' => $validated['description'],
             'solutions' => $validated['solutions'], // Automatically stored as JSON
@@ -42,7 +46,8 @@ class CodingQuestionController extends Controller
     public function edit($id)
     {
         $codingQuestion = CodingQuestion::findOrFail($id);
-        return view('admin.coding_questions.edit', compact('codingQuestion'));
+        $courses = Course::orderBy('name')->get();
+        return view('admin.coding_questions.edit', compact('codingQuestion', 'courses'));
     }
 
     public function update(Request $request, $id)
@@ -50,6 +55,7 @@ class CodingQuestionController extends Controller
         $codingQuestion = CodingQuestion::findOrFail($id);
 
         $validated = $request->validate([
+            'course_id' => 'required|exists:courses,id',
             'title' => 'required|string|max:255',
             'description' => 'required|string',
             'solutions' => 'required|array|min:1',
@@ -57,6 +63,7 @@ class CodingQuestionController extends Controller
         ]);
 
         $codingQuestion->update([
+            'course_id' => $validated['course_id'],
             'title' => $validated['title'],
             'description' => $validated['description'],
             'solutions' => $validated['solutions'],

@@ -10,6 +10,7 @@ use App\Models\Internship;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 
 class CourseDetailsController extends Controller
@@ -46,6 +47,7 @@ class CourseDetailsController extends Controller
                 'demo_syllabus.*.topics' => 'nullable|array',
                 'demo_syllabus.*.topics.*.category' => 'required|string',
                 'demo_syllabus.*.topics.*.subtopics' => 'required|string',
+                'demo_syllabus.*.video_url' => 'nullable|url',
                 'key_features' => 'nullable|array',
                 'key_features.*.icon' => 'required|string|max:255',
                 'key_features.*.topic' => 'required|string|max:255',
@@ -68,7 +70,7 @@ class CourseDetailsController extends Controller
                 'course_overview_description' => 'required|string',
                 'learning_outcomes' => 'required|array',
                 'learning_outcomes.*' => 'required|string',
-                'instructor_info' => 'nullable|string',
+                'instructor_info' => 'nullable|string|max:4000',
                 'instructor_ids' => 'required|array',
                 'instructor_ids.*' => 'exists:users,id',
                 'faqs' => 'required|array',
@@ -96,15 +98,7 @@ class CourseDetailsController extends Controller
                 }
             }
 
-            if (isset($validated['demo_syllabus'])) {
-                foreach ($validated['demo_syllabus'] as &$module) {
-                    if (isset($module['topics'])) {
-                        foreach ($module['topics'] as &$topic) {
-                            $topic['subtopics'] = array_filter(array_map('trim', explode(',', $topic['subtopics'])));
-                        }
-                    }
-                }
-            }
+            $demoSyllabus = $this->sanitizeDemoSyllabus($validated['demo_syllabus'] ?? []);
             InternshipDetail::create([
                 'internship_id' => $validated['internship_id'],
                 'course_description' => $validated['course_description'],
@@ -119,7 +113,7 @@ class CourseDetailsController extends Controller
                 'learning_outcomes' => $validated['learning_outcomes'],
                 'instructor_info' => $validated['instructor_info'] ?? null,
                 'course_curriculum' => $validated['course_curriculum'] ?? [],
-                'demo_syllabus' => $validated['demo_syllabus'] ?? [],
+                'demo_syllabus' => $demoSyllabus,
                 'instructor_ids' => $validated['instructor_ids'],
                 'faqs' => $validated['faqs'],
                 'key_features' => $validated['key_features'] ?? [],
@@ -171,6 +165,7 @@ class CourseDetailsController extends Controller
                 'demo_syllabus.*.topics' => 'nullable|array',
                 'demo_syllabus.*.topics.*.category' => 'required|string',
                 'demo_syllabus.*.topics.*.subtopics' => 'required|string',
+                'demo_syllabus.*.video_url' => 'nullable|url',
                 'key_features' => 'nullable|array',
                 'key_features.*.icon' => 'required|string|max:255',
                 'key_features.*.topic' => 'required|string|max:255',
@@ -193,7 +188,7 @@ class CourseDetailsController extends Controller
                 'course_overview_description' => 'required|string',
                 'learning_outcomes' => 'required|array',
                 'learning_outcomes.*' => 'required|string',
-                'instructor_info' => 'nullable|string',
+            'instructor_info' => 'nullable|string|max:4000',
                 'instructor_ids' => 'required|array',
                 'instructor_ids.*' => 'exists:users,id',
                 'faqs' => 'required|array',
@@ -221,15 +216,7 @@ class CourseDetailsController extends Controller
                 }
             }
 
-            if (isset($validated['demo_syllabus'])) {
-                foreach ($validated['demo_syllabus'] as &$module) {
-                    if (isset($module['topics'])) {
-                        foreach ($module['topics'] as &$topic) {
-                            $topic['subtopics'] = array_filter(array_map('trim', explode(',', $topic['subtopics'])));
-                        }
-                    }
-                }
-            }
+            $demoSyllabus = $this->sanitizeDemoSyllabus($validated['demo_syllabus'] ?? []);
 
             $course = Course::findOrFail($request->course_id);
 
@@ -248,7 +235,7 @@ class CourseDetailsController extends Controller
                 'learning_outcomes' => $validated['learning_outcomes'],
                 'instructor_info' => $validated['instructor_info'] ?? null,
                 'course_curriculum' => $validated['course_curriculum'] ?? [],
-                'demo_syllabus' => $validated['demo_syllabus'] ?? [],
+                'demo_syllabus' => $demoSyllabus,
                 'instructor_ids' => $validated['instructor_ids'],
                 'faqs' => $validated['faqs'],
                 'key_features' => $validated['key_features'] ?? [],
@@ -284,6 +271,7 @@ class CourseDetailsController extends Controller
             'demo_syllabus.*.topics' => 'nullable|array',
             'demo_syllabus.*.topics.*.category' => 'required|string',
             'demo_syllabus.*.topics.*.subtopics' => 'required|string',
+            'demo_syllabus.*.video_url' => 'nullable|url',
             'key_features' => 'nullable|array',
             'key_features.*.icon' => 'required|string|max:255',
             'key_features.*.topic' => 'required|string|max:255',
@@ -381,6 +369,7 @@ class CourseDetailsController extends Controller
             'demo_syllabus.*.topics' => 'nullable|array',
             'demo_syllabus.*.topics.*.category' => 'required|string',
             'demo_syllabus.*.topics.*.subtopics' => 'required|string',
+            'demo_syllabus.*.video_url' => 'nullable|url',
             'key_features' => 'nullable|array',
             'key_features.*.icon' => 'required|string|max:255',
             'key_features.*.topic' => 'required|string|max:255',
@@ -427,15 +416,7 @@ class CourseDetailsController extends Controller
             }
         }
 
-        if (isset($validated['demo_syllabus'])) {
-            foreach ($validated['demo_syllabus'] as &$module) {
-                if (isset($module['topics'])) {
-                    foreach ($module['topics'] as &$topic) {
-                        $topic['subtopics'] = array_filter(array_map('trim', explode(',', $topic['subtopics'])));
-                    }
-                }
-            }
-        }
+        $demoSyllabus = $this->sanitizeDemoSyllabus($validated['demo_syllabus'] ?? []);
 
         $course = Course::findOrFail($request->course_id);
 
@@ -454,7 +435,7 @@ class CourseDetailsController extends Controller
             'learning_outcomes' => $validated['learning_outcomes'] ?? [],
             'instructor_info' => $validated['instructor_info'] ?? null,
             'course_curriculum' => $validated['course_curriculum'] ?? [],
-            'demo_syllabus' => $validated['demo_syllabus'] ?? [],
+            'demo_syllabus' => $demoSyllabus,
             'instructor_ids' => $validated['instructor_ids'] ?? [],
             'faqs' => $validated['faqs'] ?? [],
             'key_features' => $validated['key_features'] ?? [],
@@ -496,6 +477,7 @@ class CourseDetailsController extends Controller
                 'demo_syllabus.*.topics' => 'nullable|array',
                 'demo_syllabus.*.topics.*.category' => 'required|string',
                 'demo_syllabus.*.topics.*.subtopics' => 'required|string',
+                'demo_syllabus.*.video_url' => 'nullable|url',
                 'key_features' => 'nullable|array',
                 'key_features.*.icon' => 'required|string|max:255',
                 'key_features.*.topic' => 'required|string|max:255',
@@ -542,15 +524,7 @@ class CourseDetailsController extends Controller
                 }
             }
 
-            if (isset($validated['demo_syllabus'])) {
-                foreach ($validated['demo_syllabus'] as &$module) {
-                    if (isset($module['topics'])) {
-                        foreach ($module['topics'] as &$topic) {
-                            $topic['subtopics'] = array_filter(array_map('trim', explode(',', $topic['subtopics'])));
-                        }
-                    }
-                }
-            }
+            $demoSyllabus = $this->sanitizeDemoSyllabus($validated['demo_syllabus'] ?? []);
 
             $courseDetail->update([
                 'internship_id' => $validated['internship_id'],
@@ -566,7 +540,7 @@ class CourseDetailsController extends Controller
                 'learning_outcomes' => $validated['learning_outcomes'] ?? [],
                 'instructor_info' => $validated['instructor_info'] ?? null,
                 'course_curriculum' => $validated['course_curriculum'] ?? [],
-                'demo_syllabus' => $validated['demo_syllabus'] ?? [],
+                'demo_syllabus' => $demoSyllabus,
                 'instructor_ids' => $validated['instructor_ids'] ?? [],
                 'faqs' => $validated['faqs'] ?? [],
                 'key_features' => $validated['key_features'] ?? [],
@@ -582,5 +556,61 @@ class CourseDetailsController extends Controller
             Log::error('Internship detail update failed: ' . $e->getMessage());
             return redirect()->back()->with('error', 'Failed to update internship details. Please try again.');
         }
+    }
+
+    public function updateDemoVideo(Request $request, CourseDetail $courseDetail)
+    {
+        $this->ensureAdmin();
+
+        $data = $request->validate([
+            'module_index' => 'required|integer|min:0',
+            'video_url' => 'required|url',
+        ]);
+
+        $modules = $courseDetail->demo_syllabus ?? [];
+        if (!isset($modules[$data['module_index']])) {
+            return response()->json(['message' => 'Module not found'], 404);
+        }
+
+        $modules[$data['module_index']]['video_url'] = trim($data['video_url']);
+        $courseDetail->update(['demo_syllabus' => $modules]);
+
+        return response()->json([
+            'status' => 'ok',
+            'message' => 'Demo video saved',
+            'video_url' => $modules[$data['module_index']]['video_url'],
+        ]);
+    }
+
+    private function ensureAdmin()
+    {
+        if (!Auth::check() || Auth::user()->role !== 1) {
+            abort(403);
+        }
+    }
+
+    private function sanitizeDemoSyllabus(?array $modules): array
+    {
+        if (empty($modules)) {
+            return [];
+        }
+
+        foreach ($modules as &$module) {
+            if (isset($module['topics'])) {
+                foreach ($module['topics'] as &$topic) {
+                    $topic['subtopics'] = array_filter(array_map('trim', explode(',', $topic['subtopics'])));
+                }
+            }
+
+            $module['video_url'] = $this->normalizeUrl($module['video_url'] ?? null);
+        }
+
+        return $modules;
+    }
+
+    private function normalizeUrl(?string $url): ?string
+    {
+        $trimmed = trim($url ?? '');
+        return $trimmed === '' ? null : $trimmed;
     }
 }

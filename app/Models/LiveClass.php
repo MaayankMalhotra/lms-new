@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Models\Course;
+use App\Models\Folder;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -10,11 +12,16 @@ class LiveClass extends Model
 {
     use HasFactory;
     protected $table = 'live_classes';
-    protected $fillable = ['batch_id', 'topic', 'google_meet_link', 'class_datetime', 'duration_minutes', 'status', 'folder_id','recording_id'];
+    protected $fillable = ['course_id','batch_id', 'topic', 'google_meet_link', 'class_datetime', 'duration_minutes', 'status', 'folder_id','recording_id'];
     protected $dates = ['class_datetime'];
     public function batch()
     {
         return $this->belongsTo(Batch::class);
+    }
+
+    public function course()
+    {
+        return $this->belongsTo(Course::class);
     }
     public function folder()
     {

@@ -116,7 +116,7 @@
                             <td class="px-6 py-4 text-sm text-right text-gray-900 font-semibold">₹{{ number_format($batch->price, 2) }}</td>
                             <td class="px-6 py-4">
                                 <div class="flex items-center justify-center gap-3">
-                                    <button onclick="openEditModal({{ $batch->id }})" class="action-icon edit" title="Edit Batch">
+                                    <button type="button" onclick="openEditModal({{ $batch->id }})" class="action-icon edit" title="Edit Batch">
                                         <i class="fas fa-edit"></i>
                                     </button>
                                     <form action="{{ route('admin.batches.destroy', $batch->id) }}" method="POST" class="inline-flex">
@@ -152,3 +152,13 @@
     @endif
 </div>
 @endsection
+
+@push('scripts')
+<script>
+    function openEditModal(batchId) {
+        const url = new URL('{{ route('admin.batches.add') }}', window.location.origin);
+        url.searchParams.set('batch_id', batchId);
+        window.location.href = url.toString();
+    }
+</script>
+@endpush

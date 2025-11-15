@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\QuizSet;
 use App\Models\Quiz;
+use App\Models\Course;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -19,16 +20,8 @@ class QuizController extends Controller
 
     public function createSet()
     {
-        $batches = \App\Models\Batch::with('course')->orderBy('id')->get();
-        
-        // Array banayo: batch_id => "Course Name - Batch Name (Start Date)"
-        $batchOptions = [];
-        foreach ($batches as $batch) {
-            $label = "{$batch->course->name} - {$batch->name} ({$batch->start_date})";
-            $batchOptions[$batch->id] = $label;
-        }
-    
-        return view('admin.quiz_sets.create', compact('batchOptions'));
+        $courses = Course::orderBy('name')->get();
+        return view('admin.quiz_sets.create', compact('courses'));
     }
 
     public function storeSet(Request $request)
@@ -36,14 +29,14 @@ class QuizController extends Controller
         $request->validate([
             'title' => 'required|string|max:255',
             'total_quizzes' => 'required|integer|min:1',
-            'batch_id' => 'required|exists:batches,id', // Batch ID validate karo
+            'course_id' => 'required|exists:courses,id',
         ]);
 
         QuizSet::create([
             'teacher_id' => Auth::id(),
             'title' => $request->title,
             'total_quizzes' => $request->total_quizzes,
-            'batch_id' => $request->batch_id, // Batch ID save karo
+            'course_id' => $request->course_id,
         ]);
 
         return redirect()->route('admin.quiz_sets')->with('success', 'Quiz Set created!');
@@ -83,7 +76,7 @@ class QuizController extends Controller
     }
     public function showQuizzes($id)
     {
-        $quizSet = QuizSet::with(['quizzes', 'batch.course'])->findOrFail($id);
+        $quizSet = QuizSet::with(['quizzes', 'course'])->findOrFail($id);
        
         return view('admin.quiz_sets.show_quizzes', compact('quizSet'));
     }
@@ -92,14 +85,8 @@ public function editSet($id)
     $quizSet = QuizSet::findOrFail($id);
     
 
-    $batches = \App\Models\Batch::with('course')->orderBy('start_date')->get(); // Start_date se sort kiya, name nahi hai
-    $batchOptions = [];
-    foreach ($batches as $batch) {
-        $label = "{$batch->course->name} - Batch ({$batch->start_date})"; // Name nahi hai toh "Batch" static rakha
-        $batchOptions[$batch->id] = $label;
-    }
-
-    return view('admin.quiz_sets.edit', compact('quizSet', 'batchOptions'));
+    $courses = Course::orderBy('name')->get();
+    return view('admin.quiz_sets.edit', compact('quizSet', 'courses'));
 }
 
 // Update Quiz Set
@@ -107,17 +94,17 @@ public function updateSet(Request $request, $id)
 {
     $quizSet = QuizSet::findOrFail($id);
    
-    $request->validate([
-        'title' => 'required|string|max:255',
-        'total_quizzes' => 'required|integer|min:1',
-        'batch_id' => 'required|exists:batches,id', // Batch ID validate karo
-    ]);
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'total_quizzes' => 'required|integer|min:1',
+            'course_id' => 'required|exists:courses,id',
+        ]);
 
-    $quizSet->update([
-        'title' => $request->title,
-        'total_quizzes' => $request->total_quizzes,
-        'batch_id' => $request->batch_id, // Batch ID update karo
-    ]);
+        $quizSet->update([
+            'title' => $request->title,
+            'total_quizzes' => $request->total_quizzes,
+            'course_id' => $request->course_id,
+        ]);
 
     return redirect()->route('admin.quiz_sets')->with('success', 'Quiz Set updated successfully!');
 }

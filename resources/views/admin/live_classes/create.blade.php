@@ -7,11 +7,11 @@
         <form action="{{ route('admin.live_classes.store') }}" method="POST" class="bg-white p-6 rounded shadow">
             @csrf
             <div class="mb-4">
-                <label class="block text-gray-700 font-semibold">Batch</label>
-                <select name="batch_id" id="batch_id" class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500" required>
-                    <option value="">Choose a batch</option>
-                    @foreach($batches as $batch)
-                        <option value="{{ $batch->id }}">{{ $batch->course->name }} - {{ $batch->start_date->format('Y-m-d') }}</option>
+                <label class="block text-gray-700 font-semibold">Course</label>
+                <select name="course_id" id="course_id" class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                    <option value="">Choose a course</option>
+                    @foreach($courses as $course)
+                        <option value="{{ $course->id }}">{{ $course->name }}</option>
                     @endforeach
                 </select>
             </div>
@@ -57,15 +57,15 @@
                 width: '100%'
             });
 
-            document.getElementById('batch_id').addEventListener('change', function() {
-                const batchId = this.value;
+            document.getElementById('course_id').addEventListener('change', function() {
+                const courseId = this.value;
                 const folderSelect = document.getElementById('folder_id');
                 const recordingSelect = $('#recording_id');
                 folderSelect.innerHTML = '<option value="">Loading...</option>';
                 recordingSelect.val(null).trigger('change'); // Clear select2
 
-                if (batchId) {
-                    fetch(`/live-classes/folders/${batchId}`)
+                if (courseId) {
+                    fetch(`/live-classes/folders-by-course/${courseId}`)
                         .then(response => response.json())
                         .then(data => {
                             folderSelect.innerHTML = '<option value="">Choose a folder</option>';

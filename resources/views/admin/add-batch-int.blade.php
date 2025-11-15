@@ -20,11 +20,12 @@
 
             <form id="batchForm" action="{{ route('admin.batches.store.int') }}" method="POST" enctype="multipart/form-data">
                 @csrf
+                <input type="hidden" name="_method" id="formMethod" value="POST">
                 
                 <div class="space-y-6">
                     <!-- Basic Information Section -->
                     <div class="bg-white p-6 rounded-lg shadow-sm">
-                        <h2 class="text-xl font-semibold mb-4 text-gray-700">
+                    <h2 id="batchHeading" class="text-xl font-semibold mb-4 text-gray-700">
                             <i class="fas fa-info-circle mr-2 text-blue-400"></i>Basic Information
                         </h2>
                         
@@ -123,11 +124,10 @@
                                 <label class="block text-sm font-medium text-gray-700 mb-2">
                                     <i class="fas fa-calendar-day mr-2 text-blue-400"></i>Days of the Week
                                 </label>
-                                <select name="days" required 
-                                        class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all">
-                                    <option value="SAT - SUN" {{ old('days') == 'SAT - SUN' ? 'selected' : '' }}>SAT - SUN</option>
-                                    <option value="MON - FRI" {{ old('days') == 'MON - FRI' ? 'selected' : '' }}>MON - FRI</option>
-                                </select>
+                                <input type="text" name="days" required
+                                       value="{{ old('days') }}"
+                                       class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+                                       placeholder="e.g., Tue & Thu">
                                 @error('days')
                                     <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                                 @enderror
@@ -415,5 +415,89 @@ document.getElementById('batchForm').addEventListener('submit', function (e) {
 
 // Initialize EMI amounts on page load
 updateEmiAmounts();
+</script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const params = new URLSearchParams(window.location.search);
+        const editId = params.get('batch_id');
+        const form = document.getElementById('batchForm');
+        const methodInput = document.getElementById('formMethod');
+        const header = document.getElementById('batchHeading');
+        const submitButton = form.querySelector('button[type="submit"]');
+        const emiPlansContainer = document.getElementById('emiPlansContainer');
+        const addEmiPlanButton = document.getElementById('addEmiPlan');
+        const editBaseUrl = '{{ url('/admin/batches/int') }}';
+
+        if (!editId) {
+            return;
+        }
+
+        fetch(`${editBaseUrl}/${editId}/edit`, {
+            headers: { 'Accept': 'application/json' }
+        })
+            .then(response => response.json())
+            .then(data => {
+                const batch = data.batch;
+                if (!batch) return;
+
+                [
+                    ['batch_name', batch.batch_name],
+                    ['start_date', batch.start_date],
+                    ['status', batch.status],
+                    ['internship_id', batch.internship_id],
+                    ['teacher_id', batch.teacher_id],
+                    ['days', batch.days],
+                    ['duration', batch.duration],
+                    ['time_slot', batch.time_slot],
+                    ['price', batch.price],
+                    ['discount', batch.discount_info ?? 0],
+                    ['emi_price', batch.emi_price ?? ''],
+                    ['slots_available', batch.slots_available],
+                    ['slots_filled', batch.slots_filled]
+                ].forEach(([name, value]) => {
+                    const field = document.querySelector(`[name="${name}"]`);
+                    if (!field) return;
+                    if (field.type === 'checkbox') {
+                        field.checked = value;
+                    } else {
+                        field.value = value ?? '';
+                    }
+                });
+
+                emiAvailableCheckbox.checked = !!batch.emi_available;
+                emiPlansSection.classList.toggle('hidden', !emiAvailableCheckbox.checked);
+
+                const planDataArray = Array.isArray(batch.emi_plans) ? batch.emi_plans : [];
+                const existingPlans = emiPlansContainer.querySelectorAll('.emi-plan').length;
+                const plansToAdd = Math.max(planDataArray.length - existingPlans, 0);
+                for (let i = 0; i < plansToAdd; i++) {
+                    addEmiPlanButton.click();
+                }
+
+                document.querySelectorAll('.emi-plan').forEach((planEl, index) => {
+                    const installmentsInput = planEl.querySelector('input[name$="[installments]"]');
+                    const intervalInput = planEl.querySelector('input[name$="[interval_months]"]');
+                    const planData = planDataArray[index] || {};
+                    if (installmentsInput) {
+                        installmentsInput.value = planData.installments ?? '';
+                    }
+                    if (intervalInput) {
+                        intervalInput.value = planData.interval_months ?? '';
+                    }
+                });
+
+                updateEmiAmounts();
+
+                form.action = `${editBaseUrl}/${batch.id}`;
+                methodInput.value = 'PUT';
+                header.textContent = 'Edit Internship Batch';
+                if (submitButton) {
+                    submitButton.innerHTML = '<i class="fas fa-save mr-2"></i>Update Batch Program';
+                }
+            })
+            .catch(error => {
+                console.error('Unable to load batch data', error);
+            });
+    });
 </script>
 @endsection

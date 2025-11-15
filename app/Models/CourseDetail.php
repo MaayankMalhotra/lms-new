@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Course;
 
 class CourseDetail extends Model
 {
@@ -43,4 +44,9 @@ class CourseDetail extends Model
         'certificate_description' => 'array',
         
     ];
+
+    public function course()
+    {
+        return $this->belongsTo(Course::class, 'course_id');
+    }
 }

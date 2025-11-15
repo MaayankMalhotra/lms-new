@@ -23,6 +23,7 @@
                 <thead class="bg-gray-50">
                     <tr>
                         <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700">Title</th>
+                        <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700">Course</th>
                         <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700">Description</th>
                         <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700">Solutions</th>
                         <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700">Actions</th>
@@ -33,6 +34,9 @@
                     <tr class="hover:bg-gray-50 transition-colors">
                         <td class="px-6 py-4">
                             <div class="text-sm font-medium text-gray-900">{{ $question->title }}</div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="text-sm text-gray-700">{{ optional($question->course)->name ?? 'Unassigned' }}</div>
                         </td>
                         <td class="px-6 py-4">
                             <div class="text-sm text-gray-700">{{ Str::limit($question->description, 100) }}</div>

@@ -120,7 +120,7 @@ class BatchController extends Controller
             'batch_name' => 'required|string|max:255',
             'start_date' => 'required|date',
             'status' => 'required|in:Batch Started,Upcoming,Soon',
-            'days' => 'required',
+            'days' => 'required|string|max:255',
             'duration' => 'required|string',
             'time_slot' => 'required|string',
             'price' => 'required|numeric|min:0',
@@ -300,6 +300,18 @@ public function storeInt(Request $request)
             'courses' => $courses,
         ]);
     }
+    public function editInt($id)
+    {
+        $batch = InternshipBatch::findOrFail($id);
+        $internships = Internship::all();
+        $teachers = User::where('role', 2)->get();
+
+        return response()->json([
+            'batch' => $batch,
+            'internships' => $internships,
+            'teachers' => $teachers,
+        ]);
+    }
     public function register_teacher(Request $request)
     {
                // Directly create a new user with the provided data
@@ -327,7 +339,7 @@ public function storeInt(Request $request)
             'status' => 'required|in:Batch Started,Upcoming,Soon',
             'course_id' => 'required|exists:courses,id',
             //'teacher_id' => 'required|exists:teachers,id',
-            'days' => 'required|in:SAT - SUN,MON - FRI',
+            'days' => 'required|string|max:255',
             'duration' => 'required|string|max:255',
             'time_slot' => 'required|string|max:255',
             'price' => 'required|numeric|min:0',
@@ -398,6 +410,63 @@ public function storeInt(Request $request)
                 'error' => 'Failed to update batch: ' . $e->getMessage(),
             ], 500);
         }
+    }
+
+    public function updateInt(Request $request, $id)
+    {
+        $validated = $request->validate([
+            'batch_name' => 'required|string|max:255',
+            'start_date' => 'required|date',
+            'status' => 'required|in:Batch Started,Upcoming,Soon',
+            'days' => 'required|string|max:255',
+            'duration' => 'required|string|max:255',
+            'time_slot' => 'required|string|max:255',
+            'price' => 'required|numeric|min:0',
+            'emi_price' => 'nullable|numeric|min:0',
+            'discount' => 'nullable|numeric|min:0|max:100',
+            'slots_available' => 'required|numeric|min:1',
+            'slots_filled' => 'required|numeric|min:0|lte:slots_available',
+            'internship_id' => 'required|exists:internships,id',
+            'teacher_id' => 'required|exists:users,id',
+            'emi_available' => 'nullable|boolean',
+            'emi_plans' => 'nullable|array',
+            'emi_plans.*.installments' => 'nullable|integer|min:2',
+            'emi_plans.*.amount' => 'nullable|numeric|min:0',
+            'emi_plans.*.interval_months' => 'nullable|integer|min:1',
+        ]);
+
+        $batch = InternshipBatch::findOrFail($id);
+
+        $batchData = [
+            'batch_name' => $validated['batch_name'],
+            'start_date' => $validated['start_date'],
+            'status' => $validated['status'],
+            'days' => $validated['days'],
+            'duration' => $validated['duration'],
+            'time_slot' => $validated['time_slot'],
+            'price' => $validated['price'],
+            'emi_price' => $validated['emi_price'] ?? null,
+            'discount_info' => $validated['discount'] ?? 0,
+            'slots_available' => $validated['slots_available'],
+            'slots_filled' => $validated['slots_filled'],
+            'internship_id' => $validated['internship_id'],
+            'teacher_id' => $validated['teacher_id'],
+            'emi_available' => in_array($request->emi_available, ['on', '1', 'true'], true),
+            'emi_plans' => $request->emi_plans ? array_map(function ($plan) {
+                return [
+                    'installments' => (int) ($plan['installments'] ?? 0),
+                    'amount' => isset($plan['amount']) ? round((float) $plan['amount'], 2) : 0,
+                    'interval_months' => (int) ($plan['interval_months'] ?? 0),
+                ];
+            }, $request->emi_plans) : null,
+        ];
+
+        $batch->update($batchData);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Internship batch updated successfully.',
+        ]);
     }
 
     public function getBatchesByCourse(Request $request)
@@ -1319,6 +1388,3 @@ public function updateProfile(Request $request)
     return redirect()->route('profile')->with('success', 'Profile updated successfully!');
 }
 }
-
-
-

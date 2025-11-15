@@ -10,7 +10,7 @@
         </h1>
         <!-- Batch and Course Info -->
         <p class="text-gray-600 text-lg mb-8">
-            <span class="font-semibold">Course:</span> {{ $quizSet->batch->course->name ?? 'N/A' }} |
+            <span class="font-semibold">Course:</span> {{ $quizSet->course->name ?? 'N/A' }} |
             <span class="font-semibold">Batch:</span> {{ $quizSet->batch->start_date ?? 'N/A' }}
         </p>
 

@@ -214,7 +214,7 @@
             .catch(error => console.error('Error:', error));
         }
 
-        function openAddModal(type, parentId, batchId = null) {
+        function openAddModal(type, courseId, batchId = null) {
             const modal = document.getElementById('addModal');
             const title = document.getElementById('addModalTitle');
             const form = document.getElementById('addForm');
@@ -225,12 +225,12 @@
 
             title.textContent = 'Add ' + (type.charAt(0).toUpperCase() + type.slice(1));
             addType.value = type;
-            addParentId.value = parentId;
+            addParentId.value = batchId ?? '';
             addName.value = '';
-            if (addCourseId) addCourseId.value = '{{ $course->id }}';
+            if (addCourseId) addCourseId.value = courseId;
 
             modal.classList.remove('hidden');
-            form.action = `/admin-int/${type}/create?name=&course_id=`;
+            form.action = `/admin-int/${type}/create`;
             form.method = 'GET';
         }
 
@@ -249,7 +249,7 @@
             courseIdInput.value = courseId;
 
             modal.classList.remove('hidden');
-            form.action = '/admin-int/topic-and-recording/create?folder_id=&course_id=&topic_name=&recording_link=';
+            form.action = '/admin-int/topic-and-recording/create';
             form.method = 'GET';
         }
 
@@ -272,7 +272,7 @@
             editType.value = type;
             editName.value = name || '';
             if (editCourseId) {
-                editCourseId.value = courseId ? courseId.toString() : '{{ $course->id }}';
+                editCourseId.value = courseId ? courseId.toString() : '';
                 console.log('Setting course_id to:', editCourseId.value);
             }
 
@@ -293,7 +293,7 @@
             const name = document.getElementById('addName').value;
             const courseId = document.getElementById('addCourseId').value;
 
-            const url = `/admin-int/${type}/create?name=${encodeURIComponent(name)}&course_id=${encodeURIComponent(courseId)}&parent_id=${encodeURIComponent(parentId)}`;
+            const url = `/admin-int/${type}/create?name=${encodeURIComponent(name)}&course_id=${encodeURIComponent(courseId)}&batch_id=${encodeURIComponent(parentId)}`;
 
             fetch(url, {
                 method: 'GET',

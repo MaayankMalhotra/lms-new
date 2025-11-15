@@ -142,9 +142,53 @@
                 <div class="bg-purple-800 text-white font-bold py-2 rounded">Sat</div>
             </div>
             <div class="mt-6 bg-gray-100 p-4 rounded-lg shadow">
-                <p class="text-gray-600"><strong>1st Installment Date:</strong> Coming Soon - 18-09-23</p>
-                <p class="text-gray-600"><strong>Achievement:</strong> Last Exam Rank - 23</p>
-                <p class="text-gray-600"><strong>Upcoming Event:</strong> Career Boost Workshop</p>
+                <h4 class="text-lg font-semibold text-gray-700 mb-4">Course & Batch Pending Fees</h4>
+                <div class="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+                    <div>
+                        <label class="text-xs font-semibold text-gray-500">Course</label>
+                        <select id="pendingCourseFilter" class="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 focus:border-[#ff7b00] focus:ring-[#ff7b00]">
+                            <option value="">All Courses</option>
+                            @foreach($courses as $course)
+                                <option value="{{ $course->id }}">{{ $course->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-xs font-semibold text-gray-500">Batch</label>
+                        <select id="pendingBatchFilter" class="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 focus:border-[#ff7b00] focus:ring-[#ff7b00]">
+                            <option value="">All Batches</option>
+                            @foreach($batches as $batch)
+                                <option value="{{ $batch->id }}">{{ $batch->batch_name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="space-y-1">
+                        <p class="text-xs font-semibold text-gray-500">Next pending installment</p>
+                        <div id="pendingNextDue" class="text-sm text-gray-700">Calling the data...</div>
+                    </div>
+                </div>
+
+                <div class="mt-4 grid gap-3 sm:grid-cols-3">
+                    <div class="bg-white rounded-lg p-3 shadow">
+                        <p class="text-xs text-gray-500">Total Pending Amount</p>
+                        <p id="pendingAmount" class="text-xl font-semibold text-gray-800">₹0.00</p>
+                    </div>
+                    <div class="bg-white rounded-lg p-3 shadow">
+                        <p class="text-xs text-gray-500">Pending Students</p>
+                        <p id="pendingCount" class="text-xl font-semibold text-gray-800">0</p>
+                    </div>
+                    <div class="bg-white rounded-lg p-3 shadow">
+                        <p class="text-xs text-gray-500">Top Batch</p>
+                        <p id="pendingTopBatch" class="text-sm font-semibold text-gray-800">-</p>
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <h5 class="text-sm font-semibold text-gray-600 mb-2">Top batches with pending dues</h5>
+                    <ul id="pendingBatchList" class="space-y-2 text-sm text-gray-600">
+                        <li>Loading pending batch data...</li>
+                    </ul>
+                </div>
             </div>
         </div>
     </section>
@@ -269,5 +313,105 @@
     }
     // 8 = September (0-indexed)
     generateCalendar(2021, 8);
+
+    const pendingCourseFilter = document.getElementById('pendingCourseFilter');
+    const pendingBatchFilter = document.getElementById('pendingBatchFilter');
+    const pendingAmountEl = document.getElementById('pendingAmount');
+    const pendingCountEl = document.getElementById('pendingCount');
+    const pendingNextDueEl = document.getElementById('pendingNextDue');
+    const pendingTopBatchEl = document.getElementById('pendingTopBatch');
+    const pendingBatchList = document.getElementById('pendingBatchList');
+
+    const pendingSummaryRoute = "{{ route('admin.dashboard.pending_summary') }}";
+    const initialBatches = @json($batchOptions);
+
+    function renderBatchOptions(batches, preserveSelected = true) {
+        if (!pendingBatchFilter) {
+            return;
+        }
+        const previousValue = pendingBatchFilter.value;
+        pendingBatchFilter.innerHTML = '<option value="">All Batches</option>';
+        batches.forEach(batch => {
+            const option = document.createElement('option');
+            option.value = batch.id;
+            option.textContent = batch.batch_name;
+            pendingBatchFilter.appendChild(option);
+        });
+        if (preserveSelected && previousValue && Array.from(pendingBatchFilter.options).some(opt => opt.value === previousValue)) {
+            pendingBatchFilter.value = previousValue;
+        }
+    }
+
+    async function fetchPendingSummary() {
+        if (!pendingSummaryRoute) {
+            return;
+        }
+
+        const params = new URLSearchParams({
+            course_id: pendingCourseFilter?.value || '',
+            batch_id: pendingBatchFilter?.value || '',
+        });
+
+        try {
+            const response = await fetch(`${pendingSummaryRoute}?${params.toString()}`, {
+                headers: { Accept: 'application/json' },
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to load pending summary.');
+            }
+
+            const data = await response.json();
+
+            const formatCurrency = (value) => new Intl.NumberFormat('en-IN', {
+                style: 'currency',
+                currency: 'INR',
+                maximumFractionDigits: 2
+            }).format(value || 0);
+
+            if (pendingAmountEl) {
+                pendingAmountEl.textContent = formatCurrency(data.total_amount);
+            }
+            if (pendingCountEl) {
+                pendingCountEl.textContent = data.count ?? 0;
+            }
+            if (pendingNextDueEl) {
+                pendingNextDueEl.textContent = data.next_due || 'No due data';
+            }
+            if (pendingTopBatchEl) {
+                pendingTopBatchEl.textContent = data.top_batches?.[0]?.name ?? '—';
+            }
+
+            if (pendingBatchList) {
+                if (data.top_batches?.length) {
+                    pendingBatchList.innerHTML = data.top_batches.map(batch => {
+                        return `<li class="flex items-center justify-between">
+                            <span class="font-semibold text-slate-800">${batch.name}</span>
+                            <span class="text-xs text-slate-500">${batch.count} payment(s)</span>
+                            <span class="text-xs font-semibold text-slate-800">${formatCurrency(batch.amount)}</span>
+                        </li>`;
+                    }).join('');
+                } else {
+                    pendingBatchList.innerHTML = '<li>No pending batches found.</li>';
+                }
+            }
+
+            if (Array.isArray(data.batches)) {
+                renderBatchOptions(data.batches);
+            }
+        } catch (error) {
+            console.error(error);
+            if (pendingBatchList) {
+                pendingBatchList.innerHTML = '<li class="text-red-500">Unable to load pending details.</li>';
+            }
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        renderBatchOptions(initialBatches, false);
+        fetchPendingSummary();
+        pendingCourseFilter?.addEventListener('change', () => fetchPendingSummary());
+        pendingBatchFilter?.addEventListener('change', () => fetchPendingSummary());
+    });
 </script>
 @endsection

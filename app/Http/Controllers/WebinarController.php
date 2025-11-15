@@ -163,6 +163,58 @@ class WebinarController extends Controller
         //dd($enrollments);
         return view('admin.webinar.webinar-enrollment', compact('enrollments', 'webinars'));
     }
+
+    public function exportEnrollments(Request $request)
+    {
+        $filename = 'webinar_enrollments_' . now()->format('Ymd_His') . '.csv';
+        $headers = [
+            'Webinar Title',
+            'Webinar ID',
+            'Name',
+            'Email',
+            'Phone',
+            'Comments',
+            'Attendance Status',
+            'Certificate Sent',
+            'Certificate Path',
+            'Applied At',
+        ];
+
+        $webinarId = $request->query('webinar_id');
+
+        $callback = function () use ($headers, $webinarId) {
+            $handle = fopen('php://output', 'w');
+            fputcsv($handle, $headers);
+
+            WebinarEnrollment::with('webinar')
+                ->when($webinarId, function ($query) use ($webinarId) {
+                    $query->where('webinar_id', $webinarId);
+                })
+                ->orderBy('created_at', 'desc')
+                ->chunk(200, function ($enrollments) use ($handle) {
+                    foreach ($enrollments as $enrollment) {
+                        fputcsv($handle, [
+                            $enrollment->webinar->title ?? 'Untitled Webinar',
+                            $enrollment->webinar_id,
+                            $enrollment->name,
+                            $enrollment->email,
+                            $enrollment->phone,
+                            $enrollment->comments,
+                            ucfirst($enrollment->attendance_status ?? 'pending'),
+                            $enrollment->certificate_sent ? 'Yes' : 'No',
+                            $enrollment->certificate_path,
+                            optional($enrollment->created_at)->toIso8601String(),
+                        ]);
+                    }
+                });
+
+            fclose($handle);
+        };
+
+        return response()->streamDownload($callback, $filename, [
+            'Content-Type' => 'text/csv',
+        ]);
+    }
     public function sendConfirmation(Request $request)
     {
         $validated = $request->validate([

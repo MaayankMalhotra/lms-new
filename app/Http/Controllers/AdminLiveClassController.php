@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\Batch;
+use App\Models\Course;
 use App\Models\LiveClass;
 use App\Models\InternshipBatch;
 use App\Models\InternshipFolder;
@@ -34,8 +35,8 @@ class AdminLiveClassController extends Controller
     }
     public function create()
     {
-        $batches = Batch::with('course')->get();
-        return view('admin.live_classes.create', compact('batches'));
+        $courses = Course::orderBy('name')->get();
+        return view('admin.live_classes.create', compact('courses'));
     }
 
     public function createInt()
@@ -80,10 +81,9 @@ class AdminLiveClassController extends Controller
 
         return response()->json($recordingsData);
     }
-  public function getFoldersByBatch($batchId)
+    public function getFoldersByCourse($courseId)
     {
-        $batch = Batch::with('course')->findOrFail($batchId);
-        $folders = Folder::where('course_id', $batch->course_id)->get()->map(function ($folder) {
+        $folders = Folder::where('course_id', $courseId)->get()->map(function ($folder) {
             return [
                 'id' => $folder->id,
                 'name' => $folder->name,
@@ -191,7 +191,7 @@ class AdminLiveClassController extends Controller
 
         $recording = $request->recording_id ? Recording::find($request->recording_id) : null;
         $liveClass->update([
-            'batch_id' => $request->batch_id,
+            'course_id' => $request->course_id,
             'topic' => $recording ? $recording->topic : 'Untitled Live Class',
             'google_meet_link' => $request->google_meet_link,
             'class_datetime' => $request->class_datetime,
@@ -210,10 +210,10 @@ class AdminLiveClassController extends Controller
     }
 
 
-      public function store(Request $request)
+    public function store(Request $request)
     {
         $request->validate([
-            'batch_id' => 'required',
+            'course_id' => 'required|exists:courses,id',
             'folder_id' => 'nullable|exists:folders,id',
             'google_meet_link' => 'required|url',
             'class_datetime' => 'required|date',
@@ -234,7 +234,7 @@ class AdminLiveClassController extends Controller
         $recordingIds = $request->has('recording_id') && !empty($request->recording_id) ? implode(',', $request->recording_id) : null;
 
         $liveClass = LiveClass::create([
-            'batch_id' => $request->batch_id,
+            'course_id' => $request->course_id,
             'folder_id' => $request->folder_id,
             'topic' => $topicName,
             'google_meet_link' => $request->google_meet_link,

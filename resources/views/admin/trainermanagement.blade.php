@@ -111,11 +111,14 @@
                 <div class="space-y-6">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Select Trainer</label>
-                        <select name="user_id" class="w-full px-4 py-3 rounded-lg border border-gray-200">
+                        <input list="trainers-list" id="trainer_search" placeholder="Type trainer name" class="w-full px-4 py-3 rounded-lg border border-gray-200" autocomplete="off">
+                        <datalist id="trainers-list">
                             @foreach ($availableTrainers as $t)
-                                <option value="{{ $t->id }}">{{ $t->name }} ({{ $t->email }})</option>
+                                <option value="{{ $t->name }} ({{ $t->email }})" data-user-id="{{ $t->id }}"></option>
                             @endforeach
-                        </select>
+                        </datalist>
+                        <input type="hidden" name="user_id" id="create_user_id">
+                        <p class="text-xs text-gray-400 mt-1">Start typing to filter trainers, then select from the list.</p>
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Experience</label>
@@ -214,5 +217,33 @@
             }).then(res => location.reload());
         }
     });
+    
+    const trainerSearchInput = document.getElementById('trainer_search');
+    const trainerList = document.getElementById('trainers-list');
+    const trainerUserId = document.getElementById('create_user_id');
+
+    if (trainerSearchInput && trainerList && trainerUserId) {
+        trainerSearchInput.addEventListener('input', () => {
+            const options = Array.from(trainerList.options);
+            const match = options.find(o => o.value === trainerSearchInput.value);
+            trainerUserId.value = match ? match.dataset.userId : '';
+        });
+
+        const createForm = document.querySelector("form[action='{{ route('admin.trainers.store') }}']");
+        if (createForm) {
+            createForm.addEventListener('submit', (event) => {
+                if (!trainerUserId.value) {
+                    const options = Array.from(trainerList.options);
+                    const match = options.find(o => o.value === trainerSearchInput.value);
+                    if (match) {
+                        trainerUserId.value = match.dataset.userId;
+                        return;
+                    }
+                    event.preventDefault();
+                    alert('Please select a trainer from the list.');
+                }
+            });
+        }
+    }
 </script>
 @endsection

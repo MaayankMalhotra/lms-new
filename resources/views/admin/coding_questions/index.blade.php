@@ -28,6 +28,11 @@
                             {{ $question->title }}
                         </h2>
 
+                        <!-- Course -->
+                        <p class="text-sm text-blue-500 font-medium mb-2">
+                            Course: {{ optional($question->course)->name ?? 'Unassigned' }}
+                        </p>
+
                         <!-- Description -->
                         <p class="text-sm text-gray-600 mb-3">
                             {{ Str::limit($question->description, 120) }}

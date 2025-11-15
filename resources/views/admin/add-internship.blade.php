@@ -374,6 +374,19 @@ document.getElementById('editForm').addEventListener('submit', async function(e)
 });
 </script>
 
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const params = new URLSearchParams(window.location.search);
+        const internshipId = params.get('internship_id');
+        if (!internshipId) {
+            return;
+        }
+        const editUrl = `{{ url('/admin/internship') }}/${internshipId}/edit`;
+        const updateUrl = `{{ url('/admin/internship') }}/${internshipId}`;
+        openEditModal(editUrl, updateUrl);
+    });
+</script>
+
 @if($errors->any() && old('_form') === 'add')
 <script>
     document.addEventListener('DOMContentLoaded', () => openAddModal(true));

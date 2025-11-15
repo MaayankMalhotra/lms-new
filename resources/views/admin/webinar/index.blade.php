@@ -18,6 +18,12 @@
             </a>
         </div>
 
+        @if(session('success'))
+            <div class="mx-auto max-w-7xl mb-6 bg-green-100 text-green-700 px-6 py-4 rounded-xl shadow">
+                <i class="fas fa-check-circle mr-2"></i> {{ session('success') }}
+            </div>
+        @endif
+
         <!-- Filter -->
         <div class="mb-6 bg-white/70 backdrop-blur-md p-4 rounded-xl shadow">
             <form action="{{ route('admin.webinar.index') }}" method="GET" class="flex items-center space-x-4">

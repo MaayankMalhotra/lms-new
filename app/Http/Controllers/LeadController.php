@@ -39,28 +39,85 @@ class LeadController extends Controller
         ]);
     }
     public function index()
-{
-    $leads = \App\Models\LeadsStudent::latest()->paginate(15);
+    {
+        $leads = LeadsStudent::latest()->paginate(15);
 
-    return view('admin.leads.index', compact('leads'));
-}
+        return view('admin.leads.index', compact('leads'));
+    }
 
+    public function export()
+    {
+        $filename = 'leads_' . now()->format('Ymd_His') . '.csv';
+        $headers = [
+            'Name',
+            'Email',
+            'Phone',
+            'Page',
+            'UTM Source',
+            'UTM Medium',
+            'UTM Campaign',
+            'UTM Term',
+            'UTM Content',
+            'IP Address',
+            'User Agent',
+            'Created At',
+        ];
 
+        $callback = function () use ($headers) {
+            $handle = fopen('php://output', 'w');
+            fputcsv($handle, $headers);
 
-public function sendEmail(Request $request, $id)
-{
-    $lead = \App\Models\LeadsStudent::findOrFail($id);
+            LeadsStudent::latest()->chunk(200, function ($leads) use ($handle) {
+                foreach ($leads as $lead) {
+                    fputcsv($handle, [
+                        $lead->name,
+                        $lead->email,
+                        $lead->phone,
+                        $lead->page,
+                        $lead->utm_source,
+                        $lead->utm_medium,
+                        $lead->utm_campaign,
+                        $lead->utm_term,
+                        $lead->utm_content,
+                        $lead->ip_address,
+                        $lead->user_agent,
+                        optional($lead->created_at)->toIso8601String(),
+                    ]);
+                }
+            });
 
-    $data = $request->validate([
-        'subject' => 'required|string|max:255',
-        'message' => 'required|string',
-    ]);
+            fclose($handle);
+        };
 
-    Mail::raw(strip_tags($data['message']), function ($mail) use ($lead, $data) {
-        $mail->to($lead->email)
-             ->subject($data['subject']);
-    });
+        return response()->streamDownload($callback, $filename, [
+            'Content-Type' => 'text/csv',
+        ]);
+    }
 
-    return response()->json(['status' => 'ok', 'message' => 'Email sent successfully to '.$lead->name]);
-}
+    public function list()
+    {
+        $leads = LeadsStudent::select('id', 'name', 'email')
+            ->whereNotNull('email')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return response()->json(['leads' => $leads]);
+    }
+
+    public function sendEmail(Request $request, $id)
+    {
+        $lead = LeadsStudent::findOrFail($id);
+
+        $data = $request->validate([
+            'subject' => 'required|string|max:255',
+            'message' => 'required|string',
+        ]);
+
+        Mail::raw(strip_tags($data['message']), function ($mail) use ($lead, $data) {
+            $mail->to($lead->email)
+                ->subject($data['subject']);
+        });
+
+        return response()->json(['status' => 'ok', 'message' => 'Email sent successfully to ' . $lead->name]);
+    }
 }

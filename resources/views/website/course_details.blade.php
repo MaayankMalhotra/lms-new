@@ -1,6 +1,6 @@
 @extends('website.layouts.app')
 
-@section('title', $course_details->name ?? 'Course Details')
+@section('title', $course->name ?? 'Course Details')
 
 @section('content')
 <meta name="csrf-token" content="{{ csrf_token() }}">
@@ -33,7 +33,7 @@
                 FOR BEGINNER AND EXPERIENCED LEARNERS
             </p>
             <h1 class="text-4xl md:text-5xl font-bold text-gray-800 leading-tight mb-5">
-                {{ $course_details->name ?? 'NA' }}
+                {{ $course->name ?? 'NA' }}
             </h1>
             <p class="description text-base md:text-lg text-gray-600 leading-relaxed mb-5">
                 {{ $course_details->course_description ?? 'NA' }}
@@ -101,7 +101,9 @@
             </div>
             <div class="flex items-center gap-2">
                 <span class="text-green-500">✔</span>
-                <p class="text-sm text-gray-600">130 Hrs of instructor-led training</p>
+                <p class="text-sm text-gray-600">
+                    {{ $course_details->course_lecture_hours ?? 'NA' }} Hrs of instructor-led training
+                </p>
             </div>
             <div class="flex items-center gap-2">
                 <span class="text-green-500">✔</span>
@@ -164,7 +166,13 @@
         @endif
     </ul>
     <h3 class="text-2xl font-bold mb-4 text-gray-900">Instructor Info:</h3>
+    @php
+        $instructorNames = ($instructors ?? collect())->pluck('name')->filter()->implode(', ');
+    @endphp
     <p class="text-gray-600 mb-6">
+        @if($instructorNames)
+            <span class="font-semibold text-gray-900">Instructors:</span> {{ $instructorNames }}<br>
+        @endif
         {{ $course_details->instructor_info ?? 'NA' }}
     </p>
     <h3 class="text-2xl font-bold mb-4 text-gray-900">Additional Benefits:</h3>
@@ -297,6 +305,24 @@
                                         <li class="text-gray-600 text-sm">NA</li>
                                     @endif
                                 </ul>
+                                @php
+                                    $videoUrl = $module['video_url'] ?? config('app.demo_video_fallback_url');
+                                @endphp
+                                @if($videoUrl)
+                                    <div class="mt-6 text-right">
+                                        <a href="{{ $videoUrl }}" target="_blank" rel="noopener" class="inline-flex items-center justify-center px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-[#ff7300] to-[#ff4500] rounded-lg shadow hover:shadow-lg transition">
+                                            <i class="fas fa-play mr-2"></i>
+                                            Watch Demo Video
+                                        </a>
+                                    </div>
+                                @endif
+                                @if(auth()->check() && auth()->user()->role === 1)
+                                    <div class="mt-2 text-right">
+                                        <button type="button" onclick="openDemoVideoModal('course', {{ $course_details->id }}, {{ $index }}, '{{ $module['video_url'] ?? '' }}')" class="text-xs font-semibold text-blue-600 hover:text-blue-800">
+                                            Update YouTube Demo
+                                        </button>
+                                    </div>
+                                @endif
                             </div>
                         </div>
                     @empty
@@ -539,7 +565,7 @@
 </div>
 
 @php
-    $course_id_detail = $course_details ? \App\Models\Course::where('name', $course_details->name ?? '')->value('id') : null;
+    $course_id_detail = $course_details->course_id ?? null;
 @endphp
 <!-- Scripts -->
 <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
@@ -833,4 +859,5 @@
         }
     });
 </script>
+@include('partials.demo_video_uploader')
 @endsection

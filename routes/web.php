@@ -45,6 +45,14 @@ use App\Http\Controllers\WebinarController;
 use App\Http\Controllers\YouTubeReviewController;
 use App\Http\Controllers\CourseToInternshipController;
 use App\Http\Controllers\HireController;
+use App\Http\Controllers\StorefrontController;
+use App\Http\Controllers\ShopAssistantController;
+use App\Http\Controllers\CartController;
+use App\Http\Controllers\CheckoutController;
+use App\Http\Controllers\RefundController;
+use App\Http\Controllers\Admin\ProductAdminController;
+use App\Http\Controllers\Admin\RefundAdminController;
+use App\Http\Controllers\MentorApplicationController;
 
  use App\Models\Student;
 use App\Models\Assignment;
@@ -123,6 +131,32 @@ Route::get('/health-check', function () {
     return response('OK', 200)
         ->header('Content-Type', 'text/plain');
 })->name('health-check');
+
+Route::prefix('shop')->as('shop.')->group(function () {
+    Route::get('/', [ShopAssistantController::class, 'index'])->name('index');
+    Route::post('/chat', [ShopAssistantController::class, 'chat'])->name('chat');
+    Route::get('/search', [StorefrontController::class, 'search'])->name('search');
+    Route::get('/category/{category:slug}', [StorefrontController::class, 'category'])->name('category');
+    Route::get('/product/{product:slug}', [StorefrontController::class, 'product'])->name('product');
+});
+
+Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
+Route::post('/cart', [CartController::class, 'store'])->name('cart.store');
+Route::patch('/cart/{cartItem}', [CartController::class, 'update'])->name('cart.update');
+Route::delete('/cart/{cartItem}', [CartController::class, 'destroy'])->name('cart.destroy');
+
+Route::get('/checkout', [CheckoutController::class, 'show'])->name('checkout.show');
+Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
+Route::post('/checkout/razorpay/verify', [CheckoutController::class, 'verifyRazorpayPayment'])->name('checkout.verify');
+Route::get('/thank-you/{order:order_number}', [CheckoutController::class, 'thankYou'])->name('checkout.thank-you');
+
+Route::get('/refunds/request', [RefundController::class, 'create'])->name('refunds.create');
+Route::post('/refunds/request', [RefundController::class, 'store'])->name('refunds.store');
+
+Route::prefix('admin/shop')->name('admin.shop.')->group(function () {
+    Route::resource('products', ProductAdminController::class)->except(['show']);
+    Route::resource('refunds', RefundAdminController::class)->only(['index', 'show', 'update']);
+});
 
 
 
@@ -329,6 +363,16 @@ $activeStudents = DB::table('users')
         ? round((($thisMonthRevenue - $lastMonthRevenue) / $lastMonthRevenue) * 100, 2)
         : 0;
 
+    $courses = Course::select('id', 'name')->orderBy('name')->get();
+    $batches = Batch::select('id', 'batch_name', 'course_id')->orderBy('start_date', 'desc')->get();
+    $batchOptions = $batches->map(function ($batch) {
+        return [
+            'id' => $batch->id,
+            'batch_name' => $batch->batch_name,
+            'course_id' => $batch->course_id,
+        ];
+    })->toArray();
+
     // 4. Trainers
   
     $totalTrainers = User::where('role', 2)->count();
@@ -404,9 +448,16 @@ $activeStudents = DB::table('users')
         'totalTrainers',
         'pendingFeesAmount',
         'pendingFeesStudents',
-        'pendingFeesNextDueDate'
+        'pendingFeesNextDueDate',
+        'courses',
+        'batches',
+        'batchOptions'
     ));
 })->name('admin.dash');
+
+Route::get('/admin/dashboard/pending-summary', [AdminController::class, 'pendingSummary'])->name('admin.dashboard.pending_summary');
+
+Route::get('/admin/demo-video-uploader', [AdminController::class, 'demoVideoUploader'])->name('admin.demoVideoUploader');
 
 
 
@@ -443,6 +494,8 @@ $activeStudents = DB::table('users')
             Route::delete('/batch/{id}', [BatchController::class, 'destroy'])->name('destroy'); // Delete route
             Route::get('/{id}/edit', [BatchController::class, 'edit'])->name('edit');
             Route::put('/{id}', [BatchController::class, 'update'])->name('update');
+            Route::get('/int/{id}/edit', [BatchController::class, 'editInt'])->name('edit.int');
+            Route::put('/int/{id}', [BatchController::class, 'updateInt'])->name('update.int');
         });
 
         Route::get('/recordings', [AdminRecordingController::class, 'index'])->name('recordings.index');
@@ -467,7 +520,7 @@ $activeStudents = DB::table('users')
         Route::put('/live-classes/{id}', [AdminLiveClassController::class, 'update'])->name('live_classes.update');
         Route::delete('/live-classes/{id}', [AdminLiveClassController::class, 'destroy'])->name('live_classes.destroy');
     });
-Route::get('/live-classes/folders/{batchId}', [AdminLiveClassController::class, 'getFoldersByBatch'])->name('admin.live_classes.folders');
+Route::get('/live-classes/folders-by-course/{courseId}', [AdminLiveClassController::class, 'getFoldersByCourse'])->name('admin.live_classes.folders');
 
 Route::get('/live-classes/folders-int/{batchId}', [AdminLiveClassController::class, 'getFoldersByBatchInt'])->name('admin.live_classes.folders.int');
 
@@ -550,8 +603,10 @@ Route::prefix('student')->middleware('auth')->group(function () {
 // Add this to your existing admin routes
 Route::get('/admin/coding-questions/{id}/submissions', [CodingQuestionController::class, 'showSubmissions'])->name('admin.coding_questions.show_submissions');
 Route::get('course_details/{slug?}', [CourseController::class, 'courseDetails'])->name('website.course_details');
+Route::post('/course-details/{courseDetail}/demo-video', [CourseDetailsController::class, 'updateDemoVideo'])->middleware('auth');
 
 Route::get('internship_details/{id?}', [InternshipController::class, 'internshipDetails'])->name('website.internship_details');
+Route::post('/internship-details/{internshipDetail}/demo-video', [InternshipController::class, 'updateDemoVideo'])->middleware('auth');
 
 
 Route::middleware('auth')->group(function () {
@@ -605,6 +660,9 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/youtubereview', [YouTubeReviewController::class, 'store'])->name('admin.youtubereview.store'); 
     Route::get('/youtubereview/{id}/edit', [YouTubeReviewController::class, 'edit'])->name('admin.youtubereview.edit');
     Route::put('/youtubereview/{id}', [YouTubeReviewController::class, 'update'])->name('admin.youtubereview.update');
+    Route::get('/admin/mentor-applications', [MentorApplicationController::class, 'index'])->name('admin.mentor-applications.index');
+    Route::get('/admin/mentor-applications/export', [MentorApplicationController::class, 'export'])->name('admin.mentor-applications.export');
+    Route::patch('/admin/mentor-applications/{application}', [MentorApplicationController::class, 'updateStatus'])->name('admin.mentor-applications.update-status');
     Route::delete('/youtubereview/{id}', [YouTubeReviewController::class, 'destroy'])->name('admin.youtubereview.destroy');
     Route::get('/webinar/index', [WebinarController::class, 'index'])->name('admin.webinar.index');
     Route::get('/webinar/create', [WebinarController::class, 'create'])->name('admin.webinar.create');
@@ -613,6 +671,7 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/webinar/{id}', [WebinarController::class, 'update'])->name('admin.webinar.update');
     Route::delete('/webinar/{id}', [WebinarController::class, 'destroy'])->name('admin.webinar.destroy');
     Route::get('/webinar-enrollments',[WebinarController::class, 'enrollments'])->name('admin.webinar.enrollments');
+    Route::get('/webinar-enrollments/export',[WebinarController::class, 'exportEnrollments'])->name('admin.webinar.enrollments.export');
     Route::post('/webinar/send-confirmation', [WebinarController::class, 'sendConfirmation'])->name('admin.webinar.send-confirmation');
     Route::get('/verify-presence', [WebinarController::class, 'verifyPresence'])->name('webinar-attendance');
     Route::post('/attendance_submit_webinar', [WebinarController::class, 'attendanceSubmitWebinar'])->name('attendance.submit.webinar');
@@ -834,6 +893,7 @@ Route::get('/test-email', [CourseToInternshipController::class, 'sendTestEmail']
 
 Route::get('/hire-with-us',[HireController::class, 'show'])->name('hire.show');
 Route::post('/mentor', [HireController::class, 'storeMentor'])->name('mentor.store');
+Route::post('/mentor-applications', [MentorApplicationController::class, 'store'])->name('mentor.apply');
 
 use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\StudentController;
@@ -861,7 +921,9 @@ Route::post('/leads/store', [LeadController::class, 'store'])->name('leads.store
 
 
 Route::get('/leads', [LeadController::class, 'index'])->name('leads.index');
+Route::get('/leads/export', [LeadController::class, 'export'])->name('leads.export');
 
+Route::get('/admin/leads/list', [LeadController::class, 'list'])->name('admin.leads.list');
 Route::post('/admin/leads/{id}/send-email', [LeadController::class, 'sendEmail'])->name('admin.leads.sendEmail');
 
 Route::get('/student-dashboard', [StudentDashboardController::class, 'index'])->name('student.dashboard');

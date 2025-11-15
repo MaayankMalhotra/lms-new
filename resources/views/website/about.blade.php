@@ -466,16 +466,86 @@
           </div>
 
           <!-- Button -->
-          <a href="#" class="joo-muri-btn mt-8 inline-block">
+          <button type="button" id="openMentorModal" class="joo-muri-btn mt-8 inline-block px-8 py-3 rounded-xl bg-[#ff7b00] text-white font-semibold shadow-lg hover:bg-[#ff5500] transition-all">
             Apply as mentor
-          </a>
+          </button>
         </div>
       </div>
     </div>
   </div>
 </section>
 
+@if (session('success'))
+    <div class="max-w-3xl mx-auto my-8 bg-green-100 text-green-800 px-4 py-3 rounded-lg shadow">
+        {{ session('success') }}
+    </div>
+@endif
 
+<!-- Mentor Application Modal -->
+<div id="mentorApplicationModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center z-50 px-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-3xl overflow-hidden">
+        <div class="flex justify-between items-center px-6 py-4 border-b">
+            <h3 class="text-2xl font-semibold text-gray-800">Apply as Mentor</h3>
+            <button type="button" id="closeMentorModal" class="text-gray-500 hover:text-gray-800">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+        <form action="{{ route('mentor.apply') }}" method="POST" class="p-6 space-y-4">
+            @csrf
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Full Name <span class="text-red-500">*</span></label>
+                    <input type="text" name="name" value="{{ old('name') }}" required class="mt-1 w-full rounded-lg border-gray-300 focus:ring-[#ff7b00] focus:border-[#ff7b00]" placeholder="e.g., John Doe">
+                    @error('name') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Email</label>
+                    <input type="email" name="email" value="{{ old('email') }}" class="mt-1 w-full rounded-lg border-gray-300 focus:ring-[#ff7b00] focus:border-[#ff7b00]" placeholder="you@example.com">
+                    @error('email') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Phone</label>
+                    <input type="tel" name="phone" value="{{ old('phone') }}" class="mt-1 w-full rounded-lg border-gray-300 focus:ring-[#ff7b00] focus:border-[#ff7b00]" placeholder="+91 88888 88888">
+                    @error('phone') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Area of Expertise</label>
+                    <input type="text" name="specialization" value="{{ old('specialization') }}" class="mt-1 w-full rounded-lg border-gray-300 focus:ring-[#ff7b00] focus:border-[#ff7b00]" placeholder="Web Development, AI, UI/UX...">
+                    @error('specialization') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Teaching Hours</label>
+                    <input type="number" name="teaching_hours" value="{{ old('teaching_hours') }}" class="mt-1 w-full rounded-lg border-gray-300 focus:ring-[#ff7b00] focus:border-[#ff7b00]" min="0" placeholder="e.g., 500">
+                    @error('teaching_hours') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Experience (Years)</label>
+                    <input type="number" name="experience_years" value="{{ old('experience_years') }}" class="mt-1 w-full rounded-lg border-gray-300 focus:ring-[#ff7b00] focus:border-[#ff7b00]" min="0" placeholder="e.g., 4">
+                    @error('experience_years') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">LinkedIn URL</label>
+                    <input type="url" name="linkedin_url" value="{{ old('linkedin_url') }}" class="mt-1 w-full rounded-lg border-gray-300 focus:ring-[#ff7b00] focus:border-[#ff7b00]" placeholder="https://linkedin.com/in/...">
+                    @error('linkedin_url') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Portfolio / Website</label>
+                    <input type="url" name="portfolio_url" value="{{ old('portfolio_url') }}" class="mt-1 w-full rounded-lg border-gray-300 focus:ring-[#ff7b00] focus:border-[#ff7b00]" placeholder="https://">
+                    @error('portfolio_url') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                </div>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Tell us about your mentoring style</label>
+                <textarea name="message" rows="4" class="mt-1 w-full rounded-lg border-gray-300 focus:ring-[#ff7b00] focus:border-[#ff7b00]" placeholder="Share anything that helps us know you better...">{{ old('message') }}</textarea>
+                @error('message') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+            </div>
+            <div class="flex items-center justify-end gap-4 pt-4 border-t">
+                <button type="button" id="cancelMentorModal" class="px-5 py-2 rounded-lg text-gray-600 hover:bg-gray-100">Cancel</button>
+                <button type="submit" class="px-6 py-2 rounded-lg bg-[#ff7b00] text-white font-semibold hover:bg-[#ff5500] transition-colors">Submit Application</button>
+            </div>
+        </form>
+    </div>
+</div>
 
 <!-- GSAP Animation Script -->
 <script>
@@ -498,6 +568,31 @@ animateSteps();
 
 // Run Every Few Seconds
 setInterval(animateSteps, 5000);
+
+const mentorModal = document.getElementById('mentorApplicationModal');
+const openBtn = document.getElementById('openMentorModal');
+const closeBtn = document.getElementById('closeMentorModal');
+const cancelBtn = document.getElementById('cancelMentorModal');
+
+function toggleMentorModal(show) {
+  if (!mentorModal) return;
+  mentorModal.classList.toggle('hidden', !show);
+  mentorModal.classList.toggle('flex', show);
+}
+
+openBtn?.addEventListener('click', () => toggleMentorModal(true));
+closeBtn?.addEventListener('click', () => toggleMentorModal(false));
+cancelBtn?.addEventListener('click', () => toggleMentorModal(false));
+mentorModal?.addEventListener('click', (e) => {
+  if (e.target === mentorModal) toggleMentorModal(false);
+});
+
+@if ($errors->any())
+  toggleMentorModal(true);
+@endif
+@if (session('success'))
+  setTimeout(() => toggleMentorModal(false), 0);
+@endif
 });
 </script>
 @endsection

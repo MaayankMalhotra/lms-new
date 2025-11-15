@@ -334,14 +334,23 @@
         </div>
 
         <!-- Tab Content -->
+        @php
+            $defaultCourseImage = 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=300&q=80';
+        @endphp
         <div class="mt-12">
             <!-- Courses Tab -->
             <div id="studyCourses" class="tab-pane">
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     @foreach($courses as $course)
+                        @php
+                            $courseImagePath = $course->image;
+                            $courseImage = $courseImagePath
+                                ? (filter_var($courseImagePath, FILTER_VALIDATE_URL) ? $courseImagePath : asset($courseImagePath))
+                                : $defaultCourseImage;
+                        @endphp
                         <div class="study-box bg-white rounded-lg shadow-md p-6 text-center transition-all hover:scale-105 hover:shadow-lg">
                             <h3 class="text-xl font-bold text-[#2c0b57]">{{ $course->title }}</h3>
-                            <img src="{{ $course->image ?: asset('images/coursehead.png') }}" class="w-12 h-12 mx-auto my-4 transition-transform hover:[transform:rotateY(180deg)]" alt="{{ $course->title }}" />
+                            <img src="{{ $courseImage }}" class="w-12 h-12 mx-auto my-4 transition-transform hover:[transform:rotateY(180deg)]" alt="{{ $course->title }}" />
                             <div class="text-gray-600 space-y-2">
                                 <p><i class="far fa-clock"></i> Duration: <span class="font-bold">{{ $course->duration }}</span></p>
                                 <p><i class="fas fa-users"></i> <span class="font-bold">{{ $course->placed_count }}+ Placed</span></p>
@@ -364,9 +373,15 @@
             <div id="studyUpcoming" class="tab-pane hidden">
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     @foreach($upcomingCourses as $upcomingCourse)
+                        @php
+                            $upcomingImagePath = $upcomingCourse->image;
+                            $upcomingImage = $upcomingImagePath
+                                ? (filter_var($upcomingImagePath, FILTER_VALIDATE_URL) ? $upcomingImagePath : asset($upcomingImagePath))
+                                : $defaultCourseImage;
+                        @endphp
                         <div class="study-box bg-white rounded-lg shadow-md p-6 text-center transition-all hover:scale-105 hover:shadow-lg">
                             <h3 class="text-xl font-bold text-[#2c0b57]">{{ $upcomingCourse->title }}</h3>
-                            <img src="{{ $upcomingCourse->image ?: asset('images/coursehead.png') }}" class="w-12 h-12 mx-auto my-4 transition-transform hover:[transform:rotateY(180deg)]" alt="{{ $upcomingCourse->title }}" />
+                            <img src="{{ $upcomingImage }}" class="w-12 h-12 mx-auto my-4 transition-transform hover:[transform:rotateY(180deg)]" alt="{{ $upcomingCourse->title }}" />
                             <p class="text-gray-600"><i class="fas fa-calendar"></i> Start Date: <span class="font-bold">{{ \Carbon\Carbon::parse($upcomingCourse->start_date)->format('F d, Y') }}</span></p>
                             <p class="text-green-600 mt-2"><i class="fas fa-check-circle"></i> {{ $upcomingCourse->slots_open ? 'Slots Open' : 'Slots Closed' }}</p>
                             <a href="{{ route('website.course') }}" class="mt-4 block w-full bg-[#ff7b00] text-white py-2 rounded-lg font-bold text-center hover:bg-[#ff5500] transition-all">Pre-register Now</a>
@@ -382,9 +397,15 @@
             <div id="studyInternships" class="tab-pane hidden">
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     @foreach($internships as $internship)
+                        @php
+                            $internshipImagePath = $internship->image;
+                            $internshipImage = $internshipImagePath
+                                ? (filter_var($internshipImagePath, FILTER_VALIDATE_URL) ? $internshipImagePath : asset($internshipImagePath))
+                                : $defaultCourseImage;
+                        @endphp
                         <div class="study-box bg-white rounded-lg shadow-md p-6 text-center transition-all hover:scale-105 hover:shadow-lg">
                             <h4 class="text-xl font-bold text-[#2c0b57]">{{ $internship->title }}</h4>
-                            <img src="{{ $internship->image ?: asset('images/coursehead.png') }}" class="w-12 h-12 mx-auto my-4 transition-transform hover:[transform:rotateY(180deg)]" alt="{{ $internship->title }}" />
+                            <img src="{{ $internshipImage }}" class="w-12 h-12 mx-auto my-4 transition-transform hover:[transform:rotateY(180deg)]" alt="{{ $internship->title }}" />
                             <div class="text-gray-600 space-y-2">
                                 <div class="flex justify-around">
                                     <span><i class="far fa-clock"></i> {{ $internship->duration }}</span>
@@ -803,6 +824,8 @@
 {{-- =========================================================
      Scripts (scoped)
    ========================================================= --}}
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <!-- Swiper JS (if your layout already includes it, you can remove the next line) -->
 <script src="https://unpkg.com/swiper@9/swiper-bundle.min.js"></script>
 
@@ -827,16 +850,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
     if (closeBtn && popup) {
         closeBtn.addEventListener("click", () => popup.classList.add("hidden"));
-    }
-
-    if (popupForm && popup) {
-        popupForm.addEventListener("submit", (e) => {
-            e.preventDefault();
-            const data = Object.fromEntries(new FormData(popupForm).entries());
-            console.log("User Popup Data:", data);
-            alert("🎉 Thank you, " + data.name + "! Your details have been saved.");
-            popup.classList.add("hidden");
-        });
     }
 
     /* Tabs logic */
@@ -932,18 +945,33 @@ function attachLeadHandler(formId){
                 const msg = data?.message
                     || (data?.errors && Object.values(data.errors)[0][0])
                     || "Something went wrong. Please try again.";
-                alert("❌ " + msg);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Submission failed',
+                    text: msg,
+                    confirmButtonColor: '#ff7b00'
+                });
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Submit';
                 return;
             }
 
-            alert("🎉 Thank you, " + (fd.get('name') || 'there') + "! Your details have been saved.");
+            Swal.fire({
+                icon: 'success',
+                title: 'Thank you!',
+                text: `Hey ${fd.get('name') || 'there'} 👋 Your details have been saved.`,
+                confirmButtonColor: '#ff7b00'
+            });
             form.reset();
             document.getElementById("user-popup")?.classList.add("hidden");
         } catch (err) {
             console.error(err);
-            alert("❌ Network error. Please try again.");
+            Swal.fire({
+                icon: 'error',
+                title: 'Network error',
+                text: 'Please try again in a moment.',
+                confirmButtonColor: '#ff7b00'
+            });
         } finally {
             submitBtn.disabled = false;
             submitBtn.textContent = 'Submit';

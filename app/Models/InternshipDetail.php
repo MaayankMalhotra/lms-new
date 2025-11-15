@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Internship;
 
 class InternshipDetail extends Model
 {
@@ -45,4 +46,9 @@ class InternshipDetail extends Model
         'certificate_description' => 'array',
         
     ];
+
+    public function internship()
+    {
+        return $this->belongsTo(Internship::class, 'internship_id');
+    }
 }

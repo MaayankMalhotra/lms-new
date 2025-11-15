@@ -50,6 +50,15 @@
     }
 </style>
 
+@php
+    $cartSummary = app(\App\Services\CartService::class)->summary();
+    $headerCourses = \App\Models\Course::query()
+        ->select('name', 'slug')
+        ->whereNotNull('slug')
+        ->orderBy('name')
+        ->get();
+@endphp
+
 <nav class="bg-gradient-to-r from-[#2c0b57] to-[#0c3c7c] shadow-xl fixed w-full z-50">
     <div class="container mx-auto px-4">
         <div class="flex justify-between items-center h-16">
@@ -82,10 +91,7 @@
                     </button>
                     <div id="courses-dropdown"
                         class="dropdown-content absolute bg-black/90 rounded-lg p-2 min-w-[240px] mt-2 shadow-lg z-50">
-                        @php
-                            $courses = DB::table('courses')->get();
-                        @endphp
-                        @foreach ($courses as $course)
+                        @foreach ($headerCourses as $course)
                             <a href="{{ route('website.course_details', $course->slug) }}"
                                 class="block px-1 py-2 text-white hover:bg-orange-500 rounded-md transition-colors text-sm">{{ $course->name }}</a>
                         @endforeach
@@ -94,6 +100,9 @@
 
                 <a href="{{ route('about-page') }}"
                     class="text-white hover:text-amber-400 transition-colors duration-300">About</a>
+
+                <a href="{{ route('shop.index') }}"
+                    class="text-white hover:text-amber-400 transition-colors duration-300">Shop</a>
 
 
                 <!-- What We Offer Dropdown -->
@@ -136,6 +145,15 @@
                     class="text-white hover:text-amber-400 transition-colors duration-300">Hire With Us</a>
                 <a href="{{ route('website.contact') }}"
                     class="text-white hover:text-amber-400 transition-colors duration-300">Contact</a>
+                <a href="{{ route('cart.index') }}"
+                    class="flex items-center gap-2 text-white hover:text-amber-400 transition-colors duration-300">
+                    Cart
+                    <span
+                        class="inline-flex h-6 min-w-[1.5rem] items-center justify-center rounded-full bg-white/20 text-xs font-semibold text-white"
+                        data-cart-count>
+                        {{ $cartSummary['count'] ?? 0 }}
+                    </span>
+                </a>
                 <a href="{{ route('login') }}"
                     class="bg-gradient-to-r from-orange-600 to-amber-500 px-6 py-2 rounded-lg text-white font-semibold hover:shadow-lg hover:shadow-orange-300 transition-all">Login</a>
             </div>
@@ -146,6 +164,7 @@
             <div class="flex flex-col space-y-4">
                 <a href="{{ route('home-page') }}" class="text-white hover:text-amber-400 py-2">Home</a>
                 <a href="{{ route('about-page') }}" class="text-white hover:text-amber-400 py-2">About</a>
+                <a href="{{ route('shop.index') }}" class="text-white hover:text-amber-400 py-2">Shop</a>
 
                 <!-- Mobile Courses Dropdown -->
                 <div>
@@ -160,10 +179,7 @@
                     <div id="mobile-courses-dropdown"
                         class="mobile-dropdown-content h-28 bg-black/90 rounded py-4 px-2 overflow-y-scroll">
 
-                        @php
-                            $courses = DB::table('courses')->get();
-                        @endphp
-                        @foreach ($courses as $course)
+                        @foreach ($headerCourses as $course)
                             <a href="{{ route('website.course_details', $course->slug) }}"
                                 class="block px-1 py-2 text-white hover:bg-orange-500 rounded-md transition-colors text-sm">{{ $course->name }}</a>
                         @endforeach
@@ -213,6 +229,14 @@
                 <a href="{{ route('hire.show')}}" class="text-white hover:text-amber-400 py-2">Hire With Us</a>
                 <a href="{{ route('career_hightlight_show')}}" class="text-white hover:text-amber-400 py-2">Reviews</a>
                 <a href="{{ route('website.contact') }}" class="text-white hover:text-amber-400 py-2">Contact</a>
+                <a href="{{ route('cart.index') }}" class="text-white hover:text-amber-400 py-2 flex items-center gap-2">
+                    Cart
+                    <span
+                        class="inline-flex h-6 min-w-[1.5rem] items-center justify-center rounded-full bg-white/20 text-xs font-semibold text-white"
+                        data-cart-count>
+                        {{ $cartSummary['count'] ?? 0 }}
+                    </span>
+                </a>
                 <a href="{{ route('login') }}"
                     class="bg-orange-500 px-6 py-2 rounded-lg text-white text-center hover:bg-orange-600 mt-2">Login</a>
             </div>

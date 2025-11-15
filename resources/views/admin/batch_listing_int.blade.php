@@ -123,7 +123,7 @@
 
                 <!-- Actions -->
                 <div class="batch-actions">
-                    <button onclick="openEditModal({{ $batch->id }})" class="edit" title="Edit Batch">
+                    <button type="button" onclick="openEditModal({{ $batch->id }})" class="edit" title="Edit Batch">
                         <i class="fas fa-edit"></i>
                     </button>
                     <form action="{{ route('admin.batches.destroy', $batch->id) }}" method="POST" style="display:inline;">
@@ -151,3 +151,13 @@
     @endif
 </div>
 @endsection
+
+@push('scripts')
+<script>
+    function openEditModal(batchId) {
+        const url = new URL('{{ route('admin.batches.add.int') }}', window.location.origin);
+        url.searchParams.set('batch_id', batchId);
+        window.location.href = url.toString();
+    }
+</script>
+@endpush

@@ -5,10 +5,10 @@
     <div class="mx-4 sm:mx-10">
         <div class="p-6 sm:p-8">
             <!-- Form Header -->
-            <div class="mb-8 text-center">
-                <h1 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">
-                    <i class="fas fa-briefcase mr-2 text-blue-500"></i>Create New Batch
-                </h1>
+                <div class="mb-8 text-center">
+                    <h1 id="batchHeader" class="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">
+                        <i class="fas fa-briefcase mr-2 text-blue-500"></i>Create New Batch
+                    </h1>
                 <p class="text-gray-500 text-sm sm:text-base">Fill in the details to add a new batch program</p>
             </div>
             <!-- Success Message -->
@@ -20,13 +20,14 @@
 
             <form id="batchForm" action="{{ url('/admin/batches/store') }}" method="POST" enctype="multipart/form-data">
                 @csrf
+                <input type="hidden" name="_method" id="formMethod" value="POST">
                 
                 <div class="space-y-6">
                     <!-- Basic Information Section -->
-                    <div class="bg-white p-6 rounded-lg shadow-sm">
-                        <h2 class="text-xl font-semibold mb-4 text-gray-700">
-                            <i class="fas fa-info-circle mr-2 text-blue-400"></i>Basic Information
-                        </h2>
+                <div class="bg-white p-6 rounded-lg shadow-sm">
+                    <h2 class="text-xl font-semibold mb-4 text-gray-700">
+                        <i class="fas fa-info-circle mr-2 text-blue-400"></i>Basic Information
+                    </h2>
                         
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
@@ -123,11 +124,10 @@
                                 <label class="block text-sm font-medium text-gray-700 mb-2">
                                     <i class="fas fa-calendar-day mr-2 text-blue-400"></i>Days of the Week
                                 </label>
-                                <select name="days" required 
-                                        class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all">
-                                    <option value="SAT - SUN" {{ old('days') == 'SAT - SUN' ? 'selected' : '' }}>SAT - SUN</option>
-                                    <option value="MON - FRI" {{ old('days') == 'MON - FRI' ? 'selected' : '' }}>MON - FRI</option>
-                                </select>
+                                <input type="text" name="days" required
+                                       value="{{ old('days') }}"
+                                       class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+                                       placeholder="e.g., Mon, Wed, Fri">
                                 @error('days')
                                     <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                                 @enderror
@@ -286,10 +286,64 @@
                             <i class="fas fa-plus-circle mr-2"></i>Create Batch Program
                         </button>
                     </div>
-                </div>
-            </form>
-        </div>
+            </div>
+            <script>
+                document.addEventListener('DOMContentLoaded', function () {
+                    const params = new URLSearchParams(window.location.search);
+                    const editId = params.get('batch_id');
+                    const form = document.getElementById('batchForm');
+                    const methodInput = document.getElementById('formMethod');
+                    const header = document.getElementById('batchHeader');
+
+                    if (!editId) {
+                        return;
+                    }
+
+                    fetch(`/admin/batches/${editId}/edit`, {
+                        headers: { 'Accept': 'application/json' }
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            const batch = data.batch;
+                            if (!batch) return;
+
+                            [['batch_name', batch.batch_name],
+                                ['start_date', batch.start_date],
+                                ['status', batch.status],
+                                ['course_id', batch.course_id],
+                                ['teacher_id', batch.teacher_id],
+                                ['days', batch.days],
+                                ['duration', batch.duration],
+                                ['time_slot', batch.time_slot],
+                                ['price', batch.price],
+                                ['discount', batch.discount_info],
+                                ['discount_info', batch.discount_info],
+                                ['slots_available', batch.slots_available],
+                                ['slots_filled', batch.slots_filled],
+                                ['emi_price', batch.emi_price],
+                                ['emi_available', batch.emi_available]
+                            ].forEach(([name, value]) => {
+                                const field = document.querySelector(`[name="${name}"]`);
+                                if (!field) return;
+                                if (field.type === 'checkbox') {
+                                    field.checked = value;
+                                } else {
+                                    field.value = value ?? '';
+                                }
+                            });
+
+                            form.action = `{{ url('/admin/batches') }}/${batch.id}`;
+                            methodInput.value = 'PUT';
+                            header.innerHTML = '<i class="fas fa-briefcase mr-2 text-blue-500"></i>Edit Batch';
+                        })
+                        .catch(error => {
+                            console.error('Unable to load batch data', error);
+                        });
+                });
+            </script>
+        </form>
     </div>
+</div>
 </div>
 
 <script>

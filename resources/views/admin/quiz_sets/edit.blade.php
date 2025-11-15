@@ -25,21 +25,21 @@
                     @enderror
                 </div>
 
-                <!-- Batch Dropdown -->
+                <!-- Course Dropdown -->
                 <div class="mb-6">
-                    <label for="batch_id" class="block text-gray-700 font-semibold mb-2">
-                        Select Batch
+                    <label for="course_id" class="block text-gray-700 font-semibold mb-2">
+                        Select Course
                     </label>
-                    <select name="batch_id" id="batch_id" 
+                    <select name="course_id" id="course_id" 
                             class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all" required>
-                        <option value="">-- Select a Batch --</option>
-                        @foreach($batchOptions as $id => $label)
-                            <option value="{{ $id }}" {{ $quizSet->batch_id == $id ? 'selected' : '' }}>
-                                {{ $label }}
+                        <option value="">-- Select a Course --</option>
+                        @foreach($courses as $course)
+                            <option value="{{ $course->id }}" {{ $quizSet->course_id == $course->id ? 'selected' : '' }}>
+                                {{ $course->name }}
                             </option>
                         @endforeach
                     </select>
-                    @error('batch_id')
+                    @error('course_id')
                         <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                     @enderror
                 </div>

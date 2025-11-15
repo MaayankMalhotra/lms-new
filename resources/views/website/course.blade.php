@@ -35,7 +35,14 @@
             <div class="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-shadow floating" 
                  data-aos="fade-up" data-aos-delay="100">
                 <h3 class="text-xl text-center font-bold mb-4">{{ $course->name }}</h3>
-                <img src="{{ asset( $course->logo) }}" class="w-16 mx-auto mb-4 mt-6 text-center" alt="Python">
+                @php
+                    $defaultCourseImage = 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=400&q=80';
+                    $logoPath = $course->logo;
+                    $logoUrl = $logoPath
+                        ? (filter_var($logoPath, FILTER_VALIDATE_URL) ? $logoPath : asset($logoPath))
+                        : $defaultCourseImage;
+                @endphp
+                <img src="{{ $logoUrl }}" class="w-16 mx-auto mb-4 mt-6 text-center" alt="{{ $course->name }}">
                 <div class="space-y-2 text-gray-600 mb-6 text-center">
                     <p><i class="far fa-clock mr-2"></i>Duration: {{ $course->duration }}</p>
                     <p><i class="fas fa-users mr-2"></i>{{ $course->placed_learner }}+ Placed</p>

@@ -118,9 +118,9 @@
                                 <td class="px-6 py-4 text-sm text-gray-900 text-right font-semibold">₹{{ number_format($internship->price, 2) }}</td>
                                 <td class="px-6 py-4">
                                     <div class="flex items-center justify-center gap-3">
-                                        <button onclick="openEditModal(`{{ route('admin.internship.edit', $internship->id) }}`)" class="action-icon edit" title="Edit Internship">
+                                        <a href="{{ route('admin.internship.add') }}?internship_id={{ $internship->id }}" class="action-icon edit" title="Edit Internship">
                                             <i class="fas fa-edit"></i>
-                                        </button>
+                                        </a>
 
                                         @if($internship->has_details)
                                             <a href="{{ route('course.edit.int', $internship->internship_detail_id) }}" class="action-icon details" title="Edit Internship Details">

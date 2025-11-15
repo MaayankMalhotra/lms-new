@@ -125,6 +125,8 @@ return [
 
     'cipher' => 'AES-256-CBC',
 
+    'demo_video_fallback_url' => env('DEMO_VIDEO_FALLBACK_URL', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ'),
+
     /*
     |--------------------------------------------------------------------------
     | Maintenance Mode Driver

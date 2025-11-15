@@ -17,6 +17,28 @@
                 @csrf
 
                 <div class="space-y-6">
+                    <!-- Course -->
+                    <div class="relative">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-graduation-cap mr-2 text-blue-400"></i>Course
+                        </label>
+                        <select name="course_id" required
+                                class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all bg-white">
+                            <option value="">Select a course</option>
+                            @foreach($courses as $course)
+                                <option value="{{ $course->id }}"
+                                    {{ old('course_id') == $course->id ? 'selected' : '' }}>
+                                    {{ $course->name ?? 'Unnamed course' }}
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('course_id')
+                            <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                        @enderror
+                        @if($courses->isEmpty())
+                            <p class="text-sm text-gray-500 mt-1">No courses are available yet.</p>
+                        @endif
+                    </div>
                     <!-- Title -->
                     <div class="relative">
                         <label class="block text-sm font-medium text-gray-700 mb-2">

@@ -439,6 +439,13 @@
                                                     <div class="error">{{ $message }}</div>
                                                 @enderror
                                             </div>
+                                            <div class="field-container">
+                                                <label>Demo Video URL (optional)</label>
+                                                <input type="url" name="demo_syllabus[{{ $moduleIndex }}][video_url]" value="{{ old('demo_syllabus.' . $moduleIndex . '.video_url', $module['video_url'] ?? '') }}" placeholder="https://youtu.be/...">
+                                                @error('demo_syllabus.' . $moduleIndex . '.video_url')
+                                                    <div class="error">{{ $message }}</div>
+                                                @enderror
+                                            </div>
                                             <div class="field-container full-width">
                                                 <label>Description</label>
                                                 <textarea name="demo_syllabus[{{ $moduleIndex }}][description]" required>{{ old('demo_syllabus.' . $moduleIndex . '.description', $module['description']) }}</textarea>
@@ -529,6 +536,13 @@
                                 <div class="error">{{ $message }}</div>
                             @enderror
                             @error('instructor_ids.*')
+                                <div class="error">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        <div class="field-container full-width">
+                            <label>Instructor Info</label>
+                            <textarea name="instructor_info" rows="4">{{ old('instructor_info', $courseDetail->instructor_info ?? '') }}</textarea>
+                            @error('instructor_info')
                                 <div class="error">{{ $message }}</div>
                             @enderror
                         </div>
@@ -857,22 +871,26 @@
             const div = document.createElement('div');
             div.className = 'dynamic-field';
             div.innerHTML = `
-                <div class="form-grid">
-                    <div class="field-container">
-                        <label>Module Number (e.g., Module ${demoModuleCount})</label>
-                        <input type="text" name="demo_syllabus[${demoModuleCount}][module_number]" required>
-                    </div>
-                    <div class="field-container">
-                        <label>Title</label>
-                        <input type="text" name="demo_syllabus[${demoModuleCount}][title]" required>
-                    </div>
-                    <div class="field-container">
-                        <label>Duration (e.g., 4 Weeks)</label>
-                        <input type="text" name="demo_syllabus[${demoModuleCount}][duration]" required>
-                    </div>
-                    <div class="field-container full-width">
-                        <label>Description</label>
-                        <textarea name="demo_syllabus[${demoModuleCount}][description]" required></textarea>
+                    <div class="form-grid">
+                        <div class="field-container">
+                            <label>Module Number (e.g., Module ${demoModuleCount})</label>
+                            <input type="text" name="demo_syllabus[${demoModuleCount}][module_number]" required>
+                        </div>
+                        <div class="field-container">
+                            <label>Title</label>
+                            <input type="text" name="demo_syllabus[${demoModuleCount}][title]" required>
+                        </div>
+                        <div class="field-container">
+                            <label>Duration (e.g., 4 Weeks)</label>
+                            <input type="text" name="demo_syllabus[${demoModuleCount}][duration]" required>
+                        </div>
+                        <div class="field-container">
+                            <label>Demo Video URL (optional)</label>
+                            <input type="url" name="demo_syllabus[${demoModuleCount}][video_url]" placeholder="https://youtu.be/...">
+                        </div>
+                        <div class="field-container full-width">
+                            <label>Description</label>
+                            <textarea name="demo_syllabus[${demoModuleCount}][description]" required></textarea>
                     </div>
                     <div class="field-container full-width">
                         <label>Topics</label>

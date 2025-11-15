@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Course;
 
 class CodingQuestion extends Model
 {
@@ -14,6 +15,7 @@ class CodingQuestion extends Model
      * @var array
      */
     protected $fillable = [
+        'course_id',
         'title',
         'description',
         'solutions',
@@ -30,5 +32,9 @@ class CodingQuestion extends Model
     public function submissions()
     {
         return $this->hasMany(CodingSubmission::class, 'coding_question_id');
+    }
+    public function course()
+    {
+        return $this->belongsTo(Course::class, 'course_id');
     }
 }
