@@ -600,6 +600,7 @@ Route::prefix('student')->middleware('auth')->group(function () {
     Route::get('/coding-tests', [CodingTestController::class, 'index'])->name('student.coding_tests.index');
     Route::get('/coding-tests/{id}', [CodingTestController::class, 'show'])->name('student.coding_tests.show');
     Route::post('/coding-tests/{id}/submit', [CodingTestController::class, 'submit'])->name('student.coding_tests.submit');
+    Route::post('/coding-tests/run', [CodingTestController::class, 'run'])->name('student.coding_tests.run');
 });
 
 // Add this to your existing admin routes

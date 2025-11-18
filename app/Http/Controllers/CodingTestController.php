@@ -1,14 +1,22 @@
 <?php
+
 namespace App\Http\Controllers;
 
-use App\Http\Controllers;
 use App\Models\CodingQuestion;
 use App\Models\CodingSubmission;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Services\CodeExecutor;
 
 class CodingTestController extends Controller
 {
+    private CodeExecutor $executor;
+
+    public function __construct(CodeExecutor $executor)
+    {
+        $this->executor = $executor;
+    }
+
     public function index()
     {
         $codingQuestions = CodingQuestion::all();
@@ -48,5 +56,30 @@ class CodingTestController extends Controller
         } else {
             return redirect()->back()->with('error', 'Sorry, your solution is incorrect. Please try again.');
         }
+    }
+
+    public function run(Request $request)
+    {
+        $data = $request->validate([
+            'language' => 'required|string|in:Python,C,C++,Java,python,c,c++,java,CPP,cpp',
+            'code' => 'required|string',
+            'input' => 'nullable|string',
+        ]);
+
+        $normalizedLanguage = match (strtolower($data['language'])) {
+            'python' => 'Python',
+            'c' => 'C',
+            'c++', 'cpp' => 'C++',
+            'java' => 'Java',
+            default => 'Python',
+        };
+
+        $result = $this->executor->run(
+            $normalizedLanguage,
+            $data['code'],
+            $data['input'] ?? ''
+        );
+
+        return response()->json($result);
     }
 }
