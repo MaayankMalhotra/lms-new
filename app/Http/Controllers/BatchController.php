@@ -353,10 +353,14 @@ public function storeInt(Request $request)
         ]);
 
         if ($validator->fails()) {
-            return response()->json([
-                'error' => 'Validation failed: ' . $validator->errors()->first(),
-                'errors' => $validator->errors(),
-            ], 422);
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'error' => 'Validation failed: ' . $validator->errors()->first(),
+                    'errors' => $validator->errors(),
+                ], 422);
+            }
+
+            return redirect()->back()->withErrors($validator)->withInput();
         }
 
         // Validate EMI total if EMI is available
@@ -368,10 +372,16 @@ public function storeInt(Request $request)
                 }
             }
             if (abs($emiTotal - $request->price) > 0.01) {
-                return response()->json([
+                $errorPayload = [
                     'error' => 'EMI total does not match batch price.',
                     'errors' => ['emi_plans' => ['Total EMI amount must equal the batch price.']],
-                ], 422);
+                ];
+
+                if ($request->expectsJson()) {
+                    return response()->json($errorPayload, 422);
+                }
+
+                return redirect()->back()->withErrors($errorPayload['errors'])->withInput();
             }
         }
 
@@ -399,16 +409,28 @@ public function storeInt(Request $request)
             $course = DB::table('courses')->where('id', $request->course_id)->first();
             //$teacher = DB::table('teachers')->where('id', $request->teacher_id)->first();
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Batch updated successfully.',
-                'course_name' => $course->name ?? 'N/A',
-               // 'teacher_name' => $teacher->name ?? 'N/A',
-            ]);
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Batch updated successfully.',
+                    'course_name' => $course->name ?? 'N/A',
+                   // 'teacher_name' => $teacher->name ?? 'N/A',
+                ]);
+            }
+
+            return redirect()
+                ->route('admin.batches.index')
+                ->with('success', 'Batch updated successfully!');
         } catch (\Exception $e) {
-            return response()->json([
-                'error' => 'Failed to update batch: ' . $e->getMessage(),
-            ], 500);
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'error' => 'Failed to update batch: ' . $e->getMessage(),
+                ], 500);
+            }
+
+            return redirect()
+                ->back()
+                ->with('error', 'Failed to update batch: ' . $e->getMessage());
         }
     }
 

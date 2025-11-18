@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Batch;
 use App\Models\Course;
 use App\Models\LiveClass;
+use App\Models\Internship;
 use App\Models\InternshipBatch;
 use App\Models\InternshipFolder;
 use App\Models\InternshipClass;
@@ -41,8 +42,8 @@ class AdminLiveClassController extends Controller
 
     public function createInt()
     {
-        $batches = InternshipBatch::with('internship')->get();
-        return view('admin.live_classes.create-int', compact('batches'));
+        $internships = Internship::orderBy('name')->get();
+        return view('admin.live_classes.create-int', compact('internships'));
     }
 
     public function getRecordings($batchId)
@@ -214,6 +215,7 @@ class AdminLiveClassController extends Controller
     {
         $request->validate([
             'course_id' => 'required|exists:courses,id',
+            'batch_id' => 'required|exists:batches,id',
             'folder_id' => 'nullable|exists:folders,id',
             'google_meet_link' => 'required|url',
             'class_datetime' => 'required|date',
@@ -235,6 +237,7 @@ class AdminLiveClassController extends Controller
 
         $liveClass = LiveClass::create([
             'course_id' => $request->course_id,
+            'batch_id' => $request->batch_id,
             'folder_id' => $request->folder_id,
             'topic' => $topicName,
             'google_meet_link' => $request->google_meet_link,
@@ -251,7 +254,7 @@ class AdminLiveClassController extends Controller
     {
         try {
             $request->validate([
-                'batch_id' => 'required',
+                'batch_id' => 'required|exists:internship_batches,id',
                 'folder_id' => 'nullable',
                 'google_meet_link' => 'required|url',
                 'class_datetime' => 'required|date',

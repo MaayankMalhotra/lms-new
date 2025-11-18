@@ -7,12 +7,18 @@
         <form action="{{ route('admin.live_classes.store.int') }}" method="POST" class="bg-white p-6 rounded shadow">
             @csrf
             <div class="mb-4">
-                <label class="block text-gray-700 font-semibold">Batch</label>
-                <select name="batch_id" id="batch_id" class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500" required>
-                    <option value="">Choose a batch</option>
-                    @foreach($batches as $batch)
-                        <option value="{{ $batch->id }}">{{ $batch->internship->name }} - {{ $batch->start_date->format('Y-m-d') }}</option>
+                <label class="block text-gray-700 font-semibold">Course</label>
+                <select id="internship_id" class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="">Choose a course</option>
+                    @foreach($internships as $internship)
+                        <option value="{{ $internship->id }}">{{ $internship->name }}</option>
                     @endforeach
+                </select>
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700 font-semibold">Batch</label>
+                <select name="batch_id" id="batch_id" class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500" required disabled>
+                    <option value="">Choose a course first</option>
                 </select>
             </div>
             <div class="mb-4">
@@ -57,13 +63,48 @@
                 width: '100%'
             });
 
-            document.getElementById('batch_id').addEventListener('change', function() {
+            const batchSelect = document.getElementById('batch_id');
+            const folderSelect = document.getElementById('folder_id');
+
+            document.getElementById('internship_id').addEventListener('change', function() {
+                const internshipId = this.value;
+                batchSelect.innerHTML = '<option value="">Loading batches...</option>';
+                batchSelect.disabled = true;
+                folderSelect.innerHTML = '<option value="">Choose a folder</option>';
+                $('#recording_id').val(null).trigger('change');
+
+                if (!internshipId) {
+                    batchSelect.innerHTML = '<option value="">Choose a course first</option>';
+                    return;
+                }
+
+                fetch(`/api/batches-int?id=${internshipId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.error || data.length === 0) {
+                            batchSelect.innerHTML = '<option value="">No batches available</option>';
+                            return;
+                        }
+
+                        batchSelect.innerHTML = '<option value="">Choose a batch</option>';
+                        data.forEach(batch => {
+                            const subtitle = [batch.days, batch.timeSlot].filter(Boolean).join(' | ');
+                            const label = `${batch.date} - ${subtitle || 'Timing TBA'}`;
+                            batchSelect.innerHTML += `<option value="${batch.id}">${label}</option>`;
+                        });
+                        batchSelect.disabled = false;
+                    })
+                    .catch(error => {
+                        batchSelect.innerHTML = '<option value="">Error loading batches</option>';
+                        console.error('Error fetching internship batches:', error);
+                    });
+            });
+
+            batchSelect.addEventListener('change', function() {
                 const batchId = this.value;
-                const folderSelect = document.getElementById('folder_id');
                 const recordingSelect = $('#recording_id');
                 folderSelect.innerHTML = '<option value="">Loading...</option>';
                 recordingSelect.val(null).trigger('change'); // Clear select2
-console.log(batchId);
                 if (batchId) {
                     fetch(`/live-classes/folders-int/${batchId}`)
                     

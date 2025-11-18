@@ -14,6 +14,7 @@ class Webinar extends Model
         'start_time',
         'registration_deadline',
         'entry_type',
+        'meeting_link',
         'participants_count',
         'tags',
         'end_time',

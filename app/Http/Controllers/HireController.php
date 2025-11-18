@@ -5,8 +5,10 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Models\Instructor;
 use App\Models\JobRolesForHiring;
+use App\Models\MentorApplication;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 
 class HireController extends Controller
 {
@@ -27,6 +29,9 @@ class HireController extends Controller
             'linkedin_url' => 'nullable|url|max:255',
             'facebook_url' => 'nullable|url|max:255',
             'phone_number' => 'required|string|digits:10',
+            'email' => 'nullable|email|max:255',
+            'experience_years' => 'nullable|integer|min:0|max:60',
+            'message' => 'nullable|string',
         ]);
 
         
@@ -41,7 +46,52 @@ class HireController extends Controller
             'is_active' => 0, // Set to inactive pending review
         ]);
 
-        return redirect()->route('hire.index')->with('success', 'Mentor application submitted successfully. Awaiting review.');
+        MentorApplication::create([
+            'name' => $request->name,
+            'email' => $request->input('email'),
+            'phone' => $request->phone_number,
+            'teaching_hours' => $request->teaching_hours,
+            'specialization' => $request->specialization,
+            'experience_years' => $request->input('experience_years'),
+            'linkedin_url' => $request->linkedin_url,
+            'portfolio_url' => $request->facebook_url,
+            'message' => $request->input('message'),
+            'status' => 'pending',
+        ]);
+
+        return redirect()->route('hire.show')->with('success', 'Mentor application submitted successfully. Awaiting review.');
+    }
+
+    public function seedSample()
+    {
+        $name = 'Demo Mentor ' . now()->format('His');
+        $phone = (string) rand(6000000000, 9999999999);
+
+        Instructor::create([
+            'name' => $name,
+            'image' => null,
+            'teaching_hours' => rand(100, 1500),
+            'specialization' => collect(['Web Development', 'Data Science', 'AI/ML', 'Cybersecurity'])->random(),
+            'linkedin_url' => 'https://linkedin.com/in/demo-mentor',
+            'facebook_url' => 'https://portfolio.example.com/demo',
+            'phone_number' => $phone,
+            'is_active' => 0,
+        ]);
+
+        MentorApplication::create([
+            'name' => $name,
+            'email' => 'demo.' . Str::lower(Str::random(4)) . '@example.com',
+            'phone' => $phone,
+            'teaching_hours' => rand(100, 1500),
+            'specialization' => 'Full Stack Engineering',
+            'experience_years' => rand(1, 10),
+            'linkedin_url' => 'https://linkedin.com/in/demo-mentor',
+            'portfolio_url' => 'https://portfolio.example.com/demo',
+            'message' => 'Auto-generated demo submission for testing the mentor flow.',
+            'status' => 'pending',
+        ]);
+
+        return back()->with('success', 'Sample mentor submission created successfully.');
     }
 
     public function index()

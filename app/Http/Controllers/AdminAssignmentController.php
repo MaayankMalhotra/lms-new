@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Assignment;
 use App\Models\Batch;
+use App\Models\Course;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
@@ -13,14 +14,16 @@ class AdminAssignmentController extends Controller
 {
     public function create()
     {
-        $liveClasses = Batch::all(); // Fetch all live classes for dropdown
-        return view('admin.assignment.assignment', compact('liveClasses'));
+        $courses = Course::orderBy('name')->get();
+        return view('admin.assignment.assignment', [
+            'courses' => $courses,
+        ]);
     }
 
     public function store(Request $request)
     {
         $request->validate([
-            'live_class_id' => 'required',
+            'course_id' => 'required|exists:courses,id',
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'due_date' => 'required|date',
@@ -34,7 +37,7 @@ class AdminAssignmentController extends Controller
         }
 
         Assignment::create([
-            'batch_id' => $request->live_class_id,
+            'course_id' => $request->course_id,
             'title' => $request->title,
             'description' => $request->description,
             'due_date' => $request->due_date,
@@ -116,94 +119,37 @@ class AdminAssignmentController extends Controller
     //     return response()->download($filePath);
     // }
 
-    public function index()
+    public function adminIndex()
     {
-        // Fetch batches that the authenticated student is enrolled in, with course details
-        $batches = DB::select('
-            SELECT b.id, b.course_id, b.start_date, c.name as course_name
-            FROM batches b
-            INNER JOIN courses c ON b.course_id = c.id
-            
-            
-        ',);
+        $assignments = DB::table('assignments as a')
+            ->leftJoin('courses as c', 'a.course_id', '=', 'c.id')
+            ->select('a.id', 'a.title', 'a.description', 'a.due_date', 'a.file_path', 'c.name as course_name')
+            ->orderBy('a.due_date', 'desc')
+            ->get();
 
-        // Convert batches to a collection for easier handling in the view
-        $batches = collect($batches)->map(function ($batch) {
-            return (object) [
-                'id' => $batch->id,
-                'course' => (object) ['name' => $batch->course_name],
-                'start_date' => \Carbon\Carbon::parse($batch->start_date),
-            ];
-        });
+        $submissionsByAssignment = DB::table('assignment_submissions as s')
+            ->leftJoin('users as u', 's.user_id', '=', 'u.id')
+            ->select('s.*', 'u.name as student_name', 'u.email as student_email')
+            ->orderBy('s.created_at', 'desc')
+            ->get()
+            ->groupBy('assignment_id');
 
-        return view('admin.assignment.assignment_all', compact('batches'));
+        return view('admin.assignment.index', compact('assignments', 'submissionsByAssignment'));
     }
 
-    public function getAssignmentsByBatch($batchId)
+    public function setSubmissionMark(Request $request, $submissionId)
     {
-        
-        // Fetch assignments for the given batch_id, with submission details for the authenticated student
-        $assignments = DB::select('
-            SELECT 
-                a.id, 
-                a.title, 
-                a.description, 
-                a.due_date, 
-                a.created_at, 
-                a.file_path,
-                s.id as submission_id,
-                s.file_path as submission_file_path,
-                s.created_at as submitted_at
-            FROM assignments a
-            INNER JOIN batches b ON a.batch_id = b.id
-            LEFT JOIN assignment_submissions s ON a.id = s.assignment_id 
-            WHERE a.batch_id = ?
-        ', [ $batchId]);
+        $validated = $request->validate([
+            'marks' => 'nullable|integer|min:0',
+        ]);
 
-          $groupedAssignments = collect($assignments)->groupBy('id')->map(function ($assignmentGroup) {
-            $first = $assignmentGroup->first();
-            return (object) [
-                'id' => $first->id,
-                'title' => $first->title,
-                'description' => $first->description,
-                'due_date' => $first->due_date,
-                'created_at' => $first->created_at,
-                'file_path' => $first->file_path,
-                'submissions' => $assignmentGroup->filter(function ($item) {
-                    return $item->submission_id !== null;
-                })->map(function ($item) {
-                    return (object) [
-                        'id' => $item->submission_id,
-                        'file_path' => $item->submission_file_path,
-                        'submitted_at' => $item->submitted_at,
-                    ];
-                })->values()->all(),
-            ];
-        })->values();
+        DB::table('assignment_submissions')
+            ->where('id', $submissionId)
+            ->update([
+                'marks' => $validated['marks'],
+                'updated_at' => now(),
+            ]);
 
-        return response()->json($groupedAssignments);
-    }
-
-    public function download($assignmentId)
-    {
-        // Fetch the assignment's file_path
-        $assignment = DB::selectOne('
-            SELECT file_path
-            FROM assignments
-            WHERE id = ?
-        ', [$assignmentId]);
-
-        if (!$assignment || !$assignment->file_path) {
-            abort(404, 'File not found');
-        }
-
-        // Get the full path to the file
-        $filePath = storage_path('app/public/' . $assignment->file_path);
-
-        if (!Storage::exists('public/' . $assignment->file_path)) {
-            abort(404, 'File not found');
-        }
-
-        return response()->download($filePath);
+        return redirect()->back()->with('success', 'Marks updated.');
     }
 }

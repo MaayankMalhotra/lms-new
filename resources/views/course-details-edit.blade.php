@@ -438,6 +438,14 @@
                                             <div class="field-container">
                                                 <label>Demo Video URL (optional)</label>
                                                 <input type="url" name="demo_syllabus[{{ $moduleIndex }}][video_url]" value="{{ old('demo_syllabus.' . $moduleIndex . '.video_url', $module['video_url'] ?? '') }}" placeholder="https://youtu.be/...">
+                                                @php
+                                                    $persistedVideoUrls = old('demo_syllabus.' . $moduleIndex . '.video_urls', $module['video_urls'] ?? []);
+                                                    $persistedVideoUrls = is_array($persistedVideoUrls) ? $persistedVideoUrls : [];
+                                                    $extraVideoUrls = array_slice($persistedVideoUrls, 1);
+                                                @endphp
+                                                @foreach($extraVideoUrls as $hiddenIndex => $hiddenUrl)
+                                                    <input type="hidden" name="demo_syllabus[{{ $moduleIndex }}][video_urls][{{ $hiddenIndex + 1 }}]" value="{{ $hiddenUrl }}">
+                                                @endforeach
                                                 @error('demo_syllabus.' . $moduleIndex . '.video_url')
                                                     <div class="error">{{ $message }}</div>
                                                 @enderror

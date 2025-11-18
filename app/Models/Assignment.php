@@ -7,7 +7,15 @@ use Illuminate\Database\Eloquent\Model;
 class Assignment extends Model
 {
     protected $fillable = [
-        'live_class_id', 'title', 'description', 'due_date', 'file_path', 'created_at', 'updated_at','batch_id'
+        'live_class_id',
+        'batch_id',
+        'course_id',
+        'title',
+        'description',
+        'due_date',
+        'file_path',
+        'created_at',
+        'updated_at'
     ];
 
     protected $casts = [

@@ -15,6 +15,12 @@
                 <span>
                     Total Applications: <span class="font-semibold text-slate-800">{{ $applications->total() }}</span>
                 </span>
+                <form action="{{ route('admin.mentor-applications.seed') }}" method="POST">
+                    @csrf
+                    <button type="submit" class="inline-flex items-center justify-center px-4 py-2 bg-[#ff7b00] text-white rounded-lg text-xs font-semibold uppercase tracking-wide hover:bg-[#ff5500] transition">
+                        ➕ Add Sample
+                    </button>
+                </form>
                 <a href="{{ route('admin.mentor-applications.export') }}"
                    class="inline-flex items-center justify-center px-4 py-2 bg-slate-900 text-white rounded-lg text-xs font-semibold uppercase tracking-wide hover:bg-slate-800 transition">
                     📥 Export CSV

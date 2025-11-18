@@ -106,6 +106,7 @@ class WebinarController extends Controller
             'entry_type' => 'required|string|max:255',
             'participants_count' => 'nullable|integer|min:0',
             'tags' => 'nullable|string|max:255',
+            'meeting_link' => 'nullable|url',
         ]);
 
         Webinar::create([
@@ -117,6 +118,7 @@ class WebinarController extends Controller
             'entry_type' => $request->entry_type,
             'participants_count' => $request->participants_count ?? 0,
             'tags' => $request->tags,
+            'meeting_link' => $request->meeting_link,
         ]);
 
         return redirect()->route('admin.webinar.index')->with('success', 'Webinar created successfully.');
@@ -137,6 +139,7 @@ class WebinarController extends Controller
             'entry_type' => 'required|string|max:255',
             'participants_count' => 'nullable|integer|min:0',
             'tags' => 'nullable|string|max:255',
+            'meeting_link' => 'nullable|url',
         ]);
 
         $webinar = Webinar::findOrFail($id);

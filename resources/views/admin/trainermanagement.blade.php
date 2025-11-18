@@ -15,10 +15,19 @@
                 </h1>
                 <p class="text-gray-700 mt-1">Manage all trainers in the system</p>
             </div>
-            <button onclick="openModal('createTrainerModal')"
-                class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg transition-all flex items-center shadow-lg">
-                <i class="fas fa-plus-circle mr-2"></i>Add New Trainer
-            </button>
+            <div class="flex items-center space-x-4">
+                <form id="deleteAllTrainersForm" action="{{ route('admin.trainers.deleteAll') }}" method="POST" onsubmit="return confirm('Delete all trainers? This cannot be undone.');">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="bg-red-500 hover:bg-red-600 text-white px-4 py-3 rounded-lg transition-all flex items-center shadow-lg">
+                        <i class="fas fa-trash mr-2"></i>Delete All
+                    </button>
+                </form>
+                <button onclick="openModal('createTrainerModal')"
+                    class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg transition-all flex items-center shadow-lg">
+                    <i class="fas fa-plus-circle mr-2"></i>Add New Trainer
+                </button>
+            </div>
         </div>
 
         <!-- Alerts -->
@@ -110,23 +119,20 @@
                 @csrf
                 <div class="space-y-6">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Select Trainer</label>
-                        <input list="trainers-list" id="trainer_search" placeholder="Type trainer name" class="w-full px-4 py-3 rounded-lg border border-gray-200" autocomplete="off">
-                        <datalist id="trainers-list">
-                            @foreach ($availableTrainers as $t)
-                                <option value="{{ $t->name }} ({{ $t->email }})" data-user-id="{{ $t->id }}"></option>
-                            @endforeach
-                        </datalist>
-                        <input type="hidden" name="user_id" id="create_user_id">
-                        <p class="text-xs text-gray-400 mt-1">Start typing to filter trainers, then select from the list.</p>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Name</label>
+                        <input type="text" name="name" class="w-full px-4 py-3 rounded-lg border border-gray-200" required>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Experience</label>
-                        <input type="text" name="experience" class="w-full px-4 py-3 rounded-lg border border-gray-200">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                        <input type="email" name="email" class="w-full px-4 py-3 rounded-lg border border-gray-200" required>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Teaching Hours</label>
-                        <input type="number" name="teaching_hours" class="w-full px-4 py-3 rounded-lg border border-gray-200">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Phone</label>
+                        <input type="text" name="phone" class="w-full px-4 py-3 rounded-lg border border-gray-200">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                        <input type="password" name="password" class="w-full px-4 py-3 rounded-lg border border-gray-200" placeholder="Leave blank to auto-generate">
                     </div>
                     <div class="flex justify-end space-x-3">
                         <button type="button" onclick="closeModal('createTrainerModal')" class="px-6 py-2 bg-gray-200 rounded-lg">Cancel</button>
@@ -152,7 +158,13 @@
                 @csrf
                 @method('PUT')
                 <input type="hidden" name="id" id="editTrainerId">
+                <input type="hidden" name="user_id" id="edit_user_id">
                 <div class="space-y-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Trainer</label>
+                        <input type="text" id="edit_user_display" class="w-full px-4 py-3 rounded-lg border border-gray-200 bg-gray-100 cursor-not-allowed" disabled>
+                        <p class="text-xs text-gray-400 mt-1">Trainer is fixed based on the original selection.</p>
+                    </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Experience</label>
                         <input type="text" name="experience" id="edit_experience" class="w-full px-4 py-3 rounded-lg border border-gray-200">
@@ -191,14 +203,24 @@
     function closeModal(id) {
         document.getElementById(id).classList.add('hidden');
     }
+    const csrfMetaTag = document.querySelector('meta[name="csrf-token"]');
+    const csrfToken = csrfMetaTag ? csrfMetaTag.getAttribute('content') : '';
+    const editTrainerForm = document.getElementById('editTrainerForm');
+
     function openEditModal(id) {
+        if (editTrainerForm) {
+            editTrainerForm.setAttribute('action', `/admin/trainers/${id}`);
+        }
         // Fetch trainer details via AJAX (example only)
         fetch(`/admin/trainers/${id}/edit`)
             .then(res => res.json())
             .then(data => {
                 document.getElementById('editTrainerId').value = data.id;
+                document.getElementById('edit_user_id').value = data.user_id;
                 document.getElementById('edit_experience').value = data.experience;
                 document.getElementById('edit_teaching_hours').value = data.teaching_hours;
+                const label = data.user_label ?? `Trainer #${data.user_id}`;
+                document.getElementById('edit_user_display').value = label;
                 openModal('editTrainerModal');
             });
     }
@@ -212,38 +234,44 @@
             fetch(`/admin/trainers/${deleteId}/delete`, {
                 method: 'DELETE',
                 headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    'X-CSRF-TOKEN': csrfToken
                 }
             }).then(res => location.reload());
         }
     });
     
-    const trainerSearchInput = document.getElementById('trainer_search');
-    const trainerList = document.getElementById('trainers-list');
-    const trainerUserId = document.getElementById('create_user_id');
+    // Create form uses a select; no JS needed besides normal submit
 
-    if (trainerSearchInput && trainerList && trainerUserId) {
-        trainerSearchInput.addEventListener('input', () => {
-            const options = Array.from(trainerList.options);
-            const match = options.find(o => o.value === trainerSearchInput.value);
-            trainerUserId.value = match ? match.dataset.userId : '';
-        });
+    if (editTrainerForm) {
+        editTrainerForm.addEventListener('submit', (event) => {
+            event.preventDefault();
+            const actionUrl = editTrainerForm.getAttribute('action');
+            const formData = new FormData(editTrainerForm);
 
-        const createForm = document.querySelector("form[action='{{ route('admin.trainers.store') }}']");
-        if (createForm) {
-            createForm.addEventListener('submit', (event) => {
-                if (!trainerUserId.value) {
-                    const options = Array.from(trainerList.options);
-                    const match = options.find(o => o.value === trainerSearchInput.value);
-                    if (match) {
-                        trainerUserId.value = match.dataset.userId;
-                        return;
+            fetch(actionUrl, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json'
+                },
+                body: formData
+            })
+                .then(async response => {
+                    if (!response.ok) {
+                        const errorData = await response.json().catch(() => ({}));
+                        const message = errorData.errors ? Object.values(errorData.errors).flat().join('\n') : 'Failed to update trainer.';
+                        throw new Error(message);
                     }
-                    event.preventDefault();
-                    alert('Please select a trainer from the list.');
-                }
-            });
-        }
+                    return response.json();
+                })
+                .then(() => {
+                    closeModal('editTrainerModal');
+                    window.location.reload();
+                })
+                .catch(error => {
+                    alert(error.message || 'Failed to update trainer.');
+                });
+        });
     }
 </script>
 @endsection

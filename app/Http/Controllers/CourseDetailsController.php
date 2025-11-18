@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
+use App\Support\DemoVideoHelper;
 
 class CourseDetailsController extends Controller
 {
@@ -48,6 +49,8 @@ class CourseDetailsController extends Controller
                 'demo_syllabus.*.topics.*.category' => 'required|string',
                 'demo_syllabus.*.topics.*.subtopics' => 'required|string',
                 'demo_syllabus.*.video_url' => 'nullable|url',
+                'demo_syllabus.*.video_urls' => 'nullable|array',
+                'demo_syllabus.*.video_urls.*' => 'nullable|url',
                 'key_features' => 'nullable|array',
                 'key_features.*.icon' => 'required|string|max:255',
                 'key_features.*.topic' => 'required|string|max:255',
@@ -166,6 +169,8 @@ class CourseDetailsController extends Controller
                 'demo_syllabus.*.topics.*.category' => 'required|string',
                 'demo_syllabus.*.topics.*.subtopics' => 'required|string',
                 'demo_syllabus.*.video_url' => 'nullable|url',
+                'demo_syllabus.*.video_urls' => 'nullable|array',
+                'demo_syllabus.*.video_urls.*' => 'nullable|url',
                 'key_features' => 'nullable|array',
                 'key_features.*.icon' => 'required|string|max:255',
                 'key_features.*.topic' => 'required|string|max:255',
@@ -272,6 +277,8 @@ class CourseDetailsController extends Controller
             'demo_syllabus.*.topics.*.category' => 'required|string',
             'demo_syllabus.*.topics.*.subtopics' => 'required|string',
             'demo_syllabus.*.video_url' => 'nullable|url',
+            'demo_syllabus.*.video_urls' => 'nullable|array',
+            'demo_syllabus.*.video_urls.*' => 'nullable|url',
             'key_features' => 'nullable|array',
             'key_features.*.icon' => 'required|string|max:255',
             'key_features.*.topic' => 'required|string|max:255',
@@ -370,6 +377,8 @@ class CourseDetailsController extends Controller
             'demo_syllabus.*.topics.*.category' => 'required|string',
             'demo_syllabus.*.topics.*.subtopics' => 'required|string',
             'demo_syllabus.*.video_url' => 'nullable|url',
+            'demo_syllabus.*.video_urls' => 'nullable|array',
+            'demo_syllabus.*.video_urls.*' => 'nullable|url',
             'key_features' => 'nullable|array',
             'key_features.*.icon' => 'required|string|max:255',
             'key_features.*.topic' => 'required|string|max:255',
@@ -383,6 +392,7 @@ class CourseDetailsController extends Controller
             'learning_outcomes.*' => 'required|string',
             'points' => 'nullable|array',
             'points.*' => 'required|string',
+            'instructor_info' => 'nullable|string|max:4000',
             'instructor_ids' => 'nullable|array',
             'instructor_ids.*' => 'required|exists:users,id',
             'faqs' => 'nullable|array',
@@ -478,6 +488,8 @@ class CourseDetailsController extends Controller
                 'demo_syllabus.*.topics.*.category' => 'required|string',
                 'demo_syllabus.*.topics.*.subtopics' => 'required|string',
                 'demo_syllabus.*.video_url' => 'nullable|url',
+                'demo_syllabus.*.video_urls' => 'nullable|array',
+                'demo_syllabus.*.video_urls.*' => 'nullable|url',
                 'key_features' => 'nullable|array',
                 'key_features.*.icon' => 'required|string|max:255',
                 'key_features.*.topic' => 'required|string|max:255',
@@ -491,6 +503,7 @@ class CourseDetailsController extends Controller
                 'learning_outcomes.*' => 'required|string',
                 'points' => 'nullable|array',
                 'points.*' => 'required|string',
+                'instructor_info' => 'nullable|string|max:4000',
                 'instructor_ids' => 'nullable|array',
                 'instructor_ids.*' => 'required|exists:users,id',
                 'faqs' => 'nullable|array',
@@ -564,7 +577,9 @@ class CourseDetailsController extends Controller
 
         $data = $request->validate([
             'module_index' => 'required|integer|min:0',
-            'video_url' => 'required|url',
+            'video_urls' => 'required|array|min:1',
+            'video_urls.*' => 'required|url',
+            'replace_existing' => 'nullable|boolean',
         ]);
 
         $modules = $courseDetail->demo_syllabus ?? [];
@@ -572,12 +587,40 @@ class CourseDetailsController extends Controller
             return response()->json(['message' => 'Module not found'], 404);
         }
 
-        $modules[$data['module_index']]['video_url'] = trim($data['video_url']);
+        $videoUrls = [];
+        foreach ($data['video_urls'] as $url) {
+            $normalized = $this->normalizeUrl($url);
+            if ($normalized !== null) {
+                $videoUrls[] = $normalized;
+            }
+        }
+        $videoUrls = array_values(array_unique($videoUrls));
+        Log::info('Updating course demo videos', [
+            'course_detail_id' => $courseDetail->id,
+            'module_index' => $data['module_index'],
+            'replace_existing' => (bool)($data['replace_existing'] ?? false),
+            'submitted_urls' => $data['video_urls'],
+            'normalized_urls' => $videoUrls,
+        ]);
+
+        $existing = $modules[$data['module_index']]['video_urls'] ?? [];
+        $existing = is_array($existing) ? array_filter(array_map([$this, 'normalizeUrl'], $existing)) : [];
+
+        $merged = $data['replace_existing'] ? $videoUrls : array_merge($existing, $videoUrls);
+        $merged = array_values(array_unique(array_filter($merged)));
+
+        if (empty($merged)) {
+            return response()->json(['message' => 'Please provide at least one valid URL'], 422);
+        }
+
+        $modules[$data['module_index']]['video_urls'] = $merged;
+        $modules[$data['module_index']]['video_url'] = $merged[0] ?? null;
         $courseDetail->update(['demo_syllabus' => $modules]);
 
         return response()->json([
             'status' => 'ok',
             'message' => 'Demo video saved',
+            'video_urls' => $merged,
             'video_url' => $modules[$data['module_index']]['video_url'],
         ]);
     }
@@ -589,7 +632,7 @@ class CourseDetailsController extends Controller
         }
     }
 
-    private function sanitizeDemoSyllabus(?array $modules): array
+    private function sanitizeDemoSyllabus($modules): array
     {
         if (empty($modules)) {
             return [];
@@ -601,16 +644,13 @@ class CourseDetailsController extends Controller
                     $topic['subtopics'] = array_filter(array_map('trim', explode(',', $topic['subtopics'])));
                 }
             }
-
-            $module['video_url'] = $this->normalizeUrl($module['video_url'] ?? null);
         }
 
-        return $modules;
+        return DemoVideoHelper::normalizeModules($modules);
     }
 
     private function normalizeUrl(?string $url): ?string
     {
-        $trimmed = trim($url ?? '');
-        return $trimmed === '' ? null : $trimmed;
+        return DemoVideoHelper::normalizeUrl($url);
     }
 }

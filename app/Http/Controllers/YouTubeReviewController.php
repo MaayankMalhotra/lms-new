@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\YouTubeReview;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class YouTubeReviewController extends Controller
 {
@@ -27,10 +28,18 @@ class YouTubeReviewController extends Controller
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'video_id' => 'required|string|max:255',
-            'thumbnail_url' => 'required|url',
+            'thumbnail' => 'required|image|mimes:jpeg,png,jpg,gif|max:4096',
         ]);
 
-        YouTubeReview::create($request->all());  // Insert new review into the database
+        $thumbnailPath = $request->file('thumbnail')->store('youtube-thumbnails', 'public');
+
+        YouTubeReview::create([
+            'title' => $request->title,
+            'description' => $request->description,
+            'video_id' => $request->video_id,
+            // Store the public URL so existing cards keep working
+            'thumbnail_url' => Storage::url($thumbnailPath),
+        ]);  // Insert new review into the database
 
         return redirect()->route('admin.youtubereview.index')->with('success', 'YouTube review added successfully!');
     }
@@ -49,11 +58,19 @@ class YouTubeReviewController extends Controller
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'video_id' => 'required|string|max:255',
-            'thumbnail_url' => 'required|url',
+            'thumbnail' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:4096',
         ]);
 
         $review = YouTubeReview::findOrFail($id);
-        $review->update($request->all());  // Update review in the database
+        $data = $request->only(['title', 'description', 'video_id']);
+
+        // Replace thumbnail only if a new file is uploaded
+        if ($request->hasFile('thumbnail')) {
+            $thumbnailPath = $request->file('thumbnail')->store('youtube-thumbnails', 'public');
+            $data['thumbnail_url'] = Storage::url($thumbnailPath);
+        }
+
+        $review->update($data);  // Update review in the database
 
         return redirect()->route('admin.youtubereview.index')->with('success', 'YouTube review updated successfully!');
     }

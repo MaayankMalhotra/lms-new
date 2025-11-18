@@ -168,13 +168,19 @@
     <h3 class="text-2xl font-bold mb-4 text-gray-900">Instructor Info:</h3>
     @php
         $instructorNames = ($instructors ?? collect())->pluck('name')->filter()->implode(', ');
+        $rawInstructorInfo = $course_details->instructor_info ?? '';
+        $instructorInfo = is_string($rawInstructorInfo) ? trim($rawInstructorInfo) : '';
     @endphp
-    <p class="text-gray-600 mb-6">
-        @if($instructorNames)
-            <span class="font-semibold text-gray-900">Instructors:</span> {{ $instructorNames }}<br>
-        @endif
-        {{ $course_details->instructor_info ?? 'NA' }}
-    </p>
+    @if($instructorNames || $instructorInfo)
+        <p class="text-gray-600 mb-6">
+            @if($instructorNames)
+                <span class="font-semibold text-gray-900">Instructors:</span> {{ $instructorNames }}<br>
+            @endif
+            @if($instructorInfo)
+                {{ $instructorInfo }}
+            @endif
+        </p>
+    @endif
     <h3 class="text-2xl font-bold mb-4 text-gray-900">Additional Benefits:</h3>
     <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div class="bg-white p-6 rounded-lg shadow-md text-center border border-gray-200">
@@ -306,20 +312,36 @@
                                     @endif
                                 </ul>
                                 @php
-                                    $videoUrl = $module['video_url'] ?? config('app.demo_video_fallback_url');
+                                    $videoUrls = array_values(array_filter($module['video_urls'] ?? []));
+                                    if (empty($videoUrls) && !empty($module['video_url'])) {
+                                        $videoUrls[] = $module['video_url'];
+                                    }
+                                    $primaryVideo = $videoUrls[0] ?? config('app.demo_video_fallback_url');
                                 @endphp
-                                @if($videoUrl)
+                                @if($primaryVideo)
                                     <div class="mt-6 text-right">
-                                        <a href="{{ $videoUrl }}" target="_blank" rel="noopener" class="inline-flex items-center justify-center px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-[#ff7300] to-[#ff4500] rounded-lg shadow hover:shadow-lg transition">
+                                        <a href="{{ $primaryVideo }}" target="_blank" rel="noopener" class="inline-flex items-center justify-center px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-[#ff7300] to-[#ff4500] rounded-lg shadow hover:shadow-lg transition">
                                             <i class="fas fa-play mr-2"></i>
                                             Watch Demo Video
                                         </a>
                                     </div>
                                 @endif
+                                @if(count($videoUrls) > 1)
+                                    <div class="mt-2 text-sm text-gray-600">
+                                        <span class="font-semibold text-gray-700">More demos:</span>
+                                        <div class="flex flex-wrap gap-2 mt-1">
+                                            @foreach(array_slice($videoUrls, 1) as $extraIndex => $extraUrl)
+                                                <a href="{{ $extraUrl }}" target="_blank" rel="noopener" class="inline-flex items-center px-3 py-1 text-xs font-semibold text-blue-600 bg-blue-50 rounded-full hover:bg-blue-100">
+                                                    Demo {{ $extraIndex + 2 }}
+                                                </a>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                @endif
                                 @if(auth()->check() && auth()->user()->role === 1)
                                     <div class="mt-2 text-right">
-                                        <button type="button" onclick="openDemoVideoModal('course', {{ $course_details->id }}, {{ $index }}, '{{ $module['video_url'] ?? '' }}')" class="text-xs font-semibold text-blue-600 hover:text-blue-800">
-                                            Update YouTube Demo
+                                        <button type="button" onclick='openDemoVideoModal("course", {{ $course_details->id }}, {{ $index }}, @json($videoUrls))' class="text-xs font-semibold text-blue-600 hover:text-blue-800">
+                                            Manage Demo Videos
                                         </button>
                                     </div>
                                 @endif

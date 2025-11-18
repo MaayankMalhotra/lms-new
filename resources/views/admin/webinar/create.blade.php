@@ -39,6 +39,12 @@
                 </div>
 
                 <div>
+                    <label class="block text-gray-700 font-medium mb-2">Google Meet Link</label>
+                    <input type="url" name="meeting_link" value="{{ old('meeting_link') }}"
+                           class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-blue-400 focus:outline-none" placeholder="https://meet.google.com/..." >
+                </div>
+
+                <div>
                     <label class="block text-gray-700 font-medium mb-2">Participants Count</label>
                     <input type="number" name="participants_count" value="{{ old('participants_count', 0) }}"
                            class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-blue-400 focus:outline-none">

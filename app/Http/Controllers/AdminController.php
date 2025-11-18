@@ -16,6 +16,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage; // Import Storage facade
 use Illuminate\Support\Str;
+use App\Support\DemoVideoHelper;
 class AdminController extends Controller
 {
     public function trainer_management(){
@@ -47,33 +48,24 @@ class AdminController extends Controller
             return $user;  // <-- Important: return the modified user!
         });
         $courses = Course::select('id', 'name')->get();
-        $availableTrainers = User::where('role', 2)
-            ->whereDoesntHave('trainerDetail')
-            ->select('id', 'name', 'email')
-            ->get();
-        return view('admin.trainermanagement', compact('trainers', 'courses', 'availableTrainers'));
+        return view('admin.trainermanagement', compact('trainers', 'courses'));
     }
     
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'user_id' => 'required|exists:users,id,role,2',
-            'experience' => 'required|string|max:255',
-            'teaching_hours' => 'required|integer|min:0',
-            'course_ids' => 'nullable|array',
-            'course_ids.*' => 'exists:courses,id',
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255|unique:users,email',
+            'phone' => 'nullable|string|max:20',
+            'password' => 'nullable|string|min:6',
         ]);
 
-        // Prevent duplicate TrainerDetail for the same user
-        if (TrainerDetail::where('user_id', $validated['user_id'])->exists()) {
-            return redirect()->back()->withErrors(['user_id' => 'This user is already a trainer.']);
-        }
-
-        TrainerDetail::create([
-            'user_id' => $validated['user_id'],
-            'experience' => $validated['experience'],
-            'teaching_hours' => $validated['teaching_hours'],
-            'course_ids' => !empty($validated['course_ids']) ? json_encode($validated['course_ids']) : null,
+        User::create([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'phone' => $validated['phone'] ?? null,
+            'role' => 2, // trainer
+            'password' => bcrypt($validated['password'] ?? Str::random(12)),
         ]);
 
         return redirect()->route('trainer-management')->with('success', 'Trainer created successfully!');
@@ -82,6 +74,7 @@ class AdminController extends Controller
     public function edit($id)
     {
         $trainerDetail = TrainerDetail::findOrFail($id);
+        $user = $trainerDetail->user()->select('id', 'name', 'email')->first();
         $courseIds = $trainerDetail->course_ids ? json_decode($trainerDetail->course_ids, true) : [];
         $courseIds = array_map('intval', $courseIds); // Convert to integers
         return response()->json([
@@ -90,6 +83,7 @@ class AdminController extends Controller
             'experience' => $trainerDetail->experience,
             'teaching_hours' => $trainerDetail->teaching_hours,
             'course_ids' => $courseIds,
+            'user_label' => $user ? "{$user->name} ({$user->email})" : null,
         ]);
     }
     public function update(Request $request, $id)
@@ -129,6 +123,16 @@ class AdminController extends Controller
         return redirect()->route('trainer-management')->with('success', 'Trainer deleted successfully!');
     }
 
+    public function destroyAll()
+    {
+        $trainerIds = User::where('role', 2)->pluck('id');
+
+        TrainerDetail::whereIn('user_id', $trainerIds)->delete();
+        User::whereIn('id', $trainerIds)->delete();
+
+        return redirect()->route('trainer-management')->with('success', 'All trainers deleted successfully!');
+    }
+
 
 public function student_management()
     {
@@ -149,6 +153,13 @@ public function student_management()
     {
         $courseDetails = CourseDetail::with('course')->get();
         $internshipDetails = InternshipDetail::with('internship')->get();
+
+        $courseDetails->each(function ($detail) {
+            $detail->demo_syllabus = DemoVideoHelper::normalizeModules($detail->demo_syllabus);
+        });
+        $internshipDetails->each(function ($detail) {
+            $detail->demo_syllabus = DemoVideoHelper::normalizeModules($detail->demo_syllabus);
+        });
 
         return view('admin.demo-video-uploader', compact('courseDetails', 'internshipDetails'));
     }

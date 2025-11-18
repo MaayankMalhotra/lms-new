@@ -21,6 +21,7 @@ class CourseDetail extends Model
         'course_overview_description',
         'learning_outcomes',
         'course_curriculum',
+        'instructor_info',
         'key_points',
         'instructor_ids',
         'faqs',

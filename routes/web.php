@@ -290,6 +290,7 @@ Route::post('admin/trainers', [AdminController::class, 'store'])->name('admin.tr
 Route::get('admin/trainers/{id}/edit', [AdminController::class, 'edit'])->name('admin.trainers.edit');
 Route::put('admin/trainers/{id}', [AdminController::class, 'update'])->name('admin.trainers.update');
 Route::delete('admin/trainers/{id}/delete', [AdminController::class, 'destroy'])->name('admin.trainers.delete');
+Route::delete('admin/trainers-delete-all', [AdminController::class, 'destroyAll'])->name('admin.trainers.deleteAll');
 
 Route::get('/student-management', [AdminController::class, 'student_management'])->name('student-management');
 Route::get('admin/student/{id}/edit', [AdminController::class, 'editStudent'])->name('admin.student.edit');
@@ -663,6 +664,7 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/youtubereview/{id}', [YouTubeReviewController::class, 'update'])->name('admin.youtubereview.update');
     Route::get('/admin/mentor-applications', [MentorApplicationController::class, 'index'])->name('admin.mentor-applications.index');
     Route::get('/admin/mentor-applications/export', [MentorApplicationController::class, 'export'])->name('admin.mentor-applications.export');
+    Route::post('/admin/mentor-applications/sample', [MentorApplicationController::class, 'seedSample'])->name('admin.mentor-applications.seed');
     Route::patch('/admin/mentor-applications/{application}', [MentorApplicationController::class, 'updateStatus'])->name('admin.mentor-applications.update-status');
     Route::delete('/youtubereview/{id}', [YouTubeReviewController::class, 'destroy'])->name('admin.youtubereview.destroy');
     Route::get('/webinar/index', [WebinarController::class, 'index'])->name('admin.webinar.index');
@@ -882,9 +884,11 @@ Route::get('/admin-int/folder/{id}', [AdminRecordingController::class, 'updateFo
 Route::get('/admin-int/item/{id}', [AdminRecordingController::class, 'updateItemInt'])->name('update.item.int');
 
 Route::get('/student/assignments', [AdminAssignmentController::class, 'index'])->name('student.assignments.all');
-Route::get('/student/assignments/batch/{batchId}', [AdminAssignmentController::class, 'getAssignmentsByBatch'])->name('admin.assignments.batch');
+Route::get('/student/assignments/course/{courseId}', [AdminAssignmentController::class, 'getAssignmentsByCourse'])->name('admin.assignments.course');
 
 Route::get('/admin/assignments/download/{assignmentId}', [AdminAssignmentController::class, 'download'])->name('admin.assignments.download');
+Route::get('/admin/assignments', [AdminAssignmentController::class, 'adminIndex'])->name('admin.assignments.index');
+Route::post('/admin/assignment-submissions/{id}/marks', [AdminAssignmentController::class, 'setSubmissionMark'])->name('admin.assignment_submissions.mark');
 
 
 Route::get('/enrollment-report', [CourseToInternshipController::class, 'index'])->name('enrollment.report');
@@ -894,6 +898,7 @@ Route::get('/test-email', [CourseToInternshipController::class, 'sendTestEmail']
 
 Route::get('/hire-with-us',[HireController::class, 'show'])->name('hire.show');
 Route::post('/mentor', [HireController::class, 'storeMentor'])->name('mentor.store');
+Route::post('/mentor/sample', [HireController::class, 'seedSample'])->name('mentor.sample');
 Route::post('/mentor-applications', [MentorApplicationController::class, 'store'])->name('mentor.apply');
 
 use App\Http\Controllers\TeacherController;

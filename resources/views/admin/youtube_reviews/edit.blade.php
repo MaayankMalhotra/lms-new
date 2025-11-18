@@ -10,7 +10,7 @@
             <p class="text-gray-500 mt-1">Update the review details below.</p>
         </div>
 
-        <form method="POST" action="{{ route('admin.youtubereview.update', $review->id) }}">
+        <form method="POST" action="{{ route('admin.youtubereview.update', $review->id) }}" enctype="multipart/form-data">
             @csrf
             @method('PUT')
 
@@ -34,9 +34,10 @@
                 </div>
 
                 <div class="md:col-span-2">
-                    <label class="block text-gray-700 font-medium mb-2">Thumbnail URL</label>
-                    <input type="url" name="thumbnail_url" value="{{ old('thumbnail_url', $review->thumbnail_url) }}"
-                        class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-yellow-400 focus:outline-none" required>
+                    <label class="block text-gray-700 font-medium mb-2">Thumbnail Upload</label>
+                    <input type="file" name="thumbnail" accept="image/*"
+                        class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-yellow-400 focus:outline-none bg-white">
+                    <p class="text-sm text-gray-500 mt-1">Leave empty to keep existing thumbnail.</p>
                 </div>
             </div>
 

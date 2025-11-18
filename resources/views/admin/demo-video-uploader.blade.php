@@ -36,13 +36,27 @@
                             </div>
                             <div class="grid gap-3 md:grid-cols-2">
                                 @foreach($detail->demo_syllabus ?? [] as $index => $module)
+                                    @php
+                                        $videoUrls = array_values(array_filter($module['video_urls'] ?? []));
+                                        if (empty($videoUrls) && !empty($module['video_url'])) {
+                                            $videoUrls[] = $module['video_url'];
+                                        }
+                                    @endphp
                                     <div class="rounded-xl bg-white border border-gray-200 p-3 flex flex-col gap-2 shadow-sm">
                                         <p class="text-xs text-gray-500">Module {{ $module['module_number'] ?? ($index + 1) }}</p>
                                         <p class="text-sm font-semibold text-gray-700">{{ $module['title'] ?? 'Untitled' }}</p>
-                                        <p class="text-xs text-gray-400 truncate">{{ $module['video_url'] ?? 'No video set' }}</p>
+                                        @if(count($videoUrls))
+                                            <div class="space-y-1">
+                                                @foreach($videoUrls as $url)
+                                                    <p class="text-xs text-gray-400 truncate">{{ $url }}</p>
+                                                @endforeach
+                                            </div>
+                                        @else
+                                            <p class="text-xs text-gray-400">No video set</p>
+                                        @endif
                                         <button type="button"
-                                            onclick="openDemoVideoModal('course', {{ $detail->id }}, {{ $index }}, '{{ $module['video_url'] ?? '' }}')"
-                                            class="mt-1 text-xs font-semibold text-blue-600 hover:text-blue-800">Set YouTube Link</button>
+                                            onclick='openDemoVideoModal("course", {{ $detail->id }}, {{ $index }}, @json($videoUrls))'
+                                            class="mt-1 text-xs font-semibold text-blue-600 hover:text-blue-800">Manage YouTube Links</button>
                                     </div>
                                 @endforeach
                             </div>
@@ -71,13 +85,27 @@
                             </div>
                             <div class="grid gap-3 md:grid-cols-2">
                                 @foreach($detail->demo_syllabus ?? [] as $index => $module)
+                                    @php
+                                        $videoUrls = array_values(array_filter($module['video_urls'] ?? []));
+                                        if (empty($videoUrls) && !empty($module['video_url'])) {
+                                            $videoUrls[] = $module['video_url'];
+                                        }
+                                    @endphp
                                     <div class="rounded-xl bg-white border border-gray-200 p-3 flex flex-col gap-2 shadow-sm">
                                         <p class="text-xs text-gray-500">Module {{ $module['module_number'] ?? ($index + 1) }}</p>
                                         <p class="text-sm font-semibold text-gray-700">{{ $module['title'] ?? 'Untitled' }}</p>
-                                        <p class="text-xs text-gray-400 truncate">{{ $module['video_url'] ?? 'No video set' }}</p>
+                                        @if(count($videoUrls))
+                                            <div class="space-y-1">
+                                                @foreach($videoUrls as $url)
+                                                    <p class="text-xs text-gray-400 truncate">{{ $url }}</p>
+                                                @endforeach
+                                            </div>
+                                        @else
+                                            <p class="text-xs text-gray-400">No video set</p>
+                                        @endif
                                         <button type="button"
-                                            onclick="openDemoVideoModal('internship', {{ $detail->id }}, {{ $index }}, '{{ $module['video_url'] ?? '' }}')"
-                                            class="mt-1 text-xs font-semibold text-blue-600 hover:text-blue-800">Set YouTube Link</button>
+                                            onclick='openDemoVideoModal("internship", {{ $detail->id }}, {{ $index }}, @json($videoUrls))'
+                                            class="mt-1 text-xs font-semibold text-blue-600 hover:text-blue-800">Manage YouTube Links</button>
                                     </div>
                                 @endforeach
                             </div>

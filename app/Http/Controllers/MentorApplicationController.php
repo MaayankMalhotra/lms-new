@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\MentorApplication;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class MentorApplicationController extends Controller
 {
@@ -82,6 +83,24 @@ class MentorApplicationController extends Controller
         }
 
         return back()->with('success', 'Thanks for applying! Our team will get in touch soon.');
+    }
+
+    public function seedSample()
+    {
+        MentorApplication::create([
+            'name' => 'Sample Mentor ' . now()->format('His'),
+            'email' => 'mentor+' . Str::random(4) . '@example.com',
+            'phone' => '+91' . rand(6000000000, 9999999999),
+            'teaching_hours' => rand(100, 1200),
+            'specialization' => collect(['AI/ML', 'Data Science', 'Cloud Computing', 'Cybersecurity'])->random(),
+            'experience_years' => rand(1, 12),
+            'linkedin_url' => 'https://linkedin.com/in/sample-mentor',
+            'portfolio_url' => 'https://portfolio.example.com/sample',
+            'message' => 'Demo data inserted from admin panel for preview.',
+            'status' => 'pending',
+        ]);
+
+        return back()->with('success', 'Sample mentor application added.');
     }
 
     public function updateStatus(Request $request, MentorApplication $application)

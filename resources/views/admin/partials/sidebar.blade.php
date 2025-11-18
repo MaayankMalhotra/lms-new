@@ -497,6 +497,12 @@
                     <i class="fas fa-tasks mr-3 text-lg"></i> Assignments
                 </a>
             </li>
+            <li>
+                <a href="{{ route('admin.assignments.index') }}"
+                    class="flex items-center p-3 {{ request()->routeIs('admin.assignments.index') ? 'bg-[#ff9800] text-white' : 'hover:bg-[#ff9800] hover:text-white' }} rounded transition">
+                    <i class="fas fa-list mr-3 text-lg"></i> All Assignments
+                </a>
+            </li>
         @endif
 
         @if (auth()->user()->role == 1)

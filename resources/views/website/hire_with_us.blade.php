@@ -22,6 +22,14 @@
     </div>
 </section>
 
+@if (session('success'))
+    <div class="container mx-auto px-4 mt-6">
+        <div class="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg shadow">
+            {{ session('success') }}
+        </div>
+    </div>
+@endif
+
 
     <!-- Why TechBit Section -->
     <section class="bg-orange-50 py-16 ">
@@ -268,6 +276,12 @@
                 <button type="button" id="apply-mentor-btn" class="inline-block bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold px-6 py-2 rounded-md shadow">
                     Apply as Mentor
                 </button>
+                <form action="{{ route('mentor.sample') }}" method="POST" class="inline-block ml-3">
+                    @csrf
+                    <button type="submit" class="inline-flex items-center bg-gray-200 hover:bg-gray-300 text-gray-800 text-xs font-semibold px-4 py-2 rounded-md shadow-sm">
+                        ➕ Add Sample Mentor
+                    </button>
+                </form>
             </div>
         </div>
     </div>
@@ -291,11 +305,27 @@
                     <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                 @enderror
             </div>
+
+            <div class="mb-4">
+                <label for="email" class="block text-sm font-medium text-gray-700">Email (Optional)</label>
+                <input type="email" name="email" id="email" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500" placeholder="e.g., you@example.com">
+                @error('email')
+                    <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                @enderror
+            </div>
             
             <div class="mb-4">
                 <label for="teaching_hours" class="block text-sm font-medium text-gray-700">Teaching Hours <span class="text-red-500">*</span></label>
                 <input type="number" name="teaching_hours" id="teaching_hours" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500" placeholder="e.g., 500" min="0" required>
                 @error('teaching_hours')
+                    <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                @enderror
+            </div>
+
+            <div class="mb-4">
+                <label for="experience_years" class="block text-sm font-medium text-gray-700">Experience (Years) (Optional)</label>
+                <input type="number" name="experience_years" id="experience_years" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500" placeholder="e.g., 5" min="0">
+                @error('experience_years')
                     <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                 @enderror
             </div>
@@ -321,9 +351,16 @@
                 @enderror
             </div>
             <div class="mb-4">
-                <label for="facebook_url" class="block text-sm font-medium text-gray-700">Facebook URL (Optional)</label>
-                <input type="url" name="facebook_url" id="facebook_url" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500" placeholder="e.g., https://facebook.com/username">
+                <label for="facebook_url" class="block text-sm font-medium text-gray-700">Portfolio / Profile URL (Optional)</label>
+                <input type="url" name="facebook_url" id="facebook_url" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500" placeholder="e.g., https://yourwebsite.com">
                 @error('facebook_url')
+                    <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                @enderror
+            </div>
+            <div class="mb-4">
+                <label for="message" class="block text-sm font-medium text-gray-700">Tell us about your mentoring style (Optional)</label>
+                <textarea name="message" id="message" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500" placeholder="Share anything that helps us know you better..."></textarea>
+                @error('message')
                     <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                 @enderror
             </div>

@@ -10,7 +10,7 @@
             <p class="text-gray-500 mt-1">Fill in the details to add a new YouTube review entry.</p>
         </div>
 
-        <form method="POST" action="{{ route('admin.youtubereview.store') }}">
+        <form method="POST" action="{{ route('admin.youtubereview.store') }}" enctype="multipart/form-data">
             @csrf
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -33,9 +33,10 @@
                 </div>
 
                 <div class="md:col-span-2">
-                    <label class="block text-gray-700 font-medium mb-2">Thumbnail URL</label>
-                    <input type="url" name="thumbnail_url" value="{{ old('thumbnail_url') }}"
-                        class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-blue-400 focus:outline-none" required>
+                    <label class="block text-gray-700 font-medium mb-2">Thumbnail Upload</label>
+                    <input type="file" name="thumbnail" accept="image/*"
+                        class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-blue-400 focus:outline-none bg-white" required>
+                    <p class="text-sm text-gray-500 mt-1">Upload the thumbnail image instead of pasting a link.</p>
                 </div>
             </div>
 

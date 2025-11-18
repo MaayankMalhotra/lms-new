@@ -16,6 +16,12 @@
                 </select>
             </div>
             <div class="mb-4">
+                <label class="block text-gray-700 font-semibold">Batch</label>
+                <select name="batch_id" id="batch_id" class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500" required disabled>
+                    <option value="">Choose a course first</option>
+                </select>
+            </div>
+            <div class="mb-4">
                 <label class="block text-gray-700 font-semibold">Folder</label>
                 <select name="folder_id" id="folder_id" class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <option value="">Choose a folder</option>
@@ -57,40 +63,72 @@
                 width: '100%'
             });
 
+            const folderSelect = document.getElementById('folder_id');
+            const batchSelect = document.getElementById('batch_id');
+            const recordingSelect = $('#recording_id');
+
+            const resetBatchSelect = (message = 'Choose a course first', disable = true) => {
+                batchSelect.innerHTML = `<option value="">${message}</option>`;
+                batchSelect.disabled = disable;
+            };
+
+            const resetFolderSelect = (message = 'Choose a folder') => {
+                folderSelect.innerHTML = `<option value="">${message}</option>`;
+            };
+
             document.getElementById('course_id').addEventListener('change', function() {
                 const courseId = this.value;
-                const folderSelect = document.getElementById('folder_id');
-                const recordingSelect = $('#recording_id');
-                folderSelect.innerHTML = '<option value="">Loading...</option>';
-                recordingSelect.val(null).trigger('change'); // Clear select2
+                resetFolderSelect('Loading folders...');
+                resetBatchSelect('Loading batches...', true);
+                recordingSelect.val(null).trigger('change');
 
-                if (courseId) {
-                    fetch(`/live-classes/folders-by-course/${courseId}`)
-                        .then(response => response.json())
-                        .then(data => {
-                            folderSelect.innerHTML = '<option value="">Choose a folder</option>';
-                            if (data.length > 0) {
-                                data.forEach(folder => {
-                                    folderSelect.innerHTML += `<option value="${folder.id}">${folder.name}</option>`;
-                                });
-                            }
-                            recordingSelect.val(null).trigger('change'); // Clear recordings
-                        })
-                        .catch(error => {
-                            folderSelect.innerHTML = '<option value="">Error loading folders</option>';
-                            recordingSelect.val(null).trigger('change');
-                            console.error('Error fetching folders:', error);
-                        });
-                } else {
-                    folderSelect.innerHTML = '<option value="">Choose a folder</option>';
-                    recordingSelect.val(null).trigger('change');
+                if (!courseId) {
+                    resetFolderSelect('Choose a folder');
+                    resetBatchSelect();
+                    return;
                 }
+
+                fetch(`/live-classes/folders-by-course/${courseId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        resetFolderSelect('Choose a folder');
+                        data.forEach(folder => {
+                            folderSelect.innerHTML += `<option value="${folder.id}">${folder.name}</option>`;
+                        });
+                    })
+                    .catch(error => {
+                        resetFolderSelect('Error loading folders');
+                        console.error('Error fetching folders:', error);
+                    });
+
+                fetch(`/api/batches?id=${courseId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.error) {
+                            resetBatchSelect('No batches found', true);
+                            return;
+                        }
+                        if (data.length === 0) {
+                            resetBatchSelect('No batches available', true);
+                            return;
+                        }
+                        batchSelect.innerHTML = '<option value="">Choose a batch</option>';
+                        data.forEach(batch => {
+                            const subtitle = [batch.days, batch.timeSlot].filter(Boolean).join(' | ');
+                            const label = `${batch.date} - ${subtitle || 'Timing TBA'}`;
+                            batchSelect.innerHTML += `<option value="${batch.id}">${label}</option>`;
+                        });
+                        batchSelect.disabled = false;
+                    })
+                    .catch(error => {
+                        resetBatchSelect('Error loading batches', true);
+                        console.error('Error fetching batches:', error);
+                    });
             });
 
             document.getElementById('folder_id').addEventListener('change', function() {
                 const folderId = this.value;
-                const recordingSelect = $('#recording_id');
-                recordingSelect.val(null).trigger('change'); // Clear select2
+                recordingSelect.val(null).trigger('change');
                 recordingSelect.html('<option value="">Loading...</option>').trigger('change');
 
                 if (folderId) {
