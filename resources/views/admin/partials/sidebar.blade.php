@@ -58,6 +58,10 @@
                     class="flex items-center p-3 {{ request()->routeIs('student.coding_tests.index') ? 'bg-[#ff9800] text-white' : 'hover:bg-[#ff9800] hover:text-white' }} rounded transition">
                     <i class="fas fa-code mr-3 text-lg"></i> Coding Tests
                 </a>
+                <a href="{{ route('student.job-roles.index') }}"
+                    class="flex items-center p-3 {{ request()->routeIs('student.job-roles.*') ? 'bg-[#ff9800] text-white' : 'hover:bg-[#ff9800] hover:text-white' }} rounded transition">
+                    <i class="fas fa-briefcase mr-3 text-lg"></i> Job Roles
+                </a>
             </li>
                <li x-data="{ isOpen: {{ request()->routeIs('student.slots.*') ? 'true' : 'false' }} }">
             <a href="javascript:void(0)" @click="isOpen = !isOpen"
@@ -594,8 +598,14 @@
             <ul x-show="isOpen" x-collapse class="ml-6 mt-2 space-y-2 border-l-2 border-gray-300 pl-4">
                 <li>
                     <a href="{{ route('admin.job-roles.index') }}"
-                        class="flex items-center p-2 text-sm {{ request()->routeIs('admin.job-roles.*') ? 'bg-[#ff9800] text-white' : 'hover:bg-[#ff9800]/20' }} rounded transition">
+                        class="flex items-center p-2 text-sm {{ request()->routeIs('admin.job-roles.index') ? 'bg-[#ff9800] text-white' : 'hover:bg-[#ff9800]/20' }} rounded transition">
                         <i class="fas fa-plus-circle mr-2"></i> Show Job Roles 
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('admin.job-roles.applications') }}"
+                        class="flex items-center p-2 text-sm {{ request()->routeIs('admin.job-roles.applications') ? 'bg-[#ff9800] text-white' : 'hover:bg-[#ff9800]/20' }} rounded transition">
+                        <i class="fas fa-user-check mr-2"></i> Applications 
                     </a>
                 </li>         
             </ul>

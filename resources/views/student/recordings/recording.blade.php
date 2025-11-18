@@ -131,14 +131,15 @@
             class="absolute top-3 right-3 text-gray-600 hover:text-gray-900 text-3xl font-bold z-20"
         >×</button>
             <div class="flex-grow w-full h-full" id="videoContainer"></div>
-        <div id="seekBarContainer" class="w-full pt-4">
+        <div id="seekBarContainer" class="w-full pt-4 relative z-20">
             <input type="range" id="seekBar" min="0" max="100" value="0" class="w-full h-2 rounded-full appearance-none bg-gray-200 cursor-pointer">
             <div class="flex justify-between text-xs text-gray-500 mt-1">
                 <span id="currentTime">0:00</span>
                 <span id="duration">0:00</span>
             </div>
         </div>
-        <div id="uiOverlay" class="absolute inset-x-0 top-16 bottom-16 bg-transparent hidden"></div>
+        {{-- Overlay to block user interactions on YouTube embeds (prevents sharing/controls) --}}
+        <div id="uiOverlay" class="absolute inset-0 bg-transparent hidden"></div>
     </div>
 </div>
 

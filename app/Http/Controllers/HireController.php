@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\Instructor;
+use App\Models\JobRoleApplication;
 use App\Models\JobRolesForHiring;
 use App\Models\MentorApplication;
 use Illuminate\Http\Request;
@@ -92,6 +93,54 @@ class HireController extends Controller
         ]);
 
         return back()->with('success', 'Sample mentor submission created successfully.');
+    }
+
+    public function studentJobRoles()
+    {
+        $jobRoles = JobRolesForHiring::latest()->get();
+        return view('student.job-roles.index', compact('jobRoles'));
+    }
+
+    public function apply(Request $request, $jobRoleId)
+    {
+        $user = $request->user();
+
+        if (!$user || $user->role !== 3) {
+            abort(403, 'Only students can apply to job roles.');
+        }
+
+        $jobRole = JobRolesForHiring::findOrFail($jobRoleId);
+
+        $validated = $request->validate([
+            'resume' => 'required|file|mimes:pdf,doc,docx|max:5120',
+            'message' => 'nullable|string|max:2000',
+        ]);
+
+        $resumePath = $request->file('resume')->store('job-role-applications', 'public');
+
+        JobRoleApplication::create([
+            'job_role_id' => $jobRole->id,
+            'user_id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'resume_path' => $resumePath,
+            'message' => $validated['message'] ?? null,
+        ]);
+
+        return redirect()
+            ->back()
+            ->with('success', 'Application submitted successfully for "' . $jobRole->title . '".');
+    }
+
+    public function applications()
+    {
+        abort_if(auth()->user()->role !== 1, 403);
+
+        $applications = JobRoleApplication::with(['jobRole', 'user'])
+            ->latest()
+            ->paginate(20);
+
+        return view('admin.hire-with-us.applications', compact('applications'));
     }
 
     public function index()

@@ -631,6 +631,8 @@ Route::middleware(['auth'])->group(function () {
         ->name('student.attendance');
     Route::post('/student/leave/apply', [AttendanceController::class, 'applyLeave'])
         ->name('leave.apply');
+    Route::get('/student/job-roles', [HireController::class, 'studentJobRoles'])->name('student.job-roles.index');
+    Route::post('/student/job-roles/{jobRole}/apply', [HireController::class, 'apply'])->name('student.job-roles.apply');
 
     // Admin Routes
     Route::get('/admin/leaves', [AttendanceController::class, 'adminLeaves'])
@@ -688,6 +690,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/job-roles/{id}/edit', [HireController::class, 'edit'])->name('admin.job-roles.edit');
     Route::put('/job-roles/{id}', [HireController::class, 'update'])->name('admin.job-roles.update');
     Route::delete('/job-roles/{id}', [HireController::class, 'destroy'])->name('admin.job-roles.destroy');
+    Route::get('/job-role-applications', [HireController::class, 'applications'])->name('admin.job-roles.applications');
 
     //end
 
