@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\DB;
 use App\Models\Student;
 use App\Models\Assignment;
 use App\Models\Quiz;
+use App\Models\QuizSet;
 use App\Models\Exam;
 use App\Models\Fee;
 use App\Models\Event;
@@ -42,13 +43,8 @@ $totalAssignments = DB::table('users')
 
 
 
-$quizSets = DB::table('users')
-    ->join('enrollments', 'users.id', '=', 'enrollments.user_id')
-    ->join('batches', 'enrollments.batch_id', '=', 'batches.id')
-    ->join('quiz_sets', 'batches.id', '=', 'quiz_sets.batch_id')
-    ->where('users.id', $userId)
-    ->select('quiz_sets.*')
-    ->distinct()
+$quizSets = QuizSet::with(['batch.course'])
+    ->whereIn('batch_id', auth()->user()->enrollments()->pluck('batch_id'))
     ->get();
 
 $payments = DB::table('payments')

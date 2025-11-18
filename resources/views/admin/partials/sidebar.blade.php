@@ -20,10 +20,17 @@
     <ul class="list-none p-0 m-0 space-y-2 !text-sm">
         <!-- Dashboard -->
         <li>
-            <a href="{{ route('admin.dash') }}"
-                class="flex items-center p-3 {{ request()->routeIs('admin.dash') ? 'bg-[#ff9800] text-white' : 'hover:bg-[#ff9800] hover:text-white' }} rounded transition">
-                <i class="fas fa-home mr-3 text-lg"></i> Dashboard
-            </a>
+            @if(auth()->user()->role == 3)
+                <a href="{{ route('student.dashboard') }}"
+                    class="flex items-center p-3 {{ request()->routeIs('student.dashboard') ? 'bg-[#ff9800] text-white' : 'hover:bg-[#ff9800] hover:text-white' }} rounded transition">
+                    <i class="fas fa-home mr-3 text-lg"></i> Student Dashboard
+                </a>
+            @else
+                <a href="{{ route('admin.dash') }}"
+                    class="flex items-center p-3 {{ request()->routeIs('admin.dash') ? 'bg-[#ff9800] text-white' : 'hover:bg-[#ff9800] hover:text-white' }} rounded transition">
+                    <i class="fas fa-home mr-3 text-lg"></i> Dashboard
+                </a>
+            @endif
         </li>
         <li>
             <a href="{{ route('admin.background.settings') }}"

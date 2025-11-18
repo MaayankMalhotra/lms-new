@@ -353,15 +353,21 @@ public function update(Request $request, Internship $internship)
     return view('student.internshipdash', compact('enrollments'));
 }
 
-public function studentInternshipContent($enrollmentId)
+    public function studentInternshipContent($enrollmentId)
     {
         $userId = Auth::id();
         $enrollment = DB::table('internship_enrollments')
-        ->select('internship_enrollments.id', 'internship_enrollments.internship_id', 'internships.name')
-        ->join('internships', 'internship_enrollments.internship_id', '=', 'internships.id')
-        ->where('internship_enrollments.id', $enrollmentId)
-        ->where('internship_enrollments.user_id', $userId)
-        ->first();
+            ->select('internship_enrollments.id', 'internship_enrollments.internship_id', 'internships.name')
+            ->leftJoin('internships', 'internship_enrollments.internship_id', '=', 'internships.id')
+            ->where('internship_enrollments.id', $enrollmentId)
+            ->where('internship_enrollments.user_id', $userId)
+            ->first();
+
+        // If the enrollment vanished (or internship was deleted), avoid null errors.
+        if (!$enrollment || !$enrollment->internship_id) {
+            return redirect()->route('student.internships.index')
+                ->with('error', 'Internship enrollment not found or has been removed.');
+        }
 
         $contents = DB::table('internship_contents')
             ->select('internship_contents.id', 'internship_contents.title', 'internship_contents.description', 'internship_contents.file_path', 'internship_contents.deadline')
