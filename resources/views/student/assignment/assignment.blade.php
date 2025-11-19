@@ -35,6 +35,33 @@
                             <span class="font-medium">Description:</span> 
                             {{ $assignment->description ?? 'No description provided' }}
                         </p>
+                        @php
+                            $statusLabel = match($assignment->status) {
+                                'approved' => 'Approved',
+                                'needs_resubmission' => 'Needs Resubmission',
+                                'expired' => 'Expired',
+                                'submitted' => 'Under Review',
+                                default => 'Not Submitted',
+                            };
+                            $statusColor = match($assignment->status) {
+                                'approved' => 'bg-green-100 text-green-700',
+                                'needs_resubmission' => 'bg-yellow-100 text-yellow-700',
+                                'expired' => 'bg-red-100 text-red-700',
+                                'submitted' => 'bg-blue-100 text-blue-700',
+                                default => 'bg-gray-100 text-gray-700',
+                            };
+                        @endphp
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-xs px-2 py-1 rounded font-semibold {{ $statusColor }}">{{ $statusLabel }}</span>
+                            @if(!is_null($assignment->marks))
+                                <span class="text-sm text-gray-800 font-medium">Marks: {{ $assignment->marks }}</span>
+                            @elseif ($assignment->status === 'expired')
+                                <span class="text-sm text-gray-800 font-medium">Marks: 0</span>
+                            @endif
+                        </div>
+                        @if ($assignment->feedback)
+                            <p class="text-sm text-gray-700 mb-3"><span class="font-medium">Feedback:</span> {{ $assignment->feedback }}</p>
+                        @endif
                         <div class="flex flex-col space-y-4">
                             @if ($assignment->file_path)
                                 <a href="{{ $assignment->file_url }}" target="_blank" 
@@ -54,21 +81,25 @@
                                     </svg>
                                     Download Submission
                                 </a>
-                            @elseif (!$assignment->has_submission)
+                            @endif
+                            
+                            @if ($assignment->can_resubmit)
                                 <form action="{{ route('student.assignment.submit', $assignment->id) }}" method="POST" enctype="multipart/form-data" class="flex flex-col space-y-2">
                                     @csrf
                                     <div class="flex items-center space-x-2">
                                         <input type="file" name="submission_file" class="text-sm text-gray-600 w-full" accept=".pdf,.doc,.docx,.zip" required>
                                     </div>
                                     <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors duration-200 text-sm font-medium w-full">
-                                        Submit Assignment
+                                        {{ $assignment->has_submission ? 'Resubmit' : 'Submit Assignment' }}
                                     </button>
                                     @error('submission_file')
                                         <span class="text-red-600 text-sm">{{ $message }}</span>
                                     @enderror
                                 </form>
+                            @elseif ($assignment->status === 'expired')
+                                <span class="text-sm text-red-600 font-medium text-center">Deadline passed. Marks expired to zero.</span>
                             @else
-                                <span class="text-sm text-gray-600 font-medium text-center">No Submission Available</span>
+                                <span class="text-sm text-gray-600 font-medium text-center">Resubmission window closed.</span>
                             @endif
                         </div>
                     </div>

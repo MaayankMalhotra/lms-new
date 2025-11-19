@@ -79,21 +79,36 @@
     <!-- Batch and Quiz Set Filters -->
     <div class="mt-3 mb-3">
         <form method="GET" action="{{ route('student.batch_quiz_ranking') }}" style="display: flex; align-items: center; flex-wrap: wrap; gap: 15px;">
-            <!-- Batch Filter -->
+            <!-- Course Filter -->
             <div style="display: flex; align-items: center;">
-                <label for="batch_id" class="filter-label">Select Batch:</label>
-                <select name="batch_id" id="batch_id" class="filter-select" onchange="this.form.submit()">
-                    <option value="">Select a Batch</option>
-                    @foreach($batches as $batchOption)
-                        <option value="{{ $batchOption->id }}" {{ $batchId == $batchOption->id ? 'selected' : '' }}>
-                            {{ $batchOption->course->name }} - {{ $batchOption->name }} (Started: {{ $batchOption->start_date }})
+                <label for="course_id" class="filter-label">Select Course:</label>
+                <select name="course_id" id="course_id" class="filter-select" onchange="this.form.submit()">
+                    <option value="">Select a Course</option>
+                    @foreach($courses as $courseOption)
+                        <option value="{{ $courseOption->id }}" {{ $courseId == $courseOption->id ? 'selected' : '' }}>
+                            {{ $courseOption->name }}
                         </option>
                     @endforeach
                 </select>
             </div>
 
+            <!-- Batch Filter -->
+            <div style="display: flex; align-items: center;">
+                <label for="batch_id" class="filter-label">Select Batch:</label>
+                <select name="batch_id" id="batch_id" class="filter-select" onchange="this.form.submit()" {{ !$courseId ? 'disabled' : '' }}>
+                    <option value="">{{ $courseId ? 'All Batches' : 'Select a course first' }}</option>
+                    @if($courseId)
+                        @foreach($batches as $batchOption)
+                            <option value="{{ $batchOption->id }}" {{ $batchId == $batchOption->id ? 'selected' : '' }}>
+                                {{ $batchOption->batch_name ?? $batchOption->name ?? 'Batch' }} (Started: {{ $batchOption->start_date }})
+                            </option>
+                        @endforeach
+                    @endif
+                </select>
+            </div>
+
             <!-- Quiz Set Filter (only show if a batch is selected) -->
-            @if($batchId && !$quizSets->isEmpty())
+            @if($courseId && !$quizSets->isEmpty())
                 <div style="display: flex; align-items: center;">
                     <label for="quiz_set_id" class="filter-label">Filter by Quiz Set:</label>
                     <select name="quiz_set_id" id="quiz_set_id" class="filter-select" onchange="this.form.submit()">
@@ -108,7 +123,7 @@
             @endif
 
             <!-- Show Non-Attempted Students Filter -->
-            @if($batchId)
+            @if($courseId && $batches->isNotEmpty())
                 <div style="display: flex; align-items: center;">
                     <label for="show_non_attempted" class="filter-label">Show only non-attempted students:</label>
                     <input type="checkbox" name="show_non_attempted" id="show_non_attempted" value="1" 
@@ -119,15 +134,20 @@
     </div>
 
     <!-- If No Batch Selected -->
-    @if(!$batchId)
+    @if(!$courseId)
         <div class="mt-3" style="color: #dc3545;">
-            Please select a batch to view quiz rankings.
+            Please select a course to view quiz rankings.
         </div>
     @else
         <!-- Header -->
         <h1 class="mt-4 mb-3" style="font-size: 1.25rem; font-weight: bold; color: #333;">
-            Quiz Rankings for {{ $batch->course->name }} - {{ $batch->name }}
-            <span style="font-size: 0.9rem; color: #6c757d;">(Started: {{ $batch->start_date }})</span>
+            Quiz Rankings for {{ $course->name ?? 'Selected Course' }}
+            @if($batch)
+                - {{ $batch->batch_name ?? $batch->name }}
+                <span style="font-size: 0.9rem; color: #6c757d;">(Started: {{ $batch->start_date }})</span>
+            @else
+                <span style="font-size: 0.9rem; color: #6c757d;">(All batches)</span>
+            @endif
         </h1>
 
         <!-- Back Link -->
@@ -138,14 +158,14 @@
         <!-- Quiz Set Filter Message -->
         @if($quizSets->isEmpty())
             <div class="mt-3" style="color: #dc3545;">
-                No quiz sets found for this batch.
+                No unlocked quiz sets found for this selection.
             </div>
         @endif
 
         <!-- Results Table -->
         @if(empty($studentResults))
             <div class="mt-3" style="color: #dc3545;">
-                No quiz attempts found for this batch yet.
+                No quiz attempts found for this selection yet.
             </div>
         @else
             <table class="w-full text-left border-collapse table mt-3" id="rankingsTable">

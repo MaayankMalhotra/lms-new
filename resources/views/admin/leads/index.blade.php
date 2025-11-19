@@ -70,6 +70,12 @@
                 <label class="block text-sm font-medium">Message</label>
                 <textarea id="editor" name="message" rows="6" class="w-full border rounded-lg"></textarea>
             </div>
+            <div class="mb-4">
+                <label class="block text-sm font-medium">Attachments (images, PDFs, docs)</label>
+                <input type="file" name="attachments[]" multiple class="w-full mt-1 p-3 border rounded-lg"
+                       accept="image/*,.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx">
+                <p class="text-xs text-gray-500 mt-1">Optional. You can select multiple files.</p>
+            </div>
             <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-bold">
                 🚀 Send
             </button>
@@ -92,6 +98,12 @@
             <div class="mb-4">
                 <label class="block text-sm font-medium">Message</label>
                 <textarea name="bulk_message" rows="6" class="w-full border rounded-lg p-3" required></textarea>
+            </div>
+            <div class="mb-4">
+                <label class="block text-sm font-medium">Attachments (optional)</label>
+                <input type="file" name="bulk_attachments[]" multiple class="w-full mt-1 p-3 border rounded-lg"
+                       accept="image/*,.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx">
+                <p class="text-xs text-gray-500 mt-1">These files will be attached to every email sent.</p>
             </div>
             <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-bold">
                 🚀 Send to All
@@ -179,6 +191,7 @@ bulkForm.addEventListener('submit', async function(e){
     e.preventDefault();
     const subject = this.querySelector('input[name=bulk_subject]').value.trim();
     const message = this.querySelector('textarea[name=bulk_message]').value.trim();
+    const attachments = this.querySelector('input[name="bulk_attachments[]"]')?.files || [];
 
     if(!subject || !message){
         Swal.fire("🚫 Missing info", "Please provide both subject and message.", "warning");
@@ -207,7 +220,7 @@ bulkForm.addEventListener('submit', async function(e){
 
         for (const lead of leads) {
             try {
-                await sendLeadEmail(lead.id, subject, message);
+                await sendLeadEmail(lead.id, subject, message, attachments);
             } catch (error) {
                 failures.push(lead);
             } finally {
@@ -237,11 +250,14 @@ function showBulkProgress(done, total) {
     bulkLoaderText.textContent = `${done} / ${total} leads`;
 }
 
-async function sendLeadEmail(id, subject, message) {
+async function sendLeadEmail(id, subject, message, attachments = []) {
     const formData = new FormData();
     formData.append('_token', csrfToken);
     formData.append('subject', subject);
     formData.append('message', message);
+    if (attachments && attachments.length) {
+        Array.from(attachments).forEach(file => formData.append('attachments[]', file));
+    }
 
     const res = await fetch(`/admin/leads/${id}/send-email`, {
         method: 'POST',

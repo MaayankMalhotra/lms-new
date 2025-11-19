@@ -124,6 +124,10 @@ public function viewAvailableSlots__()
 public function viewAvailableSlots()
     {
         $studentId = Auth::id();
+        $user = Auth::user();
+        $studentBatchIds = $user
+            ? $user->enrollments()->pluck('batch_id')->filter()->map(fn ($id) => (int) $id)->values()
+            : collect();
         $now = now();
 
         // Booked slots for this student (upcoming) + batch info via JOIN
@@ -160,6 +164,14 @@ public function viewAvailableSlots()
             ->whereNull('interview_bookings.id')
             ->where('available_slots.status', 'pending')
             ->where('available_slots.start_time', '>', $now)
+            ->where(function ($query) use ($studentBatchIds) {
+                if ($studentBatchIds->isNotEmpty()) {
+                    $query->whereIn('available_slots.batch_id', $studentBatchIds)
+                        ->orWhereNull('available_slots.batch_id');
+                } else {
+                    $query->whereNull('available_slots.batch_id');
+                }
+            })
             ->orderBy('available_slots.start_time', 'asc')
             ->get()
             ->groupBy('start_time');
@@ -195,9 +207,17 @@ public function viewAvailableSlots()
     {
         $slot = AvailableSlot::findOrFail($slotId);
         $studentId = Auth::id();
+        $user = Auth::user();
+        $studentBatchIds = $user
+            ? $user->enrollments()->pluck('batch_id')->filter()->map(fn ($id) => (int) $id)->values()->toArray()
+            : [];
 
         if ($slot->is_booked || $slot->start_time <= now()) {
             return redirect()->route('student.slots')->with('error', 'Slot is unavailable or expired.');
+        }
+
+        if ($slot->batch_id && !in_array($slot->batch_id, $studentBatchIds, true)) {
+            return redirect()->route('student.slots')->with('error', 'This slot is not assigned to your batch.');
         }
 
         InterviewBooking::create([

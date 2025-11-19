@@ -651,7 +651,7 @@
 {{-- =========================================================
      TESTIMONIALS (Swiper)
    ========================================================= --}}
-<section class="bg-amber-50 py-8 px-4 sm:px-6 lg:px-8">
+<section id="testimonials" class="bg-amber-50 py-8 px-4 sm:px-6 lg:px-8">
     <div class="max-w-7xl mx-auto">
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-12 items-center">
             <div class="order-1 lg:order-none">

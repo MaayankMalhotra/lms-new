@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
 use App\Models\InternshipClass;
+use App\Support\DemoVideoHelper;
 class InternshipController extends Controller
 {
     public function create()
@@ -442,6 +443,10 @@ public function internshipDetails($id)
     $course = Internship::where('id', $id)->first();
     $course_details = InternshipDetail::where('internship_id', $course->id)->first();
     $course_details?->loadMissing('internship');
+    if ($course_details) {
+        // Normalize stored demo syllabus so multiple video links are available to the view
+        $course_details->demo_syllabus = DemoVideoHelper::normalizeModules($course_details->demo_syllabus);
+    }
     $instructorIds = $course_details->instructor_ids ?? [];
     $instructors = User::whereIn('id', array_filter($instructorIds))->get();
         // dd($course_details);

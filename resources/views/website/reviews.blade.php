@@ -1,380 +1,189 @@
 @extends('website.layouts.app')
 
-@section('title', 'Reviews')
+@section('title', 'Career Highlights & Reviews')
+
 @section('content')
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+@php
+    $highlightStats = optional($highlight)->stats ?? collect();
+@endphp
 
+<div class="bg-white text-slate-900 font-poppins">
+    {{-- Hero / Highlights --}}
+    <section class="bg-gradient-to-br from-slate-900 via-slate-900 to-indigo-900 text-white">
+        <div class="max-w-6xl mx-auto px-4 py-16 lg:py-20 grid lg:grid-cols-2 gap-10 items-center">
+            <div>
+                <p class="text-sm uppercase tracking-[0.25em] text-indigo-200">Career Highlights</p>
+                <h1 class="text-3xl sm:text-4xl font-bold mt-3 leading-snug">
+                    {{ optional($highlight)->heading_line ?? 'Learners who trusted Think Champ' }}
+                    <span class="text-orange-400 block">
+                        {{ optional($highlight)->heading_highlight ?? 'Now lead the next wave of tech talent' }}
+                    </span>
+                </h1>
+                <p class="mt-4 text-slate-200 text-base leading-relaxed">
+                    Stories, stats, and shout-outs from graduates who turned their ambition into offers from top startups,
+                    global technology teams, and high-growth product companies.
+                </p>
 
+                <div class="mt-8 grid sm:grid-cols-2 gap-4">
+                    @forelse ($highlightStats as $stat)
+                        <div class="rounded-2xl bg-white/10 backdrop-blur px-5 py-4 border border-white/10">
+                            <div class="flex items-center text-sm font-semibold text-orange-300">
+                                <i class="{{ $stat->icon ?? 'fas fa-star' }} mr-2"></i>
+                                {{ $stat->label ?? 'Milestone' }}
+                            </div>
+                            <p class="text-2xl font-semibold mt-2 text-white">
+                                {{ $stat->value ?? '—' }}
+                            </p>
+                        </div>
+                    @empty
+                        <div class="col-span-2 rounded-2xl bg-white/10 px-5 py-4 text-sm text-slate-200">
+                            Publish a career highlight in admin to showcase live stats here.
+                        </div>
+                    @endforelse
+                </div>
 
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: "#2c0b57",
-                        secondary: "#0c3c7c",
-                        accent: "#ff7f00",
-                        "accent-hover": "#e76e00",
-                    },
-                    fontFamily: {
-                        poppins: ["Poppins", "sans-serif"],
-                    },
-                    animation: {
-                        gradientBG: "gradientBG 5s infinite alternate-reverse",
-                        shine: "shine 3s infinite",
-                        footerGlow: "footerGlow 3s infinite alternate",
-                    },
-                    keyframes: {
-                        gradientBG: {
-                            "0%": {
-                                backgroundPosition: "0% 50%"
-                            },
-                            "50%": {
-                                backgroundPosition: "100% 50%"
-                            },
-                            "100%": {
-                                backgroundPosition: "0% 50%"
-                            },
-                        },
-                        shine: {
-                            "0%": {
-                                left: "-100%"
-                            },
-                            "50%": {
-                                left: "100%"
-                            },
-                            "100%": {
-                                left: "-100%"
-                            },
-                        },
-                        footerGlow: {
-                            "0%": {
-                                boxShadow: "0px 0px 10px rgba(255, 115, 0, 0.3)"
-                            },
-                            "50%": {
-                                boxShadow: "0px 0px 20px rgba(255, 115, 0, 0.6)"
-                            },
-                            "100%": {
-                                boxShadow: "0px 0px 10px rgba(255, 115, 0, 0.3)"
-                            },
-                        },
-                    },
-                },
-            },
-        };
-    </script>
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet" />
-    <!-- Animation Libraries -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
-    <section class="bg-gradient-to-r from-primary to-secondary text-white py-20">
-        <div class="container mx-auto px-4 py-10">
-            <div class="flex flex-col lg:flex-row items-center justify-between gap-5">
-                <!-- Stats Section -->
-                <div class="lg:w-2/5">
-                    <h2 class="text-4xl font-bold leading-snug mb-6">
-                        {{ $highlight->heading_line ?? '' }}
-                        <br />
-                        <span class="text-accent">{{ $highlight->heading_highlight ?? '' }}</span>
-                    </h2>
-        
-                    <ul class="space-y-3">
-                        @if (!empty($highlight->stats) && count($highlight->stats))
-                            @foreach ($highlight->stats as $stat)
-                                <li class="flex items-center text-lg">
-                                    <i class="{{ $stat->icon ?? 'fas fa-question-circle' }} text-accent mr-3"></i>
-                                    <span>
-                                        @if (!empty($stat->value))
-                                            <strong>{{ $stat->value }}</strong> {{ $stat->label ?? '' }}
-                                        @else
-                                            {{ $stat->label ?? '' }}
-                                        @endif
-                                    </span>
-                                </li>
-                            @endforeach
-                        @else
-                            <li class="text-gray-500">No stats available.</li>
-                        @endif
-                    </ul>
-        
-                    @if (!empty($highlight->cta_text))
-                        <button class="mt-6 bg-accent text-white px-6 py-3 rounded-lg font-semibold hover:bg-accent-hover transition">
-                            {{ $highlight->cta_text }}
-                        </button>
+                <div class="mt-8">
+                    @if (!empty(optional($highlight)->cta_text))
+                        <a href="{{ route('website.contact') }}"
+                           class="inline-flex items-center bg-orange-500 hover:bg-orange-400 text-white px-6 py-3 rounded-xl font-semibold transition">
+                            {{ optional($highlight)->cta_text }}
+                            <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                            </svg>
+                        </a>
+                    @else
+                        <a href="{{ route('website.contact') }}"
+                           class="inline-flex items-center text-orange-300 hover:text-orange-200 font-semibold">
+                            Talk to career experts
+                            <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                            </svg>
+                        </a>
                     @endif
                 </div>
-        
-                <!-- Swiper Testimonials -->
-                <!-- Swiper Container -->
-<div class="lg:w-3/5 w-full">
-    <div class="swiper mySwiper w-full">
-        <div class="swiper-wrapper">
-            @foreach($testimonials as $testimonial)
-                <div class="swiper-slide">
-                    <div class="testimonial-common bg-white rounded-lg shadow-lg p-6 text-center">
-                        <img src="{{ $testimonial->image_url ?? 'https://via.placeholder.com/80' }}"
-                             alt="{{ $testimonial->name }}"
-                             class="w-20 h-20 rounded-full mx-auto mb-4" />
-                        <h5 class="text-lg font-semibold">{{ $testimonial->name }}</h5>
-                        <div class="text-sm text-gray-600">{{ $testimonial->department }}</div>
-                        <div class="text-sm text-gray-600">{{ $testimonial->position }}</div>
-                        <div class="text-sm text-yellow-500 mt-2">
-                            {{ $testimonial->company }}
-                            <div class="mt-1">
-                                @for ($i = 1; $i <= 5; $i++)
-                                    @if ($i <= $testimonial->rating)
-                                        ⭐
-                                    @else
-                                        ☆
-                                    @endif
-                                @endfor
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            @endforeach
-        </div>
-        <!-- Pagination inside swiper container -->
-        {{-- <div class="swiper-pagination mt-4"></div> --}}
-    </div>
-</div>
-
-<!-- Swiper Initialization -->
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        new Swiper('.mySwiper', {
-            loop: true,
-            autoplay: {
-                delay: 2000,
-                disableOnInteraction: false,
-            },
-            pagination: {
-                el: '.swiper-pagination',
-                clickable: true,
-            },
-            spaceBetween: 20,
-            breakpoints: {
-                320: {
-                    slidesPerView: 1,
-                },
-                640: {
-                    slidesPerView: 1,
-                },
-                768: {
-                    slidesPerView: 2,
-                },
-                1024: {
-                    slidesPerView: 3,
-                },
-            },
-        });
-    });
-</script>
-
             </div>
-        
-          
-            
-        </div>
-        
-    </section>
-    <section class="container mx-auto px-4 py-16">
-        <!-- Section Heading -->
-        <h2 class="text-3xl md:text-4xl font-bold text-center mb-8">
-            Our Seniors share their placement success and reviews
-            <br />
-            <span class="text-orange-500">Launching Great Software Careers</span>
-        </h2>
 
-        <!-- Testimonial Sets Container -->
-        <div class="testimonial-sets-container relative ">
-            <!-- SET 1: 2 rows x 4 columns (8 total) -->
-            <div class="testimonial-set active grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div class="rounded-3xl bg-white text-slate-900 shadow-2xl p-6 md:p-8 space-y-6">
+                <div>
+                    <p class="text-sm font-semibold text-orange-500 uppercase tracking-widest">From the community</p>
+                    <h2 class="text-2xl font-semibold mt-1">Snapshots from recent hires</h2>
+                </div>
                 @if($testimonials->count())
-                    @foreach ($testimonials as $testimonial)
-                        <div class="testimonial-common bg-white rounded-lg shadow-lg p-6 text-center">
-                            {{-- Image --}}
-                            @if($testimonial->image_url)
-                                <img src="{{ $testimonial->image_url }}" alt="{{ $testimonial->name }}"
-                                     class="w-20 h-20 rounded-full mx-auto mb-4" />
-                            @endif
-        
-                            {{-- Name --}}
-                            <h5 class="text-lg font-semibold">{{ $testimonial->name }}</h5>
-        
-                            {{-- Department --}}
-                            @if($testimonial->department)
-                                <div class="text-sm text-gray-600">{{ $testimonial->department }}</div>
-                            @endif
-        
-                            {{-- Position --}}
-                            @if($testimonial->position)
-                                <div class="text-sm text-gray-600">{{ $testimonial->position }}</div>
-                            @endif
-        
-                            {{-- Company + Rating --}}
-                            <div class="text-sm text-yellow-500 mt-2">
-                                {{ $testimonial->company }}
-                                <span class="ml-2">
-                                    @for ($i = 1; $i <= 5; $i++)
-                                        {!! $i <= $testimonial->rating ? '⭐' : '☆' !!}
-                                    @endfor
-                                </span>
-                            </div>
-                        </div>
-                    @endforeach
+                    <div class="space-y-5 max-h-[420px] overflow-y-auto pr-2">
+                        @foreach($testimonials->take(4) as $testimonial)
+                            <article class="flex items-center gap-4 border border-slate-100 rounded-2xl p-4">
+                                <img src="{{ $testimonial->image_url ?? 'https://via.placeholder.com/60' }}"
+                                     alt="{{ $testimonial->name }}"
+                                     class="w-14 h-14 rounded-full object-cover">
+                                <div>
+                                    <h3 class="font-semibold text-lg">{{ $testimonial->name }}</h3>
+                                    <p class="text-sm text-slate-500">{{ $testimonial->position }} @ {{ $testimonial->company }}</p>
+                                    <div class="mt-1 text-yellow-400 text-lg tracking-tight leading-none">
+                                        @for ($i = 1; $i <= 5; $i++)
+                                            {!! $i <= $testimonial->rating ? '★' : '☆' !!}
+                                        @endfor
+                                    </div>
+                                </div>
+                            </article>
+                        @endforeach
+                    </div>
                 @else
-                    <p class="col-span-full text-center text-gray-500">No testimonials available at the moment.</p>
+                    <p class="text-sm text-slate-500">Testimonials will appear after you create them from the admin panel.</p>
                 @endif
             </div>
-        
-            {{-- Future Set 2 (Commented out) --}}
-            {{-- 
-            <div class="testimonial-set hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <!-- Additional testimonials can go here -->
-            </div> 
-            --}}
         </div>
-        
     </section>
 
-    <section class="container mx-auto px-4 mb-5">
-        <h2 class="text-3xl font-bold text-center mb-8">
-            YouTube <span class="text-blue-600">Reviews</span>
-        </h2>
-
-        <div class="text-center mb-8">
-            <div class="font-bold text-yellow-500 text-lg mb-2">
-                5 ★★★★★ (10,000)
+    {{-- Testimonials Deck --}}
+    <section class="py-16 lg:py-20">
+        <div class="max-w-6xl mx-auto px-4">
+            <div class="text-center max-w-2xl mx-auto">
+                <p class="text-sm uppercase tracking-[0.25em] text-orange-500">Placements</p>
+                <h2 class="text-3xl md:text-4xl font-bold mt-2">
+                    Our seniors share their placement success & reviews
+                </h2>
+                <p class="mt-4 text-slate-500">
+                    Every batch graduates with proof of work, industry mentorship, and tailored interview prep.
+                </p>
             </div>
-            <p class="text-gray-600 md:text-lg">
-                Over 10,000 satisfied learners sharing their success stories!
-            </p>
-        </div>
 
-        <!-- Video Container -->
-        <div class="overflow-hidden">
-            
-            <!-- Active Video Set 1 -->
-            <div class="flex flex-wrap -mx-2" id="videoSet1">
-                @foreach($youtubeReviews as $review)
-                <div class="w-full md:w-1/2 px-2 mb-4">
-                    {{-- <div class="relative cursor-pointer group" data-bs-toggle="modal" data-bs-target="#youtubeModal"
-                        data-video-id="{{ $review->video_id }}">
-                        <img src="{{ $review->thumbnail_url }}"
-                            alt="{{$review->title}}" class="w-full h-48 object-cover rounded-lg">
-                        <div
-                            class="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center rounded-lg transition-opacity group-hover:bg-opacity-20">
-                            <div
-                                class="w-12 h-12 bg-white rounded-full flex items-center justify-center transform transition-transform group-hover:scale-110">
-                                <i class="fas fa-play text-blue-600"></i>
+            <div class="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                @forelse($testimonials as $testimonial)
+                    <article class="rounded-3xl border border-slate-100 shadow-sm hover:shadow-lg transition p-6 flex flex-col">
+                        <div class="flex items-center gap-4">
+                            <img src="{{ $testimonial->image_url ?? 'https://via.placeholder.com/64' }}"
+                                 alt="{{ $testimonial->name }}"
+                                 class="w-16 h-16 rounded-full object-cover">
+                            <div>
+                                <h3 class="text-lg font-semibold">{{ $testimonial->name }}</h3>
+                                <p class="text-sm text-slate-500">{{ $testimonial->department }}</p>
                             </div>
                         </div>
-                    </div> --}}
-                    <div class="relative cursor-pointer group video-thumbnail-wrapper" data-video-id="{{ $review->video_id }}">
-                        {{-- Thumbnail image --}}
-                        <img src="{{ $review->thumbnail_url }}"
-                             alt="{{ $review->title }}"
-                             class="w-full h-48 object-cover rounded-lg">
-                    
-                        {{-- Play icon overlay --}}
-                        <div class="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center rounded-lg transition-opacity group-hover:bg-opacity-20">
-                            <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center transform transition-transform group-hover:scale-110">
-                                <i class="fas fa-play text-blue-600"></i>
-                            </div>
+                        <p class="mt-4 text-sm text-slate-600 leading-relaxed">
+                            {{ \Illuminate\Support\Str::limit($testimonial->message ?? 'This student is yet to add detailed feedback.', 160) }}
+                        </p>
+                        <div class="mt-5">
+                            <p class="text-sm font-semibold text-slate-700">{{ $testimonial->position }}</p>
+                            <p class="text-sm text-orange-500">{{ $testimonial->company }}</p>
                         </div>
-                    </div>
-                    
-                    <div class="font-semibold mt-2">{{$review->title}}</div>
-                    <div class="text-gray-600 text-sm">{{$review->description}}</div>
+                        <div class="mt-4 text-yellow-400 text-lg">
+                            @for ($i = 1; $i <= 5; $i++)
+                                {!! $i <= $testimonial->rating ? '★' : '☆' !!}
+                            @endfor
+                        </div>
+                    </article>
+                @empty
+                    <p class="text-center text-slate-500 col-span-full">No testimonials available yet.</p>
+                @endforelse
+            </div>
+        </div>
+    </section>
+
+    {{-- Video Reviews --}}
+    <section class="bg-slate-50 py-16">
+        <div class="max-w-6xl mx-auto px-4">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+                <div>
+                    <p class="text-sm uppercase tracking-[0.25em] text-slate-400">Video Reviews</p>
+                    <h2 class="text-3xl font-bold text-slate-900">Hear it directly from Think Champ alumni</h2>
+                    <p class="mt-2 text-slate-500 max-w-2xl">
+                        Bite-sized reflections from those who converted their projects into high-impact offers. Fresh uploads
+                        appear here automatically.
+                    </p>
                 </div>
-                @endforeach
+                <a href="{{ route('website.contact') }}"
+                   class="inline-flex items-center text-sm font-semibold text-slate-600 hover:text-slate-900">
+                    Want to feature your story?
+                    <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                    </svg>
+                </a>
+            </div>
+
+            <div class="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                @forelse($youtubeReviews as $review)
+                    <article class="rounded-2xl overflow-hidden bg-white border border-slate-100 shadow-sm hover:shadow-lg transition">
+                        @if($review->video_id)
+                            <iframe class="w-full aspect-video"
+                                    src="https://www.youtube.com/embed/{{ $review->video_id }}"
+                                    title="{{ $review->title }}"
+                                    frameborder="0"
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                    allowfullscreen></iframe>
+                        @endif
+                        <div class="p-5">
+                            <p class="text-sm font-semibold text-orange-500 uppercase tracking-wide">{{ $review->category ?? 'Learner Story' }}</p>
+                            <h3 class="text-lg font-semibold mt-1">{{ $review->title ?? 'YouTube Review' }}</h3>
+                            <p class="text-sm text-slate-500 mt-2 leading-relaxed">
+                                {{ $review->description ?? 'Learner story published from the admin panel.' }}
+                            </p>
+                        </div>
+                    </article>
+                @empty
+                    <p class="text-center text-slate-500 col-span-full">Add YouTube reviews in the admin to showcase them here.</p>
+                @endforelse
             </div>
         </div>
-        
-       
     </section>
-     
-    
-    
-    
-    
-    <script>
-        const set1 = document.getElementById("testimonialSet1");
-        const set2 = document.getElementById("testimonialSet2");
-
-        let showingSet1 = true;
-
-        setInterval(() => {
-            if (showingSet1) {
-                set1.classList.add("hidden");
-                set2.classList.remove("hidden");
-            } else {
-                set2.classList.add("hidden");
-                set1.classList.remove("hidden");
-            }
-            showingSet1 = !showingSet1;
-        }, 5000); // Switch every 5 seconds
-    </script>
-    <script>
-        // Hero Card Rotation
-        const card1 = document.querySelector("#carouselCard1");
-        const card2 = document.querySelector("#carouselCard2");
-        const card3 = document.querySelector("#carouselCard3");
-
-        let positions = [card1, card2, card3];
-
-        function rotateHeroCards() {
-            positions.push(positions.shift());
-            positions[0].classList.add("card-center");
-            positions[1].classList.add("card-right");
-            positions[2].classList.add("card-left");
-        }
-
-        setInterval(rotateHeroCards, 3000);
-    </script>
- 
-    <script>
-        document.querySelectorAll('.video-thumbnail-wrapper').forEach(wrapper => {
-            wrapper.addEventListener('click', function () {
-                const videoId = this.getAttribute('data-video-id');
-    
-                // Create iframe
-                const iframe = document.createElement('iframe');
-                iframe.setAttribute('src', `https://www.youtube.com/embed/${videoId}?autoplay=1`);
-                iframe.setAttribute('frameborder', '0');
-                iframe.setAttribute('allowfullscreen', '');
-                iframe.setAttribute('allow', 'autoplay; encrypted-media');
-                iframe.classList.add('w-full', 'h-48', 'rounded-lg');
-    
-                // Create close ("X") button
-                const closeBtn = document.createElement('button');
-                closeBtn.innerHTML = '&times;';
-                closeBtn.classList.add('absolute', 'top-2', 'right-2', 'text-white', 'text-2xl', 'bg-black', 'bg-opacity-50', 'rounded-full', 'w-8', 'h-8', 'flex', 'items-center', 'justify-center', 'z-10');
-                closeBtn.style.cursor = 'pointer';
-    
-                // Store original thumbnail HTML to restore later
-                const originalContent = this.innerHTML;
-    
-                // Clear and replace with iframe + close
-                this.innerHTML = '';
-                this.appendChild(iframe);
-                this.appendChild(closeBtn);
-    
-                // Close logic
-                closeBtn.addEventListener('click', (e) => {
-                    e.stopPropagation(); // Prevent re-triggering the video play
-                    this.innerHTML = originalContent;
-                });
-            });
-        });
-    </script>
-    
-    
-    
+</div>
 @endsection
-

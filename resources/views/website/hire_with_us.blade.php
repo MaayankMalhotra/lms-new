@@ -276,12 +276,6 @@
                 <button type="button" id="apply-mentor-btn" class="inline-block bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold px-6 py-2 rounded-md shadow">
                     Apply as Mentor
                 </button>
-                <form action="{{ route('mentor.sample') }}" method="POST" class="inline-block ml-3">
-                    @csrf
-                    <button type="submit" class="inline-flex items-center bg-gray-200 hover:bg-gray-300 text-gray-800 text-xs font-semibold px-4 py-2 rounded-md shadow-sm">
-                        ➕ Add Sample Mentor
-                    </button>
-                </form>
             </div>
         </div>
     </div>

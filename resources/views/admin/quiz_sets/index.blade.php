@@ -56,8 +56,22 @@
                         <p class="text-gray-500 text-sm">
                             <span class="font-medium">Created:</span> {{ $set->created_at->format('d M Y') }}
                         </p>
+                        <div class="mt-2 text-sm">
+                            <span class="font-medium">Status:</span>
+                            <span class="{{ $set->locked ? 'text-red-500' : 'text-green-600' }} font-semibold">
+                                {{ $set->locked ? 'Locked' : 'Unlocked' }}
+                            </span>
+                        </div>
                         <!-- Actions -->
                         <div class="mt-4 flex space-x-3">
+                            <form action="{{ route('admin.quiz_sets.toggle_lock', $set->id) }}" method="POST" class="inline">
+                                @csrf
+                                @method('PATCH')
+                                <button type="submit"
+                                        class="bg-{{ $set->locked ? 'green' : 'red' }}-500 text-white px-4 py-2 rounded-lg hover:bg-{{ $set->locked ? 'green' : 'red' }}-600 transition-all duration-200">
+                                    {{ $set->locked ? 'Unlock' : 'Lock' }}
+                                </button>
+                            </form>
                             <a href="{{ route('admin.quiz_sets.add_quizzes', $set->id) }}"
                                class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-all duration-200">
                                 Add Quizzes

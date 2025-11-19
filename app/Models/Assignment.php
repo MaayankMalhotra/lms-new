@@ -27,6 +27,16 @@ class Assignment extends Model
         return $this->belongsTo(LiveClass::class, 'live_class_id');
     }
 
+    public function batch()
+    {
+        return $this->belongsTo(Batch::class, 'batch_id');
+    }
+
+    public function course()
+    {
+        return $this->belongsTo(Course::class, 'course_id');
+    }
+
     // Helper to get the full file URL
     public function getFileUrlAttribute()
     {

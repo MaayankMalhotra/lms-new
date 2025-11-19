@@ -139,6 +139,9 @@
                     </div>
                 </div>
 
+                <a href="{{ route('home-page') }}#testimonials"
+                    class="text-white hover:text-amber-400 transition-colors duration-300">Testimonials</a>
+
                 <a href="{{ route('career_hightlight_show') }}"
                     class="text-white hover:text-amber-400 transition-colors duration-300">Reviews</a>
                 <a href="{{ route('hire.show') }}"
@@ -227,6 +230,7 @@
                     </div>
                 </div>
                 <a href="{{ route('hire.show')}}" class="text-white hover:text-amber-400 py-2">Hire With Us</a>
+                <a href="{{ route('home-page') }}#testimonials" class="text-white hover:text-amber-400 py-2">Testimonials</a>
                 <a href="{{ route('career_hightlight_show')}}" class="text-white hover:text-amber-400 py-2">Reviews</a>
                 <a href="{{ route('website.contact') }}" class="text-white hover:text-amber-400 py-2">Contact</a>
                 <a href="{{ route('cart.index') }}" class="text-white hover:text-amber-400 py-2 flex items-center gap-2">

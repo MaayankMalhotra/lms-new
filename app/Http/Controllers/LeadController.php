@@ -111,11 +111,25 @@ class LeadController extends Controller
         $data = $request->validate([
             'subject' => 'required|string|max:255',
             'message' => 'required|string',
+            'attachments' => 'sometimes|array',
+            'attachments.*' => 'file|mimes:jpeg,jpg,png,gif,webp,pdf,doc,docx,ppt,pptx,xls,xlsx|max:10240',
         ]);
 
-        Mail::raw(strip_tags($data['message']), function ($mail) use ($lead, $data) {
+        $attachments = $request->file('attachments', []);
+
+        Mail::send([], [], function ($mail) use ($lead, $data, $attachments) {
             $mail->to($lead->email)
-                ->subject($data['subject']);
+                ->subject($data['subject'])
+                ->html($data['message']);
+
+            foreach ($attachments as $file) {
+                if ($file && $file->isValid()) {
+                    $mail->attach($file->getRealPath(), [
+                        'as' => $file->getClientOriginalName(),
+                        'mime' => $file->getMimeType(),
+                    ]);
+                }
+            }
         });
 
         return response()->json(['status' => 'ok', 'message' => 'Email sent successfully to ' . $lead->name]);

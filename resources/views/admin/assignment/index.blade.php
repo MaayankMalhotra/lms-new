@@ -42,9 +42,11 @@
                                 <thead class="bg-gray-100">
                                     <tr>
                                         <th class="px-3 py-2 text-left text-gray-700">Student</th>
-                                    <th class="px-3 py-2 text-left text-gray-700">Submitted At</th>
+                                        <th class="px-3 py-2 text-left text-gray-700">Submitted At</th>
                                         <th class="px-3 py-2 text-left text-gray-700">File</th>
+                                        <th class="px-3 py-2 text-left text-gray-700">Status</th>
                                         <th class="px-3 py-2 text-left text-gray-700">Marks</th>
+                                        <th class="px-3 py-2 text-left text-gray-700">Feedback</th>
                                         <th class="px-3 py-2 text-left text-gray-700">Actions</th>
                                     </tr>
                                 </thead>
@@ -54,12 +56,43 @@
                                             <td class="px-3 py-2 text-gray-800">{{ $submission->student_name ?? 'Student #'.$submission->user_id }}<br><span class="text-gray-500 text-xs">{{ $submission->student_email }}</span></td>
                                             <td class="px-3 py-2 text-gray-600">{{ \Carbon\Carbon::parse($submission->created_at)->format('Y-m-d H:i') }}</td>
                                             <td class="px-3 py-2 text-blue-600"><a href="{{ Storage::url($submission->file_path) }}" target="_blank" class="hover:underline">View</a></td>
+                                            <td class="px-3 py-2 text-gray-800">
+                                                @php
+                                                    $statusLabel = [
+                                                        'approved' => 'Approved',
+                                                        'needs_resubmission' => 'Needs Resubmission',
+                                                        'expired' => 'Expired',
+                                                        'submitted' => 'Under Review',
+                                                    ][$submission->status ?? 'submitted'] ?? 'Under Review';
+                                                    $statusColor = match($submission->status ?? 'submitted') {
+                                                        'approved' => 'bg-green-100 text-green-800',
+                                                        'needs_resubmission' => 'bg-yellow-100 text-yellow-800',
+                                                        'expired' => 'bg-red-100 text-red-800',
+                                                        default => 'bg-gray-100 text-gray-800',
+                                                    };
+                                                @endphp
+                                                <span class="px-2 py-1 rounded text-xs font-semibold {{ $statusColor }}">{{ $statusLabel }}</span>
+                                            </td>
                                             <td class="px-3 py-2 text-gray-800">{{ $submission->marks ?? '—' }}</td>
+                                            <td class="px-3 py-2 text-gray-700 text-sm">{{ $submission->feedback ?? '—' }}</td>
                                             <td class="px-3 py-2">
-                                                <form action="{{ route('admin.assignment_submissions.mark', $submission->id) }}" method="POST" class="flex items-center space-x-2">
+                                                <form action="{{ route('admin.assignment_submissions.mark', $submission->id) }}" method="POST" class="flex flex-col space-y-2">
                                                     @csrf
-                                                    <input type="number" name="marks" value="{{ $submission->marks }}" min="0" class="w-20 border rounded px-2 py-1 text-sm">
-                                                    <button type="submit" class="bg-gray-800 text-white px-3 py-1 rounded text-xs hover:bg-gray-900">Save</button>
+                                                    <div class="flex items-center space-x-2">
+                                                        <label class="text-xs text-gray-600">Status</label>
+                                                        <select name="status" class="border rounded px-2 py-1 text-sm">
+                                                            <option value="submitted" {{ ($submission->status ?? '') === 'submitted' ? 'selected' : '' }}>Under Review</option>
+                                                            <option value="approved" {{ ($submission->status ?? '') === 'approved' ? 'selected' : '' }}>Approved</option>
+                                                            <option value="needs_resubmission" {{ ($submission->status ?? '') === 'needs_resubmission' ? 'selected' : '' }}>Needs Resubmission</option>
+                                                            <option value="expired" {{ ($submission->status ?? '') === 'expired' ? 'selected' : '' }}>Expired (0)</option>
+                                                        </select>
+                                                    </div>
+                                                    <div class="flex items-center space-x-2">
+                                                        <label class="text-xs text-gray-600">Marks</label>
+                                                        <input type="number" name="marks" value="{{ $submission->marks }}" min="0" class="w-24 border rounded px-2 py-1 text-sm">
+                                                    </div>
+                                                    <textarea name="feedback" rows="2" class="w-full border rounded px-2 py-1 text-sm" placeholder="Feedback for the student">{{ $submission->feedback }}</textarea>
+                                                    <button type="submit" class="bg-gray-800 text-white px-3 py-1 rounded text-xs hover:bg-gray-900 self-start">Save</button>
                                                 </form>
                                             </td>
                                         </tr>

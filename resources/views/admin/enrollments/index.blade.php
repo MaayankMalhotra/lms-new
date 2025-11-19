@@ -88,10 +88,25 @@
                     <div class="mt-4">
                         <p class="font-semibold text-gray-800">Amount: ₹{{ number_format($enrollment->amount ?? 0, 2) }}</p>
                         <p class="text-xs text-gray-500">Batch Price: ₹{{ number_format($enrollment->batch_price ?? 0, 2) }}</p>
+                        @php
+                            $nextEmi = $enrollment->next_emi ?? null;
+                            $nextEmiDate = isset($nextEmi['due_date']) ? \Carbon\Carbon::parse($nextEmi['due_date'])->format('d M Y') : null;
+                            $nextEmiAmount = $nextEmi['amount'] ?? null;
+                        @endphp
+                        @if($enrollment->is_emi ?? false)
+                            <p class="text-sm text-gray-600 mt-2">
+                                <span class="font-semibold">Next installment:</span>
+                                @if($nextEmiDate)
+                                    {{ $nextEmiDate }} @if($nextEmiAmount) (₹{{ number_format($nextEmiAmount, 2) }}) @endif
+                                @else
+                                    Not scheduled / all paid
+                                @endif
+                            </p>
+                        @endif
                     </div>
 
                     <!-- EMI Info -->
-                    @if ($enrollment->payment_method === 'emi' && !empty($enrollment->emi_schedule_array))
+                    @if (($enrollment->is_emi ?? false) && !empty($enrollment->emi_schedule_array))
                         <button class="mt-3 bg-green-600 hover:bg-green-700 text-white text-sm px-3 py-1 rounded"
                                 onclick="openEMIModal('emiModal{{ $enrollment->enrollment_id }}')">
                             View EMI Details
@@ -109,6 +124,115 @@
                 </div>
             @endforeach
         </div>
+
+        {{-- EMI Detail Modals --}}
+        @foreach ($enrollments as $enrollment)
+            @if (($enrollment->is_emi ?? false) && !empty($enrollment->emi_schedule_array))
+                @php
+                    $modalId = 'emiModal' . $enrollment->enrollment_id;
+                @endphp
+                <div id="{{ $modalId }}" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+                    <div class="bg-white rounded-xl shadow-xl w-[95%] max-w-lg p-6 relative">
+                        <button class="absolute top-3 right-3 text-gray-500 hover:text-red-600 text-2xl"
+                                onclick="closeEMIModal('{{ $modalId }}')">&times;</button>
+                        <h3 class="text-xl font-bold mb-3">EMI Schedule - {{ $enrollment->student_name }}</h3>
+                        <p class="text-sm text-gray-600 mb-4">{{ $enrollment->course_name ?? 'Course' }} | Batch: {{ $enrollment->batch_name ?? 'N/A' }}</p>
+                        <div class="space-y-3 max-h-80 overflow-y-auto pr-1">
+                            @foreach ($enrollment->emi_schedule_array as $emi)
+                                <div class="border rounded-lg p-3 {{ ($emi['status'] ?? 'pending') === 'paid' ? 'bg-green-50 border-green-200' : 'bg-orange-50 border-orange-200' }}">
+                                    <div class="flex justify-between items-center">
+                                        <div>
+                                            <p class="font-semibold text-gray-800">Installment {{ $emi['installment_number'] ?? '-' }}</p>
+                                            <p class="text-sm text-gray-600">
+                                                @if(!empty($emi['due_date']))
+                                                    Due: {{ \Carbon\Carbon::parse($emi['due_date'])->format('d M Y') }}
+                                                @elseif(!empty($emi['paid_date']))
+                                                    Paid on: {{ \Carbon\Carbon::parse($emi['paid_date'])->format('d M Y') }}
+                                                @else
+                                                    Date: N/A
+                                                @endif
+                                            </p>
+                                        </div>
+                                        <div class="text-right">
+                                            <p class="text-sm font-semibold text-gray-800">₹{{ number_format($emi['amount'] ?? 0, 2) }}</p>
+                                            <span class="text-xs px-2 py-1 rounded-full {{ ($emi['status'] ?? 'pending') === 'paid' ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800' }}">
+                                                {{ ucfirst($emi['status'] ?? 'pending') }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+            @endif
+        @endforeach
+
+        {{-- Upcoming installments summary --}}
+        @php
+            $upcomingEmis = [];
+            foreach ($enrollments as $enrollment) {
+                if (!empty($enrollment->emi_schedule_array)) {
+                    foreach ($enrollment->emi_schedule_array as $emi) {
+                        $status = $emi['status'] ?? 'pending';
+                        if ($status === 'paid') {
+                            continue;
+                        }
+                        $date = $emi['due_date'] ?? ($emi['paid_date'] ?? null);
+                        if (!$date) {
+                            continue;
+                        }
+                        $upcomingEmis[] = [
+                            'date' => $date,
+                            'student' => $enrollment->student_name ?? 'N/A',
+                            'course' => $enrollment->course_name ?? 'N/A',
+                            'batch' => $enrollment->batch_name ?? 'N/A',
+                            'amount' => $emi['amount'] ?? 0,
+                            'status' => $status,
+                        ];
+                    }
+                }
+            }
+            usort($upcomingEmis, function($a, $b) {
+                return \Carbon\Carbon::parse($a['date'])->timestamp <=> \Carbon\Carbon::parse($b['date'])->timestamp;
+            });
+        @endphp
+
+        @if(count($upcomingEmis))
+            <div class="mt-10 bg-white rounded-xl shadow p-6">
+                <h3 class="text-lg font-bold text-gray-800 mb-3">Upcoming Installments</h3>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full text-sm">
+                        <thead>
+                            <tr class="text-left text-gray-600 border-b">
+                                <th class="py-2 pr-4">Date</th>
+                                <th class="py-2 pr-4">Student</th>
+                                <th class="py-2 pr-4">Course</th>
+                                <th class="py-2 pr-4">Batch</th>
+                                <th class="py-2 pr-4">Amount</th>
+                                <th class="py-2 pr-4">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($upcomingEmis as $emi)
+                                <tr class="border-b last:border-0">
+                                    <td class="py-2 pr-4">{{ \Carbon\Carbon::parse($emi['date'])->format('d M Y') }}</td>
+                                    <td class="py-2 pr-4">{{ $emi['student'] }}</td>
+                                    <td class="py-2 pr-4">{{ $emi['course'] }}</td>
+                                    <td class="py-2 pr-4">{{ $emi['batch'] }}</td>
+                                    <td class="py-2 pr-4">₹{{ number_format($emi['amount'], 2) }}</td>
+                                    <td class="py-2 pr-4">
+                                        <span class="px-2 py-1 rounded-full text-xs {{ $emi['status'] === 'pending' ? 'bg-orange-100 text-orange-800' : 'bg-gray-100 text-gray-700' }}">
+                                            {{ ucfirst($emi['status']) }}
+                                        </span>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        @endif
     @else
         <div class="text-center text-gray-500 mt-12">
             <i class="fas fa-inbox text-3xl mb-2"></i>
@@ -116,4 +240,14 @@
         </div>
     @endif
 </div>
+<script>
+function openEMIModal(id) {
+    const el = document.getElementById(id);
+    if (el) el.classList.remove('hidden');
+}
+function closeEMIModal(id) {
+    const el = document.getElementById(id);
+    if (el) el.classList.add('hidden');
+}
+</script>
 @endsection

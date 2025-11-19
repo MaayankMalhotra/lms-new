@@ -19,6 +19,7 @@ class StudentQuizController extends Controller
 
         $quizSets = QuizSet::with(['batch.course'])
             ->whereIn('batch_id', $enrolledBatches)
+            ->where('locked', false)
             ->get();
 
         $attempts = $student->studentQuizSetAttempts()
@@ -39,6 +40,9 @@ class StudentQuizController extends Controller
         if (!$enrolledBatches->contains($quizSet->batch_id)) {
             return redirect()->route('student.quiz_sets')->with('error', 'You are not enrolled in this batch!');
         }
+        if ($quizSet->locked) {
+            return redirect()->route('student.quiz_sets')->with('error', 'This quiz set is locked!');
+        }
         // Check if already attempted
         if ($student->studentQuizSetAttempts()->where('quiz_set_id', $id)->exists()) {
             return redirect()->route('student.quiz_sets')->with('error', 'You have already taken this quiz set!');
@@ -47,57 +51,80 @@ class StudentQuizController extends Controller
     }
     public function batchQuizRanking(Request $request)
     {
-        // Get the selected batch ID and quiz set ID from the request
+        $courseId = $request->input('course_id');
         $batchId = $request->input('batch_id');
         $selectedQuizSetId = $request->input('quiz_set_id');
-        $showNonAttempted = $request->input('show_non_attempted', false); // New filter
-    
-        // Get all batches for the dropdown
-        $batches = \App\Models\Batch::with('course')->get();
-    
-        // If no batch is selected, set defaults
-        if (!$batchId) {
-            $quizSets = collect(); // Empty collection
-            $studentResults = [];
-            $batch = null;
-            $selectedQuizSetId = null;
-        } else {
-            // Get all quiz sets for the selected batch
-            $quizSets = QuizSet::where('batch_id', $batchId)->get();
-    
-            // If the selected quiz set ID doesn't belong to the current batch, reset it
-            if ($selectedQuizSetId && !$quizSets->contains('id', $selectedQuizSetId)) {
-                $selectedQuizSetId = null;
+        $showNonAttempted = $request->input('show_non_attempted', false);
+
+        $courses = \App\Models\Course::orderBy('name')->get();
+        $studentResults = [];
+        $batch = null;
+        $course = null;
+        $batches = collect();
+        $quizSets = collect();
+
+        if ($courseId) {
+            $course = \App\Models\Course::find($courseId);
+            if ($course) {
+                $batches = \App\Models\Batch::with('course')
+                    ->where('course_id', $courseId)
+                    ->get();
+            } else {
+                $courseId = null;
             }
-    
-            // Get enrolled students for the batch
-            $enrolledStudentIds = \App\Models\Enrollment::where('batch_id', $batchId)
-                ->pluck('user_id');
-    
-            // If "Show only non-attempted" is selected
+        }
+
+        if ($courseId && $batchId && !$batches->contains('id', $batchId)) {
+            $batchId = null;
+        }
+
+        if ($courseId) {
+            $quizSetsQuery = QuizSet::where('locked', false)
+                ->where('course_id', $courseId);
+
+            if ($batchId) {
+                $quizSetsQuery->where('batch_id', $batchId);
+            }
+
+            $quizSets = $quizSetsQuery->get();
+        }
+
+        if ($selectedQuizSetId && !$quizSets->contains('id', $selectedQuizSetId)) {
+            $selectedQuizSetId = null;
+        }
+
+        if ($courseId && $quizSets->isNotEmpty()) {
+            if ($batchId) {
+                $batch = \App\Models\Batch::with('course')->findOrFail($batchId);
+            }
+
             if ($showNonAttempted) {
-                // Get students who haven't attempted any quiz in this batch
+                $targetBatchIds = $batchId
+                    ? collect([$batchId])
+                    : $batches->pluck('id');
+
+                $enrolledStudentIds = \App\Models\Enrollment::whereIn('batch_id', $targetBatchIds)
+                    ->pluck('user_id');
+
                 $attemptedStudentIds = StudentQuizSetAttempt::whereIn('quiz_set_id', $quizSets->pluck('id'))
                     ->pluck('user_id')
                     ->unique();
-    
-                // Students who are enrolled but haven't attempted
+
                 $nonAttemptedStudentIds = $enrolledStudentIds->diff($attemptedStudentIds);
-    
-                // Fetch details of non-attempted students
+
                 $studentResults = \App\Models\User::whereIn('id', $nonAttemptedStudentIds)
                     ->get()
                     ->map(function ($student) use ($quizSets, $selectedQuizSetId) {
+                        $quizSet = $selectedQuizSetId ? $quizSets->firstWhere('id', $selectedQuizSetId) : null;
                         return (object) [
                             'student_name' => $student->name,
-                            'quiz_set_title' => $selectedQuizSetId ? $quizSets->firstWhere('id', $selectedQuizSetId)->title : 'N/A',
+                            'quiz_set_title' => $quizSet->title ?? 'N/A',
                             'score' => 0,
-                            'total_quizzes' => $selectedQuizSetId ? $quizSets->firstWhere('id', $selectedQuizSetId)->total_quizzes : $quizSets->sum('total_quizzes'),
+                            'total_quizzes' => $quizSet ? $quizSet->total_quizzes : $quizSets->sum('total_quizzes'),
                             'percentage' => 0.00,
                         ];
                     })->sortByDesc('percentage')->values();
             } else {
-                // Original logic for showing all students (with attempts)
                 $query = "
                     SELECT 
                         users.name AS student_name,
@@ -112,27 +139,44 @@ class StudentQuizController extends Controller
                     JOIN 
                         quiz_sets ON student_quiz_set_attempts.quiz_set_id = quiz_sets.id
                     WHERE 
-                        quiz_sets.batch_id = ?
+                        quiz_sets.locked = 0
                 ";
-    
-                $params = [$batchId];
+
+                $params = [];
+                if ($courseId) {
+                    $query .= " AND quiz_sets.course_id = ?";
+                    $params[] = $courseId;
+                }
+                if ($batchId) {
+                    $query .= " AND quiz_sets.batch_id = ?";
+                    $params[] = $batchId;
+                }
                 if ($selectedQuizSetId) {
                     $query .= " AND student_quiz_set_attempts.quiz_set_id = ?";
                     $params[] = $selectedQuizSetId;
                 }
-    
+
                 $query .= " ORDER BY percentage DESC";
-    
+
                 $studentResults = DB::select($query, $params);
                 $studentResults = array_map(function ($result) {
                     return (object) $result;
                 }, $studentResults);
             }
-    
-            $batch = \App\Models\Batch::with('course')->findOrFail($batchId);
         }
-    
-        return view('student.quiz_sets.batch_ranking', compact('studentResults', 'quizSets', 'batch', 'selectedQuizSetId', 'batches', 'batchId', 'showNonAttempted'));
+
+        return view('student.quiz_sets.batch_ranking', compact(
+            'studentResults',
+            'quizSets',
+            'batch',
+            'selectedQuizSetId',
+            'batches',
+            'batchId',
+            'showNonAttempted',
+            'courses',
+            'courseId',
+            'course'
+        ));
     }
     // public function batchQuizRanking(Request $request)
     // {
@@ -199,7 +243,9 @@ class StudentQuizController extends Controller
     // }
     public function batchQuizRanking_old($batchId)
 {
-    $quizSets = QuizSet::where('batch_id', $batchId)->pluck('id');
+    $quizSets = QuizSet::where('batch_id', $batchId)
+        ->where('locked', false)
+        ->pluck('id');
     $quizIds = Quiz::whereIn('quiz_set_id', $quizSets)->pluck('id');
 
     $studentResults = StudentQuizAnswer::whereIn('quiz_id', $quizIds)
@@ -236,6 +282,9 @@ public function submitQuiz(Request $request, $id)
     $enrolledBatches = $student->enrollments()->pluck('batch_id');
     if (!$enrolledBatches->contains($quizSet->batch_id)) {
         return redirect()->route('student.quiz_sets')->with('error', 'Unauthorized!');
+    }
+    if ($quizSet->locked) {
+        return redirect()->route('student.quiz_sets')->with('error', 'This quiz set is locked!');
     }
     if ($student->studentQuizSetAttempts()->where('quiz_set_id', $id)->exists()) {
         return redirect()->route('student.quiz_sets')->with('error', 'You have already taken this quiz set!');

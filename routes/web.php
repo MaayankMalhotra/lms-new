@@ -97,6 +97,7 @@ Route::post('/admin/quiz-sets/store', [QuizController::class, 'storeSet'])->name
 Route::get('/admin/quiz-sets/{id}/edit', [QuizController::class, 'editSet'])->name('admin.quiz_sets.edit');
 Route::put('/admin/quiz-sets/{id}/update', [QuizController::class, 'updateSet'])->name('admin.quiz_sets.update');
 Route::delete('/admin/quiz-sets/{id}', [QuizController::class, 'deleteSet'])->name('admin.quiz_sets.delete');
+Route::patch('/admin/quiz-sets/{quizSet}/toggle-lock', [QuizController::class, 'toggleLock'])->name('admin.quiz_sets.toggle_lock');
 
 // Quizzes Routes
 Route::get('/admin/quiz-sets/{id}/quizzes', [QuizController::class, 'showQuizzes'])->name('admin.quiz_sets.show_quizzes');
@@ -919,6 +920,7 @@ Route::post('/MaayankMalhotraResume/store', [ResumeController::class, 'store'])-
     Route::post('/teacher/slots', [TeacherController::class, 'createSlot']);
     Route::get('/teacher/bookings', [TeacherController::class, 'viewBookings'])->name('teacher.bookings');
     Route::post('/teacher/bookings/{id}/upload-link', [TeacherController::class, 'uploadLink'])->name('teacher.bookings.upload-link');
+    Route::get('/teacher/courses/{course}/batches', [TeacherController::class, 'getBatchesForCourse'])->name('teacher.courses.batches');
 Route::post('/teacher/update-slot-status/{slotId}', [TeacherController::class, 'updateSlotStatus'])->name('teacher.update-slot-status');
 
 // Student routes
@@ -941,6 +943,9 @@ Route::get('/admin/leads/list', [LeadController::class, 'list'])->name('admin.le
 Route::post('/admin/leads/{id}/send-email', [LeadController::class, 'sendEmail'])->name('admin.leads.sendEmail');
 
 Route::get('/student-dashboard', [StudentDashboardController::class, 'index'])->name('student.dashboard');
+Route::post('/student/pay-next-emi', [StudentDashboardController::class, 'payNextEmi'])
+    ->middleware('auth')
+    ->name('student.emi.pay_next');
 
 
 

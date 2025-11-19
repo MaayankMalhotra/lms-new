@@ -57,6 +57,28 @@
                     @enderror
                 </div>
 
+                <!-- Lock Toggle -->
+                <div class="mb-6">
+                    <label for="locked" class="block text-gray-700 font-semibold mb-2">
+                        Student Visibility
+                    </label>
+                    <p class="text-sm text-gray-500 mb-3">
+                        Locking hides this quiz set from students until you are ready to unlock it.
+                    </p>
+                    <div class="flex items-center space-x-3">
+                        <input type="hidden" name="locked" value="0">
+                        <input type="checkbox" name="locked" id="locked" value="1"
+                               class="h-5 w-5 text-indigo-600 border-gray-300 rounded"
+                               {{ old('locked', $quizSet->locked) ? 'checked' : '' }}>
+                        <label for="locked" class="text-gray-700">
+                            Keep this quiz set locked
+                        </label>
+                    </div>
+                    @error('locked')
+                        <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+
                 <!-- Submit Button -->
                 <button type="submit" 
                         class="bg-indigo-600 text-white px-6 py-3 rounded-lg shadow-md hover:bg-indigo-700 transition-all duration-300 w-full">

@@ -30,6 +30,7 @@ class QuizController extends Controller
             'title' => 'required|string|max:255',
             'total_quizzes' => 'required|integer|min:1',
             'course_id' => 'required|exists:courses,id',
+            'locked' => 'nullable|boolean',
         ]);
 
         QuizSet::create([
@@ -37,6 +38,7 @@ class QuizController extends Controller
             'title' => $request->title,
             'total_quizzes' => $request->total_quizzes,
             'course_id' => $request->course_id,
+            'locked' => $request->boolean('locked'),
         ]);
 
         return redirect()->route('admin.quiz_sets')->with('success', 'Quiz Set created!');
@@ -98,12 +100,14 @@ public function updateSet(Request $request, $id)
             'title' => 'required|string|max:255',
             'total_quizzes' => 'required|integer|min:1',
             'course_id' => 'required|exists:courses,id',
+            'locked' => 'nullable|boolean',
         ]);
 
         $quizSet->update([
             'title' => $request->title,
             'total_quizzes' => $request->total_quizzes,
             'course_id' => $request->course_id,
+            'locked' => $request->boolean('locked'),
         ]);
 
     return redirect()->route('admin.quiz_sets')->with('success', 'Quiz Set updated successfully!');
@@ -162,6 +166,20 @@ public function deleteQuiz($id)
     $quiz->delete();
     return redirect()->route('admin.quiz_sets.show_quizzes', $quizSetId)
         ->with('success', 'Quiz deleted successfully!');
+}
+
+public function toggleLock(QuizSet $quizSet)
+{
+    if ($quizSet->teacher_id !== Auth::id()) {
+        return redirect()->route('admin.quiz_sets')->with('error', 'Unauthorized!');
+    }
+
+    $quizSet->locked = !$quizSet->locked;
+    $quizSet->save();
+
+    $message = $quizSet->locked ? 'Quiz Set locked successfully.' : 'Quiz Set unlocked successfully.';
+
+    return back()->with('success', $message);
 }
 public function bulkUpload(Request $request, $quizSetId)
 {

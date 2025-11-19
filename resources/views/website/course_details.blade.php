@@ -338,13 +338,13 @@
                                         </div>
                                     </div>
                                 @endif
-                                @if(auth()->check() && auth()->user()->role === 1)
+                                {{-- @if(auth()->check() && auth()->user()->role === 1)
                                     <div class="mt-2 text-right">
                                         <button type="button" onclick='openDemoVideoModal("course", {{ $course_details->id }}, {{ $index }}, @json($videoUrls))' class="text-xs font-semibold text-blue-600 hover:text-blue-800">
                                             Manage Demo Videos
                                         </button>
                                     </div>
-                                @endif
+                                @endif --}}
                             </div>
                         </div>
                     @empty

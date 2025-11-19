@@ -44,14 +44,22 @@
 
                                     <!-- NEW: Batch -->
                                     <td class="px-6 py-4">
-                                        @if(!empty($slot->course_name))
+                                        @php
+                                            $hasCourse = !empty($slot->course_name);
+                                            $hasBatch = !empty($slot->batch_name);
+                                        @endphp
+                                        @if($hasCourse)
                                             <div class="font-medium text-gray-900">{{ $slot->course_name }}</div>
-                                        @elseif(!empty($slot->batch_name))
-                                            <div class="font-medium text-gray-900">{{ $slot->batch_name }}</div>
-                                            <div class="text-xs text-gray-500">
-                                                Starts {{ \Carbon\Carbon::parse($slot->batch_start_date)->format('d M Y') }}
-                                            </div>
-                                        @else
+                                        @endif
+                                        @if($hasBatch)
+                                            <div class="text-sm text-gray-700">{{ $slot->batch_name }}</div>
+                                            @if(!empty($slot->batch_start_date))
+                                                <div class="text-xs text-gray-500">
+                                                    Starts {{ \Carbon\Carbon::parse($slot->batch_start_date)->format('d M Y') }}
+                                                </div>
+                                            @endif
+                                        @endif
+                                        @if(!$hasCourse && !$hasBatch)
                                             <span class="text-gray-400">—</span>
                                         @endif
                                     </td>
@@ -115,14 +123,22 @@
 
                                     <!-- NEW: Batch -->
                                     <td class="px-6 py-4">
-                                        @if(!empty($slot->course_name))
+                                        @php
+                                            $hasCourse = !empty($slot->course_name);
+                                            $hasBatch = !empty($slot->batch_name);
+                                        @endphp
+                                        @if($hasCourse)
                                             <div class="font-medium text-gray-900">{{ $slot->course_name }}</div>
-                                        @elseif(!empty($slot->batch_name))
-                                            <div class="font-medium text-gray-900">{{ $slot->batch_name }}</div>
-                                            <div class="text-xs text-gray-500">
-                                                Starts {{ \Carbon\Carbon::parse($slot->batch_start_date)->format('d M Y') }}
-                                            </div>
-                                        @else
+                                        @endif
+                                        @if($hasBatch)
+                                            <div class="text-sm text-gray-700">{{ $slot->batch_name }}</div>
+                                            @if(!empty($slot->batch_start_date))
+                                                <div class="text-xs text-gray-500">
+                                                    Starts {{ \Carbon\Carbon::parse($slot->batch_start_date)->format('d M Y') }}
+                                                </div>
+                                            @endif
+                                        @endif
+                                        @if(!$hasCourse && !$hasBatch)
                                             <span class="text-gray-400">—</span>
                                         @endif
                                     </td>

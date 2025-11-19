@@ -35,8 +35,18 @@
                 <h3 class="text-lg font-bold text-gray-700 mb-2">Fee Status</h3>
                 <p class="text-gray-600">✅ Paid: ₹{{ $payments->total_completed ?? 0 }}</p>
                 <p class="text-gray-600">❌ Pending: ₹{{ $payments->total_pending ?? 0 }}</p>
-                @if(!empty($nextInstallmentDate))
-                    <p class="text-sm text-gray-500 mt-2">Next installment: {{ $nextInstallmentDate }}</p>
+                @if(!empty($nextInstallment))
+                    <div class="mt-3 p-3 rounded-lg bg-orange-50 border border-orange-200">
+                        <p class="text-sm text-gray-700 font-semibold">Next installment:</p>
+                        <p class="text-sm text-gray-700">{{ $nextInstallment['due'] }} (₹{{ number_format($nextInstallment['amount'], 2) }})</p>
+                        <p class="text-xs text-gray-500">{{ $nextInstallment['course'] }} | {{ $nextInstallment['batch'] }}</p>
+                        <button id="pay-next-installment"
+                                data-payment="{{ $nextInstallment['payment_id'] }}"
+                                class="mt-2 inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-sm font-semibold rounded shadow hover:from-blue-600 hover:to-indigo-700 transition">
+                            Pay Next Installment
+                        </button>
+                        <p id="pay-next-message" class="text-xs mt-2 text-gray-600"></p>
+                    </div>
                 @endif
             </div>
 
@@ -99,7 +109,7 @@
                 </div>
             @empty
                 <p class="text-gray-500">No quizzes found</p>
-            @endforelse
+@endforelse
         </div>
     </section>
 
@@ -121,7 +131,40 @@
                 <p class="text-gray-500">No events found</p>
             @endforelse
         </div>
-    </section>
+</section>
 
 </div>
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const payBtn = document.getElementById('pay-next-installment');
+    if (!payBtn) return;
+
+    const messageEl = document.getElementById('pay-next-message');
+
+    payBtn.addEventListener('click', async () => {
+        messageEl.textContent = 'Processing payment...';
+        try {
+            const res = await fetch('{{ route('student.emi.pay_next') }}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    'Accept': 'application/json'
+                }
+            });
+            const data = await res.json();
+            if (!res.ok) {
+                throw new Error(data.message || 'Payment failed');
+            }
+            messageEl.textContent = 'Payment recorded. Refreshing...';
+            setTimeout(() => window.location.reload(), 800);
+        } catch (e) {
+            messageEl.textContent = e.message || 'Something went wrong. Please try again.';
+            messageEl.classList.add('text-red-600');
+        }
+    });
+});
+</script>
+@endpush
 @endsection

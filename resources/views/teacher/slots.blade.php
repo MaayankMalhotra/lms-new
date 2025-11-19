@@ -7,7 +7,7 @@
         <!-- Create Slot -->
         <div class="bg-white shadow-md rounded-lg p-6 mb-6">
             <h2 class="text-lg font-semibold text-gray-700 mb-4">Create New Slot</h2>
-            <form method="POST" action="{{ route('teacher.slots') }}" class="space-y-4">
+            <form method="POST" action="{{ route('teacher.slots') }}" class="space-y-4" id="slot-form">
                 @csrf
 
                 <!-- Batch dropdown (shows start_date) -->
@@ -28,6 +28,25 @@
                             <option value="" disabled>No courses assigned yet</option>
                         @endforelse
                     </select>
+                    @error('course_id')
+                        <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div>
+                    <label for="batch_id" class="block text-sm font-medium text-gray-700">Batch</label>
+                    <select
+                        name="batch_id"
+                        id="batch_id"
+                        class="mt-1 block w-full border p-2 rounded bg-white"
+                        data-selected="{{ old('batch_id') }}"
+                        required
+                    >
+                        <option value="">Select a course first</option>
+                    </select>
+                    @error('batch_id')
+                        <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
+                    @enderror
                 </div>
 
                 <div>
@@ -74,14 +93,22 @@
 
                                 <!-- Uses join fields: batch_name + batch_start_date -->
                                 <td class="px-6 py-4">
-                                    @if(!empty($slot->course_name))
+                                    @php
+                                        $hasCourse = !empty($slot->course_name);
+                                        $hasBatch = !empty($slot->batch_name);
+                                    @endphp
+                                    @if($hasCourse)
                                         <div class="font-medium text-gray-900">{{ $slot->course_name }}</div>
-                                    @elseif(!empty($slot->batch_name))
-                                        <div class="font-medium text-gray-900">{{ $slot->batch_name }}</div>
-                                        <div class="text-xs text-gray-500">
-                                            Starts {{ \Carbon\Carbon::parse($slot->batch_start_date)->format('d M Y') }}
-                                        </div>
-                                    @else
+                                    @endif
+                                    @if($hasBatch)
+                                        <div class="text-sm text-gray-700">{{ $slot->batch_name }}</div>
+                                        @if(!empty($slot->batch_start_date))
+                                            <div class="text-xs text-gray-500">
+                                                Starts {{ \Carbon\Carbon::parse($slot->batch_start_date)->format('d M Y') }}
+                                            </div>
+                                        @endif
+                                    @endif
+                                    @if(!$hasCourse && !$hasBatch)
                                         <span class="text-gray-400">—</span>
                                     @endif
                                 </td>
@@ -111,3 +138,77 @@
     </div>
 
 @endsection
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const courseSelect = document.getElementById('course_id');
+    const batchSelect = document.getElementById('batch_id');
+    const selectedBatch = batchSelect.dataset.selected || '';
+    const endpointBase = "{{ url('/teacher/courses') }}";
+
+    const setPlaceholder = (message = 'Select a course first', disabled = true) => {
+        batchSelect.innerHTML = `<option value="">${message}</option>`;
+        batchSelect.disabled = disabled;
+    };
+
+    const fetchBatches = async (courseId, selectedId = '') => {
+        if (!courseId) {
+            setPlaceholder();
+            return;
+        }
+
+        setPlaceholder('Loading batches...', true);
+
+        try {
+            const response = await fetch(`${endpointBase}/${courseId}/batches`, {
+                headers: {
+                    'Accept': 'application/json'
+                }
+            });
+            if (!response.ok) {
+                throw new Error('Unable to fetch batches');
+            }
+            const batches = await response.json();
+            batchSelect.innerHTML = '';
+            if (!Array.isArray(batches) || !batches.length) {
+                setPlaceholder('No batches found for this course');
+                return;
+            }
+            const placeholder = document.createElement('option');
+            placeholder.value = '';
+            placeholder.disabled = true;
+            placeholder.selected = selectedId ? false : true;
+            placeholder.textContent = '-- Select a batch --';
+            batchSelect.appendChild(placeholder);
+
+            batches.forEach(batch => {
+                const option = document.createElement('option');
+                option.value = batch.id;
+                option.textContent = batch.start_date
+                    ? `${batch.name} (Starts ${batch.start_date})`
+                    : batch.name;
+                if (selectedId && String(selectedId) === String(batch.id)) {
+                    option.selected = true;
+                }
+                batchSelect.appendChild(option);
+            });
+            batchSelect.disabled = false;
+        } catch (error) {
+            console.error(error);
+            setPlaceholder('Unable to load batches');
+        }
+    };
+
+    courseSelect.addEventListener('change', () => {
+        fetchBatches(courseSelect.value);
+    });
+
+    if (courseSelect.value) {
+        fetchBatches(courseSelect.value, selectedBatch);
+    } else {
+        setPlaceholder();
+    }
+});
+</script>
+@endpush

@@ -4,15 +4,31 @@
 
 @section('content')
     <div class="container mx-auto px-4 py-10">
-        <!-- Heading -->
-        <h1 class="text-4xl font-bold text-gray-800 tracking-tight mb-4">
-            Quizzes in "{{ $quizSet->title }}"
-        </h1>
-        <!-- Batch and Course Info -->
-        <p class="text-gray-600 text-lg mb-8">
-            <span class="font-semibold">Course:</span> {{ $quizSet->course->name ?? 'N/A' }} |
-            <span class="font-semibold">Batch:</span> {{ $quizSet->batch->start_date ?? 'N/A' }}
-        </p>
+        <!-- Heading & Status -->
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
+            <div>
+                <h1 class="text-4xl font-bold text-gray-800 tracking-tight mb-2">
+                    Quizzes in "{{ $quizSet->title }}"
+                </h1>
+                <p class="text-gray-600 text-lg">
+                    <span class="font-semibold">Course:</span> {{ $quizSet->course->name ?? 'N/A' }} |
+                    <span class="font-semibold">Batch:</span> {{ $quizSet->batch->start_date ?? 'N/A' }}
+                </p>
+            </div>
+            <div class="flex items-center space-x-3">
+                <span class="font-semibold {{ $quizSet->locked ? 'text-red-500' : 'text-green-600' }}">
+                    {{ $quizSet->locked ? 'Currently Locked' : 'Currently Unlocked' }}
+                </span>
+                <form action="{{ route('admin.quiz_sets.toggle_lock', $quizSet->id) }}" method="POST" class="inline">
+                    @csrf
+                    @method('PATCH')
+                    <button type="submit"
+                            class="bg-{{ $quizSet->locked ? 'green' : 'red' }}-500 text-white px-4 py-2 rounded-lg hover:bg-{{ $quizSet->locked ? 'green' : 'red' }}-600 transition-all duration-200">
+                        {{ $quizSet->locked ? 'Unlock' : 'Lock' }}
+                    </button>
+                </form>
+            </div>
+        </div>
 
         <!-- Quiz List -->
         @if($quizSet->quizzes->isEmpty())

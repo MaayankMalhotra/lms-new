@@ -7,7 +7,11 @@ use Illuminate\Database\Eloquent\Model;
 
 class QuizSet extends Model
 {
-    protected $fillable = ['teacher_id', 'title', 'total_quizzes','course_id','batch_id'];
+    protected $fillable = ['teacher_id', 'title', 'total_quizzes','course_id','batch_id','locked'];
+
+    protected $casts = [
+        'locked' => 'boolean',
+    ];
 
     public function quizzes()
     {
@@ -21,5 +25,10 @@ class QuizSet extends Model
     public function course()
     {
         return $this->belongsTo(Course::class);
+    }
+
+    public function attempts()
+    {
+        return $this->hasMany(\App\Models\StudentQuizSetAttempt::class, 'quiz_set_id');
     }
 }

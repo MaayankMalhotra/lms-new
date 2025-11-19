@@ -210,35 +210,60 @@ class EnrollmentController extends Controller
             // Fetch enrollments
             $enrollments = $query->get()->map(function ($enrollment) {
                 try {
-                    // Parse EMI schedule and calculate next due EMI
-                    if ($enrollment->payment_method === 'emi' && !empty($enrollment->emi_schedule)) {
-                        $emi_schedule = json_decode($enrollment->emi_schedule, true);
+                    // Default markers
+                    $enrollment->is_emi = $enrollment->payment_method === 'emi'
+                        || ($enrollment->emi_installments && $enrollment->emi_installments > 1)
+                        || (($enrollment->amount ?? 0) < ($enrollment->batch_price ?? 0));
 
-                        if (is_array($emi_schedule) && !empty($emi_schedule)) {
-                            $enrollment->emi_schedule_array = $emi_schedule;
-                            $enrollment->total_emi = count($emi_schedule);
+                    $emi_schedule = [];
 
-                            // Find next due EMI
-                            $current_date = Carbon::now();
-                            $next_emi = collect($emi_schedule)
-                                ->filter(function ($emi) use ($current_date) {
-                                    return isset($emi['due_date']) &&
-                                        Carbon::parse($emi['due_date'])->isFuture() &&
-                                        ($emi['status'] ?? 'pending') === 'pending';
-                                })
-                                ->sortBy('due_date')
-                                ->first();
-
-                            $enrollment->next_emi = $next_emi;
-                        } else {
-                            Log::warning('Invalid EMI schedule format', [
-                                'enrollment_id' => $enrollment->enrollment_id,
-                                'emi_schedule' => $enrollment->emi_schedule,
-                            ]);
-                            $enrollment->emi_schedule_array = [];
-                            $enrollment->total_emi = 0;
-                            $enrollment->next_emi = null;
+                    // Try to decode stored schedule
+                    if (!empty($enrollment->emi_schedule)) {
+                        $decoded = json_decode($enrollment->emi_schedule, true);
+                        if (is_array($decoded)) {
+                            $emi_schedule = $decoded;
                         }
+                    }
+
+                    // Rebuild a basic schedule if missing/invalid but we have installment info
+                    if (empty($emi_schedule) && $enrollment->emi_installments && $enrollment->emi_amount) {
+                        $startDate = $enrollment->start_date ? Carbon::parse($enrollment->start_date) : Carbon::now();
+                        $emi_schedule[] = [
+                            'installment_number' => 1,
+                            'amount' => (float) $enrollment->emi_amount,
+                            'paid_date' => $startDate->toDateString(),
+                            'status' => 'paid',
+                        ];
+                        for ($i = 1; $i < (int) $enrollment->emi_installments; $i++) {
+                            $emi_schedule[] = [
+                                'installment_number' => $i + 1,
+                                'amount' => (float) $enrollment->emi_amount,
+                                'due_date' => $startDate->copy()->addMonths($i)->toDateString(),
+                                'status' => 'pending',
+                            ];
+                        }
+                    }
+
+                    if (!empty($emi_schedule)) {
+                        $enrollment->emi_schedule_array = $emi_schedule;
+                        $enrollment->total_emi = count($emi_schedule);
+                        $enrollment->is_emi = true;
+
+                        // First unpaid installment (by due date if available, else installment number)
+                        $pendingEmis = collect($emi_schedule)->filter(function ($emi) {
+                            return ($emi['status'] ?? 'pending') !== 'paid';
+                        });
+
+                        $next_emi = $pendingEmis
+                            ->sortBy(function ($emi) {
+                                if (!empty($emi['due_date'])) {
+                                    return Carbon::parse($emi['due_date']);
+                                }
+                                return $emi['installment_number'] ?? PHP_INT_MAX;
+                            })
+                            ->first();
+
+                        $enrollment->next_emi = $next_emi;
                     } else {
                         $enrollment->emi_schedule_array = [];
                         $enrollment->total_emi = 0;

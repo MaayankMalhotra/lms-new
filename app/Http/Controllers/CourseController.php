@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Course;
 use App\Models\CourseDetail;
 use App\Models\User;
+use App\Support\DemoVideoHelper;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -266,6 +267,10 @@ public function courseDetails($slug)
         $course = Course::where('slug', $slug)->first();
         $course_details = CourseDetail::where('course_id', $course->id)->first();
         $course_details?->loadMissing('course');
+        if ($course_details) {
+            // Ensure demo syllabus always has normalized video URL arrays
+            $course_details->demo_syllabus = DemoVideoHelper::normalizeModules($course_details->demo_syllabus);
+        }
 
         if (!$course) {
             return view('website.course_details')->with('error', 'Course not found!');

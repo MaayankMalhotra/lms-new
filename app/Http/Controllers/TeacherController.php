@@ -3,12 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Models\AvailableSlot;
+use App\Models\Batch;
 use App\Models\Course;
 use App\Models\InterviewBooking;
 use App\Models\TrainerDetail;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 
 
 class TeacherController extends Controller
@@ -66,20 +68,28 @@ class TeacherController extends Controller
 
     public function createSlot(Request $request)
     {
-        $request->validate([
-            'course_id'        => 'required|exists:courses,id',
-            'start_time'       => 'required|date',
-            'duration_minutes' => 'required|integer|min:15',
+        $data = $request->validate([
+            'course_id'        => ['required', 'exists:courses,id'],
+            'batch_id'         => [
+                'required',
+                Rule::exists('batches', 'id')->where(function ($query) use ($request) {
+                    if ($request->filled('course_id')) {
+                        $query->where('course_id', $request->input('course_id'));
+                    }
+                }),
+            ],
+            'start_time'       => ['required', 'date'],
+            'duration_minutes' => ['required', 'integer', 'min:15'],
         ]);
 
-        $start = Carbon::parse($request->start_time);
+        $start = Carbon::parse($data['start_time']);
 
         AvailableSlot::create([
             'teacher_id'       => Auth::id(),
-            'course_id'        => $request->course_id,
-            'batch_id'         => null,
+            'course_id'        => $data['course_id'],
+            'batch_id'         => $data['batch_id'],
             'start_time'       => $start,
-            'duration_minutes' => (int) $request->duration_minutes,
+            'duration_minutes' => (int) $data['duration_minutes'],
         ]);
 
         return redirect()->route('teacher.slots')->with('success', 'Slot created.');
@@ -173,6 +183,33 @@ public function updateSlotStatus(Request $request, $slotId)
         $slot->update(['status' => $request->status]);
 
         return redirect()->route('teacher.bookings')->with('success', 'Status updated successfully.');
+    }
+
+    public function getBatchesForCourse(Request $request, Course $course)
+    {
+        $trainerDetail = TrainerDetail::where('user_id', Auth::id())->first();
+        $courseIds = $trainerDetail?->course_ids ?? [];
+        if (!is_array($courseIds)) {
+            $courseIds = $courseIds ? json_decode($courseIds, true) : [];
+        }
+        if (!empty($courseIds) && !in_array($course->id, $courseIds)) {
+            abort(403);
+        }
+
+        $batches = Batch::query()
+            ->select('id', 'batch_name', 'start_date')
+            ->where('course_id', $course->id)
+            ->orderBy('start_date')
+            ->get()
+            ->map(function ($batch) {
+                return [
+                    'id' => $batch->id,
+                    'name' => $batch->batch_name,
+                    'start_date' => optional($batch->start_date)?->format('d M Y'),
+                ];
+            });
+
+        return response()->json($batches);
     }
     
 }
