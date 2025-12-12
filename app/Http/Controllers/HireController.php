@@ -98,7 +98,21 @@ class HireController extends Controller
     public function studentJobRoles()
     {
         $jobRoles = JobRolesForHiring::latest()->get();
-        return view('student.job-roles.index', compact('jobRoles'));
+        $user = auth()->user();
+
+        $applications = collect();
+        $applicationsByJobRole = collect();
+
+        if ($user) {
+            $applications = JobRoleApplication::with('jobRole')
+                ->where('user_id', $user->id)
+                ->latest()
+                ->get();
+
+            $applicationsByJobRole = $applications->keyBy('job_role_id');
+        }
+
+        return view('student.job-roles.index', compact('jobRoles', 'applications', 'applicationsByJobRole'));
     }
 
     public function apply(Request $request, $jobRoleId)
@@ -110,6 +124,16 @@ class HireController extends Controller
         }
 
         $jobRole = JobRolesForHiring::findOrFail($jobRoleId);
+
+        $alreadyApplied = JobRoleApplication::where('job_role_id', $jobRole->id)
+            ->where('user_id', $user->id)
+            ->exists();
+
+        if ($alreadyApplied) {
+            return redirect()
+                ->back()
+                ->with('success', 'You have already applied for "' . $jobRole->title . '".');
+        }
 
         $validated = $request->validate([
             'resume' => 'required|file|mimes:pdf,doc,docx|max:5120',
