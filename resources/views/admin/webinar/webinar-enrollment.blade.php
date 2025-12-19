@@ -60,12 +60,16 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 @foreach($enrollments as $enrollment)
                     <div class="bg-white/80 backdrop-blur-md rounded-xl shadow-lg hover:shadow-2xl transition duration-300 p-6">
+                        @php
+                            $webinarTitle = $enrollment->webinar->title ?? 'Untitled Webinar';
+                            $webinarLabel = $webinarTitle . ' (ID: ' . ($enrollment->webinar_id ?? 'N/A') . ')';
+                        @endphp
                         <h3 class="text-lg font-semibold text-gray-800 mb-2">
-                            {{ $enrollment->webinar->title ?? 'Untitled Webinar' }}
+                            {{ $webinarLabel }}
                         </h3>
-                        <p class="text-sm text-gray-600 mb-1"><i class="fas fa-user mr-2 text-blue-500"></i>{{ $enrollment->name }}</p>
-                        <p class="text-sm text-gray-600 mb-1"><i class="fas fa-envelope mr-2 text-blue-500"></i>{{ $enrollment->email }}</p>
-                        <p class="text-sm text-gray-600 mb-1"><i class="fas fa-phone mr-2 text-blue-500"></i>{{ $enrollment->phone ?? 'N/A' }}</p>
+                    <p class="text-sm text-gray-600 mb-1"><i class="fas fa-user mr-2 text-blue-500"></i>{{ $enrollment->name }}</p>
+                    <p class="text-sm text-gray-600 mb-1"><i class="fas fa-envelope mr-2 text-blue-500"></i>{{ $enrollment->email }}</p>
+                    <p class="text-sm text-gray-600 mb-1"><i class="fas fa-phone mr-2 text-blue-500"></i>{{ $enrollment->phone ?? 'N/A' }}</p>
                         <p class="text-sm text-gray-600 mb-1"><i class="fas fa-comment mr-2 text-blue-500"></i>{{ $enrollment->comments ?? 'N/A' }}</p>
                         
                         <p class="mt-3">

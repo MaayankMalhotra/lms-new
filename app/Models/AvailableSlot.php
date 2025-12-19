@@ -31,4 +31,9 @@ class AvailableSlot extends Model
     {
         return $this->hasOne(InterviewBooking::class, 'slot_id');
     }
+
+    public function batch()
+    {
+        return $this->belongsTo(Batch::class, 'batch_id');
+    }
 }

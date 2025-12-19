@@ -8,6 +8,7 @@ use App\Models\JobRoleApplication;
 use App\Models\JobRolesForHiring;
 use App\Models\MentorApplication;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 
@@ -112,7 +113,43 @@ class HireController extends Controller
             $applicationsByJobRole = $applications->keyBy('job_role_id');
         }
 
-        return view('student.job-roles.index', compact('jobRoles', 'applications', 'applicationsByJobRole'));
+        $applicationStatusOptions = $this->applicationStatusOptions();
+
+        return view('student.job-roles.index', compact('jobRoles', 'applications', 'applicationsByJobRole', 'applicationStatusOptions'));
+    }
+
+    public function externalApply(Request $request, $jobRoleId)
+    {
+        $user = $request->user();
+
+        if (!$user || $user->role !== 3) {
+            abort(403, 'Only students can apply to job roles.');
+        }
+
+        $jobRole = JobRolesForHiring::findOrFail($jobRoleId);
+
+        $existing = JobRoleApplication::where('job_role_id', $jobRole->id)
+            ->where('user_id', $user->id)
+            ->first();
+
+        if (!$existing) {
+            $placeholderPath = 'job-role-applications/external-link.txt';
+            if (!Storage::disk('public')->exists($placeholderPath)) {
+                Storage::disk('public')->put($placeholderPath, 'Applied via external link');
+            }
+
+            JobRoleApplication::create([
+                'job_role_id' => $jobRole->id,
+                'user_id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'resume_path' => $placeholderPath,
+                'message' => null,
+                'status' => 'applied',
+            ]);
+        }
+
+        return redirect()->away($jobRole->apply_link);
     }
 
     public function apply(Request $request, $jobRoleId)
@@ -149,11 +186,35 @@ class HireController extends Controller
             'email' => $user->email,
             'resume_path' => $resumePath,
             'message' => $validated['message'] ?? null,
+            'status' => 'applied',
         ]);
 
         return redirect()
             ->back()
             ->with('success', 'Application submitted successfully for "' . $jobRole->title . '".');
+    }
+
+    public function updateApplicationStatus(Request $request, JobRoleApplication $application)
+    {
+        $user = $request->user();
+
+        if (!$user || $application->user_id !== $user->id) {
+            abort(403, 'You are not allowed to update this application.');
+        }
+
+        $statuses = array_keys($this->applicationStatusOptions());
+
+        $data = $request->validate([
+            'status' => 'required|in:' . implode(',', $statuses),
+        ]);
+
+        $application->update([
+            'status' => $data['status'],
+        ]);
+
+        return redirect()
+            ->back()
+            ->with('success', 'Application status updated.');
     }
 
     public function applications()
@@ -169,7 +230,9 @@ class HireController extends Controller
 
     public function index()
     {
-        $jobRoles = JobRolesForHiring::latest()->paginate(10);
+        $jobRoles = JobRolesForHiring::with(['applications' => function ($q) {
+            $q->latest();
+        }, 'applications.user'])->latest()->paginate(10);
         $instructors = Instructor::where('is_active', 1)->get();
         return view('admin.hire-with-us.index', compact('jobRoles', 'instructors'));
     }
@@ -180,49 +243,49 @@ class HireController extends Controller
     }
 
     public function store(Request $request)
-{
-    $validator = Validator::make($request->all(), [
-        'title' => 'required|string|max:255',
-        'tech_name.*' => 'required|string|max:255',
-        'tech_url.*' => 'required|url|max:255',
-    ], [
-        'tech_name.*.required' => 'Technology name is required.',
-        'tech_url.*.required' => 'Technology URL is required.',
-        'tech_url.*.url' => 'Technology URL must be valid.',
-    ]);
-
-    if ($validator->fails()) {
-        return redirect()->back()->withErrors($validator)->withInput();
-    }
-
-    try {
-        $techNames = $request->input('tech_name', []);
-        $techUrls = $request->input('tech_url', []);
-        $technologiesArray = [];
-
-        foreach ($techNames as $index => $name) {
-            if (isset($techUrls[$index]) && $name && $techUrls[$index]) {
-                $technologiesArray[] = [
-                    'name' => $name,
-                    'image_url' => $techUrls[$index],
-                ];
-            }
-        }
-
-        if (empty($technologiesArray)) {
-            return redirect()->back()->withErrors(['technologies' => 'At least one valid technology with name and URL is required.'])->withInput();
-        }
-
-        JobRolesForHiring::create([
-            'title' => $request->title,
-            'technologies' => $technologiesArray,
+    {
+        $validator = Validator::make($request->all(), [
+            'title' => 'required|string|max:255',
+            'company_name' => 'required|string|max:255',
+            'salary_package' => 'required|string|max:255',
+            'location' => 'required|string|max:255',
+            'apply_link' => 'required|url|max:2048',
+            'image_url' => 'required|url|max:2048',
+            'last_date_to_apply' => 'required|date',
+            'suggestions' => 'nullable|string',
+            'tech_name.*' => 'required|string|max:255',
+        ], [
+            'tech_name.*.required' => 'Technology name is required.',
         ]);
-        
-        return redirect()->route('admin.job-roles.index')->with('success', 'Job role created successfully.');
-    } catch (\Exception $e) {
-        return redirect()->back()->withErrors(['technologies' => 'Error: ' . $e->getMessage()])->withInput();
+
+        if ($validator->fails()) {
+            return redirect()->back()->withErrors($validator)->withInput();
+        }
+
+        try {
+            $technologiesArray = $this->buildTechnologiesPayload($request);
+
+            if (empty($technologiesArray)) {
+                return redirect()->back()->withErrors(['technologies' => 'Add at least one technology with a name and logo URL.'])->withInput();
+            }
+
+            JobRolesForHiring::create([
+                'title' => $request->title,
+                'company_name' => $request->company_name,
+                'salary_package' => $request->salary_package,
+                'location' => $request->location,
+                'apply_link' => $request->apply_link,
+                'image_url' => $request->image_url,
+                'last_date_to_apply' => $request->last_date_to_apply,
+                'suggestions' => $request->suggestions,
+                'technologies' => $technologiesArray,
+            ]);
+            
+            return redirect()->route('admin.job-roles.index')->with('success', 'Job role created successfully.');
+        } catch (\Exception $e) {
+            return redirect()->back()->withErrors(['technologies' => 'Error: ' . $e->getMessage()])->withInput();
+        }
     }
-}
 
 
     public function edit($id)
@@ -232,36 +295,79 @@ class HireController extends Controller
     }
 
     public function update(Request $request, $id)
-{
-    $request->validate([
-        'title' => 'required|string|max:255',
-        'technologies' => 'required|json',
-    ]);
+    {
+        $validator = Validator::make($request->all(), [
+            'title' => 'required|string|max:255',
+            'company_name' => 'required|string|max:255',
+            'salary_package' => 'required|string|max:255',
+            'location' => 'required|string|max:255',
+            'apply_link' => 'required|url|max:2048',
+            'image_url' => 'required|url|max:2048',
+            'last_date_to_apply' => 'required|date',
+            'suggestions' => 'nullable|string',
+            'tech_name.*' => 'required|string|max:255',
+        ], [
+            'tech_name.*.required' => 'Technology name is required.',
+        ]);
 
-    $technologies = json_decode($request->technologies, true);
+        if ($validator->fails()) {
+            return redirect()->back()->withErrors($validator)->withInput();
+        }
 
-    if (!is_array($technologies)) {
-        return redirect()->back()->withErrors(['technologies' => 'Technologies must be a valid JSON array.'])->withInput();
+        $technologies = $this->buildTechnologiesPayload($request);
+
+        if (empty($technologies)) {
+            return redirect()->back()->withErrors(['technologies' => 'Add at least one technology with a name and logo URL.'])->withInput();
+        }
+
+        $jobRole = JobRolesForHiring::findOrFail($id);
+
+        $jobRole->update([
+            'title' => $request->title,
+            'company_name' => $request->company_name,
+            'salary_package' => $request->salary_package,
+            'location' => $request->location,
+            'apply_link' => $request->apply_link,
+            'image_url' => $request->image_url,
+            'last_date_to_apply' => $request->last_date_to_apply,
+            'suggestions' => $request->suggestions,
+            'technologies' => $technologies, 
+        ]);
+
+        return redirect()->route('admin.job-roles.index')->with('success', 'Job role updated successfully.');
     }
 
-    foreach ($technologies as $tech) {
-        if (!isset($tech['name']) || !is_string($tech['name'])) {
-            return redirect()->back()->withErrors(['technologies' => 'Each technology must have a valid name.'])->withInput();
+    private function buildTechnologiesPayload(Request $request): array
+    {
+        $techNames = $request->input('tech_name', []);
+        $defaultTechImageUrl = 'https://dummyimage.com/100x100/edf2f7/1f2937&text=Tech';
+        $technologiesArray = [];
+
+        foreach ($techNames as $index => $name) {
+            $trimmedName = trim($name ?? '');
+
+            if ($trimmedName) {
+                $technologiesArray[] = [
+                    'name' => $trimmedName,
+                    'image_url' => $defaultTechImageUrl,
+                ];
+            }
         }
-        if (!isset($tech['image_url']) || !filter_var($tech['image_url'], FILTER_VALIDATE_URL)) {
-            return redirect()->back()->withErrors(['technologies' => 'Each technology must have a valid image URL.'])->withInput();
-        }
+
+        return $technologiesArray;
     }
 
-    $jobRole = JobRolesForHiring::findOrFail($id);
-
-    $jobRole->update([
-        'title' => $request->title,
-        'technologies' => $technologies, 
-    ]);
-
-    return redirect()->route('admin.job-roles.index')->with('success', 'Job role updated successfully.');
-}
+    private function applicationStatusOptions(): array
+    {
+        return [
+            'applied' => 'Applied',
+            'got_email' => 'Got email',
+            'interview_scheduled' => 'Interview scheduled',
+            'offer_received' => 'Offer received',
+            'rejected' => 'Rejected',
+            'no_response' => 'No response yet',
+        ];
+    }
 
 
     public function destroy($id)

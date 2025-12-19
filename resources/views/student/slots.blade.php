@@ -76,11 +76,11 @@
                                     <td class="px-6 py-4">
                                         @php
                                             $windowStart = (clone $slot->start_time)->subMinutes(15);
-                                            $windowEnd   = (clone $slot->start_time)->addMinutes($slot->duration_minutes);
+                                            $windowEnd   = (clone $slot->start_time)->addMinutes($slot->duration_minutes + 30); // allow rejoin for 30 mins after end
                                         @endphp
 
-                                        @if ($slot->meeting_link && now()->between($windowStart, $windowEnd))
-                                            <a href="{{ $slot->meeting_link }}" target="_blank" class="inline-block px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700">
+                                        @if ($slot->meeting_link && now()->between($windowStart, $windowEnd) && !empty($slot->booking_id))
+                                            <a href="{{ route('student.interview.booking', $slot->booking_id) }}" class="inline-block px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700">
                                                 Join Meeting
                                             </a>
                                         @else

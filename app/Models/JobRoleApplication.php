@@ -16,6 +16,7 @@ class JobRoleApplication extends Model
         'email',
         'resume_path',
         'message',
+        'status',
     ];
 
     public function jobRole()

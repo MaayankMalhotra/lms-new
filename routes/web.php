@@ -635,6 +635,8 @@ Route::middleware(['auth'])->group(function () {
         ->name('leave.apply');
     Route::get('/student/job-roles', [HireController::class, 'studentJobRoles'])->name('student.job-roles.index');
     Route::post('/student/job-roles/{jobRole}/apply', [HireController::class, 'apply'])->name('student.job-roles.apply');
+    Route::post('/student/job-roles/{jobRole}/external-apply', [HireController::class, 'externalApply'])->name('student.job-roles.external-apply');
+    Route::post('/student/job-role-applications/{application}/status', [HireController::class, 'updateApplicationStatus'])->name('student.job-roles.applications.status');
 
     // Admin Routes
     Route::get('/admin/leaves', [AttendanceController::class, 'adminLeaves'])
@@ -922,12 +924,14 @@ Route::post('/MaayankMalhotraResume/store', [ResumeController::class, 'store'])-
     Route::post('/teacher/bookings/{id}/upload-link', [TeacherController::class, 'uploadLink'])->name('teacher.bookings.upload-link');
     Route::get('/teacher/courses/{course}/batches', [TeacherController::class, 'getBatchesForCourse'])->name('teacher.courses.batches');
 Route::post('/teacher/update-slot-status/{slotId}', [TeacherController::class, 'updateSlotStatus'])->name('teacher.update-slot-status');
+    Route::get('/teacher/attendees', [TeacherController::class, 'attendees'])->name('teacher.attendees');
 
 // Student routes
 
     Route::get('/student/slots', [StudentController::class, 'viewAvailableSlots'])->name('student.slots');
     Route::post('/student/book/{slotId}', [StudentController::class, 'bookSlot'])->name('student.book');
     Route::get('/student/interview', [StudentController::class, 'joinInterview'])->name('student.interview');
+    Route::get('/student/interview/{booking}', [StudentController::class, 'joinInterviewByBooking'])->name('student.interview.booking');
     Route::get('/student/orders', [StudentOrderController::class, 'index'])
         ->middleware('auth')
         ->name('student.orders');

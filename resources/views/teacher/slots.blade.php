@@ -1,8 +1,17 @@
 @extends('admin.layouts.app')
 
 @section('content')
-    <div class="container mx-auto p-4">
-        <h1 class="text-2xl font-bold text-gray-800 mb-4">Manage Available Slots</h1>
+    <div class="container mx-auto p-4 space-y-4">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-800">Manage Available Slots</h1>
+                <p class="text-sm text-gray-600">Create slots and track mock interview attendees.</p>
+            </div>
+            <a href="{{ route('teacher.attendees') }}" class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg shadow hover:bg-indigo-700">
+                <i class="fas fa-users"></i>
+                View Attendees
+            </a>
+        </div>
 
         <!-- Create Slot -->
         <div class="bg-white shadow-md rounded-lg p-6 mb-6">
@@ -80,6 +89,7 @@
                             <th class="px-6 py-3">Slot Number</th>
                             <th class="px-6 py-3">Status</th>
                             <th class="px-6 py-3">Booked</th>
+                            <th class="px-6 py-3">Attendees</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -128,6 +138,12 @@
                                         @else bg-red-100 text-red-800 @endif">
                                         {{ $slot->is_booked ? 'Yes' : 'No' }}
                                     </span>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <a href="{{ route('teacher.attendees', ['slot' => $slot->id]) }}"
+                                       class="inline-flex items-center gap-1 text-blue-600 hover:underline">
+                                        <i class="fas fa-users"></i> View
+                                    </a>
                                 </td>
                             </tr>
                         @endforeach

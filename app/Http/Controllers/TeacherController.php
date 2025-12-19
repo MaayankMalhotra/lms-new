@@ -169,7 +169,7 @@ public function viewBookings()
 //     return redirect()->route('teacher.bookings')->with('success', 'Status updated.');
 // }
 
-public function updateSlotStatus(Request $request, $slotId)
+    public function updateSlotStatus(Request $request, $slotId)
     {
         $request->validate([
             'status' => 'required|in:pending,completed,rescheduled',
@@ -183,6 +183,23 @@ public function updateSlotStatus(Request $request, $slotId)
         $slot->update(['status' => $request->status]);
 
         return redirect()->route('teacher.bookings')->with('success', 'Status updated successfully.');
+    }
+
+    public function attendees(Request $request)
+    {
+        $slotId = $request->query('slot');
+
+        $bookings = InterviewBooking::with([
+                'student',
+                'slot.course',
+                'slot.batch',
+            ])
+            ->when($slotId, fn ($q) => $q->where('slot_id', $slotId))
+            ->whereNotNull('joined_at')
+            ->orderByDesc('joined_at')
+            ->paginate(20);
+
+        return view('teacher.attendees', compact('bookings', 'slotId'));
     }
 
     public function getBatchesForCourse(Request $request, Course $course)

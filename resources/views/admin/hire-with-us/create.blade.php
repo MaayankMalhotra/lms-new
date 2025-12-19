@@ -9,12 +9,70 @@
 
         <form action="{{ route('admin.job-roles.store') }}" method="POST" id="jobRoleForm" onsubmit="return handleFormSubmit()">
             @csrf
-            <div class="mb-4">
-                <label for="title" class="block text-sm font-medium text-gray-700">Title</label>
-                <input type="text" name="title" id="title" value="{{ old('title') }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 @error('title') border-red-500 @enderror">
-                @error('title')
-                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                @enderror
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="mb-4">
+                    <label for="title" class="block text-sm font-medium text-gray-700">Job Role</label>
+                    <input type="text" name="title" id="title" value="{{ old('title') }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 @error('title') border-red-500 @enderror" placeholder="e.g., Frontend Engineer">
+                    @error('title')
+                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div class="mb-4">
+                    <label for="company_name" class="block text-sm font-medium text-gray-700">Company Name</label>
+                    <input type="text" name="company_name" id="company_name" value="{{ old('company_name') }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 @error('company_name') border-red-500 @enderror" placeholder="e.g., Acme Corp">
+                    @error('company_name')
+                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div class="mb-4">
+                    <label for="salary_package" class="block text-sm font-medium text-gray-700">Salary Package</label>
+                    <input type="text" name="salary_package" id="salary_package" value="{{ old('salary_package') }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 @error('salary_package') border-red-500 @enderror" placeholder="e.g., ₹10 - 15 LPA">
+                    @error('salary_package')
+                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div class="mb-4">
+                    <label for="location" class="block text-sm font-medium text-gray-700">Location</label>
+                    <input type="text" name="location" id="location" value="{{ old('location') }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 @error('location') border-red-500 @enderror" placeholder="e.g., Bengaluru (Hybrid)">
+                    @error('location')
+                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div class="mb-4">
+                    <label for="apply_link" class="block text-sm font-medium text-gray-700">Apply Link</label>
+                    <input type="url" name="apply_link" id="apply_link" value="{{ old('apply_link') }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 @error('apply_link') border-red-500 @enderror" placeholder="https://company.com/careers/role">
+                    @error('apply_link')
+                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div class="mb-4">
+                    <label for="image_url" class="block text-sm font-medium text-gray-700">Image URL</label>
+                    <input type="url" name="image_url" id="image_url" value="{{ old('image_url') }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 @error('image_url') border-red-500 @enderror" placeholder="Hero/brand image for this role">
+                    @error('image_url')
+                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div class="mb-4">
+                    <label for="last_date_to_apply" class="block text-sm font-medium text-gray-700">Last Date to Apply</label>
+                    <input type="date" name="last_date_to_apply" id="last_date_to_apply" value="{{ old('last_date_to_apply') }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 @error('last_date_to_apply') border-red-500 @enderror">
+                    @error('last_date_to_apply')
+                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div class="mb-4 md:col-span-2">
+                    <label for="suggestions" class="block text-sm font-medium text-gray-700">Suggestions</label>
+                    <textarea name="suggestions" id="suggestions" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 @error('suggestions') border-red-500 @enderror" placeholder="Any extra notes for candidates">{{ old('suggestions') }}</textarea>
+                    @error('suggestions')
+                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
             </div>
 
             <div class="mb-4">
@@ -28,13 +86,6 @@
                                 <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                             @enderror
                         </div>
-                        <div class="flex-1">
-                            <label for="tech_url_0" class="block text-sm font-medium text-gray-700">Image URL</label>
-                            <input type="url" name="tech_url[]" id="tech_url_0" value="{{ old('tech_url.0') }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 @error('tech_url.0') border-red-500 @enderror">
-                            @error('tech_url.0')
-                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                            @enderror
-                        </div>
                         <button type="button" class="remove-tech-btn text-red-500 mt-7 hover:text-red-700" style="display:none;">Remove</button>
                     </div>
                 </div>
@@ -43,7 +94,7 @@
                 @error('technologies')
                     <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                 @enderror
-                <p class="text-gray-500 text-xs mt-1">Data will be stored as: [{"name": "HTML", "image_url": "https://..."}, {"name": "CSS", "image_url": "https://..."}]</p>
+                <p class="text-gray-500 text-xs mt-1">Logos use a generic image automatically: [{"name": "HTML", "image_url": "https://dummyimage.com/..."}]</p>
             </div>
 
             <div class="flex justify-end space-x-4">
@@ -64,6 +115,7 @@
                 console.error('Error: Add Technology button (#add-tech-btn) not found in DOM');
                 return;
             }
+            const defaultTechImageUrl = 'https://dummyimage.com/100x100/edf2f7/1f2937&text=Tech';
 
             addTechButton.addEventListener('click', function (e) {
                 e.preventDefault(); // Prevent any default behavior
@@ -83,10 +135,6 @@
                     <div class="flex-1">
                         <label for="tech_name_${techIndex}" class="block text-sm font-medium text-gray-700">Name</label>
                         <input type="text" name="tech_name[]" id="tech_name_${techIndex}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                    </div>
-                    <div class="flex-1">
-                        <label for="tech_url_${techIndex}" class="block text-sm font-medium text-gray-700">Image URL</label>
-                        <input type="url" name="tech_url[]" id="tech_url_${techIndex}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                     </div>
                     <button type="button" class="remove-tech-btn text-red-500 mt-7 hover:text-red-700">Remove</button>
                 `;
@@ -124,20 +172,18 @@
             window.handleFormSubmit = function () {
                 try {
                     const techNames = document.querySelectorAll('input[name="tech_name[]"]');
-                    const techUrls = document.querySelectorAll('input[name="tech_url[]"]');
                     const technologies = [];
 
                     techNames.forEach((nameInput, index) => {
                         const name = nameInput.value.trim();
-                        const url = techUrls[index]?.value.trim();
-                        if (name && url) {
-                            technologies.push({ name: name, image_url: url });
+                        if (name) {
+                            technologies.push({ name: name, image_url: defaultTechImageUrl });
                         }
                     });
 
                     if (technologies.length === 0) {
                         console.warn('No valid technologies provided');
-                        alert('Please add at least one valid technology with both name and URL.');
+                        alert('Please add at least one valid technology name.');
                         return false;
                     }
 

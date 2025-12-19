@@ -43,13 +43,64 @@ class StudentController extends Controller
 
         // Check if current time is around the slot time (e.g., within 15 min before/after)
         $now = now();
-        $start = $booking->slot->start_time;
-        $end = $start->addMinutes($booking->slot->duration_minutes);
-        if ($now->lt($start->subMinutes(15)) || $now->gt($end)) {
+        $start = $booking->slot->start_time instanceof \Carbon\Carbon
+            ? $booking->slot->start_time->copy()
+            : \Carbon\Carbon::parse($booking->slot->start_time);
+        $end = $start->copy()->addMinutes($booking->slot->duration_minutes);
+        if ($now->lt($start->copy()->subMinutes(15)) || $now->gt($end)) {
             return view('student.interview')->with('error', 'Not the right time to join.');
         }
 
+        $booking->update([
+            'status' => 'completed',
+            'joined_at' => now(),
+        ]);
+
+        if ($booking->slot) {
+            $booking->slot->update([
+                'status' => 'completed',
+                'is_booked' => true,
+            ]);
+        }
+
         return redirect($booking->meeting_link); // Or display in view if needed.
+    }
+
+    public function joinInterviewByBooking(InterviewBooking $booking)
+    {
+        if ($booking->student_id !== Auth::id()) {
+            abort(403, 'Unauthorized');
+        }
+
+        $booking->load('slot');
+
+        if (!$booking->slot || !$booking->meeting_link) {
+            return back()->with('error', 'No meeting link available.');
+        }
+
+        $now = now();
+        $start = $booking->slot->start_time instanceof \Carbon\Carbon
+            ? $booking->slot->start_time->copy()
+            : \Carbon\Carbon::parse($booking->slot->start_time);
+        $end = $start->copy()->addMinutes($booking->slot->duration_minutes);
+
+        if ($now->lt($start->copy()->subMinutes(15)) || $now->gt($end)) {
+            return back()->with('error', 'Not the right time to join.');
+        }
+
+        $booking->update([
+            'status' => 'completed',
+            'joined_at' => now(),
+        ]);
+
+        if ($booking->slot) {
+            $booking->slot->update([
+                'status' => 'completed',
+                'is_booked' => true,
+            ]);
+        }
+
+        return redirect($booking->meeting_link);
     }
 
 //     public function viewAvailableSlots()
@@ -125,15 +176,30 @@ public function viewAvailableSlots()
     {
         $studentId = Auth::id();
         $user = Auth::user();
-        $studentBatchIds = $user
-            ? $user->enrollments()->pluck('batch_id')->filter()->map(fn ($id) => (int) $id)->values()
+        $enrollments = $user
+            ? $user->enrollments()->with('batch')->get()
             : collect();
+
+        $studentBatchIds = $enrollments
+            ->pluck('batch_id')
+            ->filter()
+            ->map(fn ($id) => (int) $id)
+            ->values();
+
+        $studentCourseIds = $enrollments
+            ->map(fn ($enrollment) => optional($enrollment->batch)->course_id)
+            ->filter()
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->values();
         $now = now();
+        $joinWindowLookback = $now->copy()->subMinutes(60); // allow showing meetings that started within the last hour for rejoin
 
         // Booked slots for this student (upcoming) + batch info via JOIN
         $upcomingMeetings = AvailableSlot::query()
             ->select(
                 'available_slots.*',
+                'interview_bookings.id as booking_id',
                 'interview_bookings.status as booking_status',
                 'interview_bookings.meeting_link',
                 'courses.name as course_name',
@@ -144,7 +210,7 @@ public function viewAvailableSlots()
             ->leftJoin('courses', 'courses.id', '=', 'available_slots.course_id')
             ->leftJoin('batches', 'batches.id', '=', 'available_slots.batch_id')
             ->where('interview_bookings.student_id', $studentId)
-            ->where('available_slots.start_time', '>', $now)
+            ->where('available_slots.start_time', '>', $joinWindowLookback)
             ->orderBy('available_slots.start_time', 'asc')
             ->get()
             // keep your existing grouping style
@@ -164,13 +230,11 @@ public function viewAvailableSlots()
             ->whereNull('interview_bookings.id')
             ->where('available_slots.status', 'pending')
             ->where('available_slots.start_time', '>', $now)
-            ->where(function ($query) use ($studentBatchIds) {
-                if ($studentBatchIds->isNotEmpty()) {
-                    $query->whereIn('available_slots.batch_id', $studentBatchIds)
-                        ->orWhereNull('available_slots.batch_id');
-                } else {
-                    $query->whereNull('available_slots.batch_id');
-                }
+            ->when($studentCourseIds->isNotEmpty(), function ($query) use ($studentCourseIds) {
+                $query->whereIn('available_slots.course_id', $studentCourseIds);
+            }, function ($query) {
+                // If student has no course enrollment, return none
+                $query->whereRaw('1 = 0');
             })
             ->orderBy('available_slots.start_time', 'asc')
             ->get()
