@@ -922,6 +922,7 @@ Route::post('/MaayankMalhotraResume/store', [ResumeController::class, 'store'])-
     Route::post('/teacher/slots', [TeacherController::class, 'createSlot']);
     Route::get('/teacher/bookings', [TeacherController::class, 'viewBookings'])->name('teacher.bookings');
     Route::post('/teacher/bookings/{id}/upload-link', [TeacherController::class, 'uploadLink'])->name('teacher.bookings.upload-link');
+    Route::post('/teacher/bookings/{booking}/feedback', [TeacherController::class, 'saveBookingFeedback'])->name('teacher.bookings.feedback');
     Route::get('/teacher/courses/{course}/batches', [TeacherController::class, 'getBatchesForCourse'])->name('teacher.courses.batches');
 Route::post('/teacher/update-slot-status/{slotId}', [TeacherController::class, 'updateSlotStatus'])->name('teacher.update-slot-status');
     Route::get('/teacher/attendees', [TeacherController::class, 'attendees'])->name('teacher.attendees');

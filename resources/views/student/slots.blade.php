@@ -29,23 +29,30 @@
                     <thead class="text-xs text-gray-700 uppercase bg-gray-50">
                         <tr>
                             <th class="px-6 py-3">Date & Time</th>
+                            <th class="px-6 py-3">Mock Type</th>
                             <th class="px-6 py-3">Course / Batch</th> <!-- NEW -->
                             <th class="px-6 py-3">Status</th>
+                            <th class="px-6 py-3">Marks / Notes</th>
                             <th class="px-6 py-3">Action</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach($upcomingMeetings as $dateTime => $slots)
-                            @foreach($slots as $slot)
-                                <tr class="bg-white border-b hover:bg-gray-50">
-                                    <td class="px-6 py-4 font-medium text-gray-900">
-                                        {{ $slot->start_time->format('Y-m-d h:i A') }}
-                                    </td>
+                            @foreach($upcomingMeetings as $dateTime => $slots)
+                                @foreach($slots as $slot)
+                                    <tr class="bg-white border-b hover:bg-gray-50">
+                                        <td class="px-6 py-4 font-medium text-gray-900">
+                                            {{ $slot->start_time->format('Y-m-d h:i A') }}
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            <span class="px-2 py-1 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700">
+                                                {{ $slot->mock_type ?? 'Mock Test' }}
+                                            </span>
+                                        </td>
 
-                                    <!-- NEW: Batch -->
-                                    <td class="px-6 py-4">
-                                        @php
-                                            $hasCourse = !empty($slot->course_name);
+                                        <!-- NEW: Batch -->
+                                        <td class="px-6 py-4">
+                                            @php
+                                                $hasCourse = !empty($slot->course_name);
                                             $hasBatch = !empty($slot->batch_name);
                                         @endphp
                                         @if($hasCourse)
@@ -72,6 +79,16 @@
                                             @else bg-red-100 text-red-800 @endif">
                                             {{ ucfirst($status) }}
                                         </span>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        @if(!is_null($slot->marks))
+                                            <div class="text-gray-900 font-semibold">Marks: {{ $slot->marks }}</div>
+                                        @else
+                                            <div class="text-gray-400">Marks pending</div>
+                                        @endif
+                                        @if(!empty($slot->teacher_notes))
+                                            <div class="text-xs text-gray-600 mt-1">Note: {{ $slot->teacher_notes }}</div>
+                                        @endif
                                     </td>
                                     <td class="px-6 py-4">
                                         @php
@@ -108,6 +125,7 @@
                     <thead class="text-xs text-gray-700 uppercase bg-gray-50">
                         <tr>
                             <th class="px-6 py-3">Date & Time</th>
+                            <th class="px-6 py-3">Mock Type</th>
                             <th class="px-6 py-3">Course / Batch</th> <!-- NEW -->
                             <th class="px-6 py-3">Duration (min)</th>
                             <th class="px-6 py-3">Action</th>
@@ -119,6 +137,11 @@
                                 <tr class="bg-white border-b hover:bg-gray-50">
                                     <td class="px-6 py-4 font-medium text-gray-900">
                                         {{ $slot->start_time->format('Y-m-d h:i A') }}
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <span class="px-2 py-1 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700">
+                                            {{ $slot->mock_type ?? 'Mock Test' }}
+                                        </span>
                                     </td>
 
                                     <!-- NEW: Batch -->

@@ -59,6 +59,30 @@
                 </div>
 
                 <div>
+                    <label for="mock_type" class="block text-sm font-medium text-gray-700">Mock Type</label>
+                    <input
+                        type="text"
+                        name="mock_type"
+                        id="mock_type"
+                        list="mock-type-options"
+                        value="{{ old('mock_type') }}"
+                        placeholder="e.g., HR, TR, GD"
+                        required
+                        class="mt-1 block w-full border p-2 rounded bg-white"
+                    >
+                    <datalist id="mock-type-options">
+                        <option value="HR">
+                        <option value="TR">
+                        <option value="MR">
+                        <option value="GD">
+                        <option value="Panel Discussion">
+                    </datalist>
+                    @error('mock_type')
+                        <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div>
                     <label for="start_time" class="block text-sm font-medium text-gray-700">Start Time</label>
                     <input type="datetime-local" name="start_time" id="start_time" required class="mt-1 block w-full border p-2 rounded">
                 </div>
@@ -84,6 +108,7 @@
                     <thead class="text-xs text-gray-700 uppercase bg-gray-50">
                         <tr>
                             <th class="px-6 py-3">Start Time</th>
+                            <th class="px-6 py-3">Mock Type</th>
                             <th class="px-6 py-3">Duration (min)</th>
                             <th class="px-6 py-3">Course / Batch</th>
                             <th class="px-6 py-3">Slot Number</th>
@@ -99,6 +124,7 @@
                                     {{-- If your model casts start_time to datetime, this works; otherwise parse --}}
                                     {{ optional($slot->start_time)->format('Y-m-d h:i A') ?? \Carbon\Carbon::parse($slot->start_time)->format('Y-m-d h:i A') }}
                                 </td>
+                                <td class="px-6 py-4">{{ $slot->mock_type ?? '—' }}</td>
                                 <td class="px-6 py-4">{{ $slot->duration_minutes }}</td>
 
                                 <!-- Uses join fields: batch_name + batch_start_date -->

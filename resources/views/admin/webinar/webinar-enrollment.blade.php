@@ -61,8 +61,10 @@
                 @foreach($enrollments as $enrollment)
                     <div class="bg-white/80 backdrop-blur-md rounded-xl shadow-lg hover:shadow-2xl transition duration-300 p-6">
                         @php
-                            $webinarTitle = $enrollment->webinar->title ?? 'Untitled Webinar';
-                            $webinarLabel = $webinarTitle . ' (ID: ' . ($enrollment->webinar_id ?? 'N/A') . ')';
+                            $webinarLabel = $enrollment->resolved_webinar_title;
+                            if ($enrollment->webinar_id) {
+                                $webinarLabel .= ' (ID: ' . $enrollment->webinar_id . ')';
+                            }
                         @endphp
                         <h3 class="text-lg font-semibold text-gray-800 mb-2">
                             {{ $webinarLabel }}

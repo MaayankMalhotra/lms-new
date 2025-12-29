@@ -11,12 +11,25 @@ use App\Mail\OfferLetter;
 
 class CourseToInternshipController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $enrollments = DB::table('enrollments')
+        $batchId  = $request->query('batch_id');
+        $courseId = $request->query('course_id');
+
+        $enrollmentsQuery = DB::table('enrollments')
             ->join('batches', 'enrollments.batch_id', '=', 'batches.id')
             ->join('users', 'enrollments.user_id', '=', 'users.id')
-            ->where('batches.start_date', '<', now())
+            ->where('batches.start_date', '<', now());
+
+        if ($batchId) {
+            $enrollmentsQuery->where('enrollments.batch_id', $batchId);
+        }
+
+        if ($courseId) {
+            $enrollmentsQuery->where('batches.course_id', $courseId);
+        }
+
+        $enrollments = $enrollmentsQuery
             ->select(
                 'users.id as user_id',
                 'users.name',

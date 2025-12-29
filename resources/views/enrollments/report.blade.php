@@ -15,33 +15,49 @@
         </div>
     @endif
 
-    <!-- NEW: Global Batch & Course selection -->
-    <div class="mb-4 grid grid-cols-1 md:grid-cols-3 gap-4 bg-white p-4 rounded shadow">
-        <div>
-            <label class="block text-sm font-medium text-gray-700">Batch</label>
-            <select id="global_batch_id" class="mt-1 block w-full border rounded p-2 bg-white">
-                <option value="">-- Select Batch --</option>
-                @foreach($batches as $b)
-                    @php $sd = \Carbon\Carbon::parse($b->start_date); @endphp
-                    <option value="{{ $b->id }}">
-                        {{ $b->batch_name }} — starts {{ $sd->format('d M Y') }}
-                    </option>
-                @endforeach
-            </select>
+    <!-- Filters + Offer context -->
+    <form method="GET" action="{{ route('enrollment.report') }}" class="mb-4">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 bg-white p-4 rounded shadow">
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Batch</label>
+                <select
+                    id="global_batch_id"
+                    name="batch_id"
+                    class="mt-1 block w-full border rounded p-2 bg-white"
+                >
+                    <option value="">-- Select Batch --</option>
+                    @foreach($batches as $b)
+                        @php $sd = \Carbon\Carbon::parse($b->start_date); @endphp
+                        <option value="{{ $b->id }}" @selected(request('batch_id') == $b->id)>
+                            {{ $b->batch_name }} — starts {{ $sd->format('d M Y') }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Course</label>
+                <select
+                    id="global_course_id"
+                    name="course_id"
+                    class="mt-1 block w-full border rounded p-2 bg-white"
+                >
+                    <option value="">-- Select Course --</option>
+                    @foreach($courses as $c)
+                        <option value="{{ $c->id }}" @selected(request('course_id') == $c->id)>{{ $c->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="flex items-end justify-between gap-3 text-xs text-gray-600">
+                <p>Select a Batch and Course — filters the list and is included in each “Send Offer”.</p>
+                <div class="flex items-center gap-2">
+                    <button type="submit" class="px-3 py-2 bg-gray-800 text-white rounded hover:bg-gray-900 text-sm">Apply</button>
+                    @if(request('batch_id') || request('course_id'))
+                        <a href="{{ route('enrollment.report') }}" class="text-blue-600 hover:text-blue-800 text-sm">Clear</a>
+                    @endif
+                </div>
+            </div>
         </div>
-        <div>
-            <label class="block text-sm font-medium text-gray-700">Course</label>
-            <select id="global_course_id" class="mt-1 block w-full border rounded p-2 bg-white">
-                <option value="">-- Select Course --</option>
-                @foreach($courses as $c)
-                    <option value="{{ $c->id }}">{{ $c->name }}</option>
-                @endforeach
-            </select>
-        </div>
-        <div class="flex items-end text-xs text-gray-500">
-            Select a Batch and Course — each “Send Offer” will include these.
-        </div>
-    </div>
+    </form>
 
     <meta name="csrf-token" content="{{ csrf_token() }}">
 

@@ -9,7 +9,15 @@ class InterviewBooking extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['student_id', 'slot_id', 'meeting_link', 'status', 'joined_at'];
+    protected $fillable = [
+        'student_id',
+        'slot_id',
+        'meeting_link',
+        'status',
+        'joined_at',
+        'marks',
+        'teacher_notes',
+    ];
 
     public function student()
     {

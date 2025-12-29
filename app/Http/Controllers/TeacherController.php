@@ -70,6 +70,7 @@ class TeacherController extends Controller
     {
         $data = $request->validate([
             'course_id'        => ['required', 'exists:courses,id'],
+            'mock_type'        => ['required', 'string', 'max:100'],
             'batch_id'         => [
                 'required',
                 Rule::exists('batches', 'id')->where(function ($query) use ($request) {
@@ -83,13 +84,20 @@ class TeacherController extends Controller
         ]);
 
         $start = Carbon::parse($data['start_time']);
+        $slotNumber = (int) (AvailableSlot::where('teacher_id', Auth::id())
+            ->whereDate('start_time', $start->toDateString())
+            ->max('slot_number') ?? 0);
 
         AvailableSlot::create([
             'teacher_id'       => Auth::id(),
             'course_id'        => $data['course_id'],
+            'mock_type'        => $data['mock_type'],
             'batch_id'         => $data['batch_id'],
             'start_time'       => $start,
             'duration_minutes' => (int) $data['duration_minutes'],
+            'slot_number'      => $slotNumber + 1,
+            'status'           => 'pending',
+            'is_booked'        => false,
         ]);
 
         return redirect()->route('teacher.slots')->with('success', 'Slot created.');
@@ -121,41 +129,38 @@ class TeacherController extends Controller
         return redirect()->route('teacher.bookings')->with('success', 'Link uploaded.');
     }
 
+    public function saveBookingFeedback(Request $request, $bookingId)
+    {
+        $data = $request->validate([
+            'marks' => ['nullable', 'integer', 'min:0', 'max:1000'],
+            'teacher_notes' => ['nullable', 'string', 'max:2000'],
+        ]);
+
+        $booking = InterviewBooking::findOrFail($bookingId);
+
+        $booking->update([
+            'marks' => $data['marks'] ?? null,
+            'teacher_notes' => $data['teacher_notes'] ?? null,
+        ]);
+
+        return redirect()->route('teacher.bookings')->with('success', 'Marks and notes saved.');
+    }
+
 public function viewBookings()
 {
     $teacherId = Auth::id();
-    $slots = AvailableSlot::with(['booking.student'])
-       // ->where('teacher_id', $teacherId)
+
+    $slotsByDate = AvailableSlot::with([
+            'booking.student',
+            'course',
+            'batch',
+        ])
+        ->where('teacher_id', $teacherId)
+        ->orderBy('start_time')
         ->get()
-        ->groupBy('start_time')
-        ->map(function ($group) {
-            return $group->mapWithKeys(function ($slot) {
-                $bookingData = $slot->booking ? [
-                    'student' => optional($slot->booking->student)->name ?? 'N/A',
-                    'meeting_link' => $slot->booking->meeting_link ?? null,
-                    'id' => $slot->booking->id ?? null,
-                    'slot_id' => $slot->booking->slot_id ?? null,
-                ] : [
-                    'student' => 'N/A',
-                    'meeting_link' => null,
-                    'id' => null,
-                    'slot_id' => $slot->id,
-                ];
+        ->groupBy(fn ($slot) => optional($slot->start_time)?->format('Y-m-d') ?? 'TBD');
 
-                return [
-                    $slot->slot_number => [
-                        'status' => $slot->status ?? 'pending', // Default to 'pending' if null
-                        'student' => $bookingData['student'],
-                        'meeting_link' => $bookingData['meeting_link'],
-                        'booking_id' => $bookingData['id'],
-                        'slot_id' => $bookingData['slot_id'],
-                    ],
-                ];
-            });
-        });
-       // dd($slots); // Debugging line, remove in production.
-
-    return view('teacher.bookings', compact('slots'));
+    return view('teacher.bookings', compact('slotsByDate'));
 }
 
 // public function updateSlotStatus(Request $request, $slotId)

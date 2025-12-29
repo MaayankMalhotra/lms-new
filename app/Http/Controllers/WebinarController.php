@@ -197,7 +197,7 @@ class WebinarController extends Controller
                 ->chunk(200, function ($enrollments) use ($handle) {
                     foreach ($enrollments as $enrollment) {
                         fputcsv($handle, [
-                            $enrollment->webinar->title ?? 'Untitled Webinar',
+                            $enrollment->resolved_webinar_title,
                             $enrollment->webinar_id,
                             $enrollment->name,
                             $enrollment->email,

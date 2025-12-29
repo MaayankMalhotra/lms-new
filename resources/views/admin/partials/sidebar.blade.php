@@ -178,6 +178,12 @@
                     <i class="fas fa-user-tie mr-3 text-lg"></i> Mentor Applications
                 </a>
             </li>
+            <li>
+                <a href="{{ route('teacher.bookings') }}"
+                    class="flex items-center p-3 {{ request()->routeIs('teacher.bookings') ? 'bg-[#ff9800] text-white' : 'hover:bg-[#ff9800] hover:text-white' }} rounded transition">
+                    <i class="fas fa-clipboard-check mr-3 text-lg"></i> Assign Mocktail Marks
+                </a>
+            </li>
             <!-- Courses -->
             <li x-data="{ isOpen: {{ request()->routeIs('admin.course.*') ? 'true' : 'false' }} }">
                 <a href="javascript:void(0)" @click="isOpen = !isOpen"

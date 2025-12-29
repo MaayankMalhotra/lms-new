@@ -202,6 +202,8 @@ public function viewAvailableSlots()
                 'interview_bookings.id as booking_id',
                 'interview_bookings.status as booking_status',
                 'interview_bookings.meeting_link',
+                'interview_bookings.marks',
+                'interview_bookings.teacher_notes',
                 'courses.name as course_name',
                 'batches.batch_name',
                 'batches.start_date as batch_start_date'
