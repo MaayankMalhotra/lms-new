@@ -146,22 +146,53 @@ class TeacherController extends Controller
         return redirect()->route('teacher.bookings')->with('success', 'Marks and notes saved.');
     }
 
-public function viewBookings()
-{
-    $teacherId = Auth::id();
+    public function viewBookings(Request $request)
+    {
+        $teacherId = Auth::id();
+        $courseId = $request->query('course_id');
+        $batchId = $request->query('batch_id');
 
-    $slotsByDate = AvailableSlot::with([
-            'booking.student',
-            'course',
-            'batch',
-        ])
-        ->where('teacher_id', $teacherId)
-        ->orderBy('start_time')
-        ->get()
-        ->groupBy(fn ($slot) => optional($slot->start_time)?->format('Y-m-d') ?? 'TBD');
+        $trainerDetail = TrainerDetail::where('user_id', $teacherId)->first();
+        $courseIds = $trainerDetail?->course_ids ?? [];
+        if (!is_array($courseIds)) {
+            $courseIds = $courseIds ? json_decode($courseIds, true) : [];
+        }
 
-    return view('teacher.bookings', compact('slotsByDate'));
-}
+        $coursesQuery = Course::orderBy('name');
+        if (!empty($courseIds)) {
+            $coursesQuery->whereIn('id', $courseIds);
+        }
+        $courses = $coursesQuery->get();
+
+        $slotsByDate = AvailableSlot::with([
+                'booking.student',
+                'course',
+                'batch',
+            ])
+            ->where('teacher_id', $teacherId)
+            ->when($courseId, fn ($query) => $query->where('course_id', $courseId))
+            ->when($batchId, fn ($query) => $query->where('batch_id', $batchId))
+            ->orderBy('start_time')
+            ->get()
+            ->groupBy(fn ($slot) => optional($slot->start_time)?->format('Y-m-d') ?? 'TBD');
+
+        $batches = collect();
+        if ($courseId) {
+            $batches = Batch::query()
+                ->select('id', 'batch_name', 'start_date')
+                ->where('course_id', $courseId)
+                ->orderBy('start_date')
+                ->get();
+        }
+
+        return view('teacher.bookings', compact(
+            'slotsByDate',
+            'courses',
+            'courseId',
+            'batchId',
+            'batches'
+        ));
+    }
 
 // public function updateSlotStatus(Request $request, $slotId)
 // {
