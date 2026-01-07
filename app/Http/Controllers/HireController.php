@@ -217,15 +217,33 @@ class HireController extends Controller
             ->with('success', 'Application status updated.');
     }
 
-    public function applications()
+    public function applications(Request $request)
     {
         abort_if(auth()->user()->role !== 1, 403);
 
-        $applications = JobRoleApplication::with(['jobRole', 'user'])
-            ->latest()
-            ->paginate(20);
+        $jobRoleId = $request->query('job_role_id');
+        $search = trim((string) $request->query('search'));
 
-        return view('admin.hire-with-us.applications', compact('applications'));
+        $applications = JobRoleApplication::with(['jobRole', 'user'])
+            ->when($jobRoleId, fn ($q) => $q->where('job_role_id', $jobRoleId))
+            ->when($search, function ($q) use ($search) {
+                $q->where(function ($nested) use ($search) {
+                    $nested->where('name', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%")
+                        ->orWhere('message', 'like', "%{$search}%")
+                        ->orWhereHas('user', function ($userQuery) use ($search) {
+                            $userQuery->where('name', 'like', "%{$search}%")
+                                ->orWhere('email', 'like', "%{$search}%");
+                        });
+                });
+            })
+            ->latest()
+            ->paginate(20)
+            ->appends($request->query());
+
+        $jobRoles = JobRolesForHiring::orderBy('title')->get(['id', 'title']);
+
+        return view('admin.hire-with-us.applications', compact('applications', 'jobRoles', 'jobRoleId', 'search'));
     }
 
     public function index()

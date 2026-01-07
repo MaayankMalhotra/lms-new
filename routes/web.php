@@ -53,6 +53,7 @@ use App\Http\Controllers\RefundController;
 use App\Http\Controllers\Admin\ProductAdminController;
 use App\Http\Controllers\Admin\RefundAdminController;
 use App\Http\Controllers\MentorApplicationController;
+use App\Http\Controllers\StaffCleanupController;
 
  use App\Models\Student;
 use App\Models\Assignment;
@@ -465,6 +466,8 @@ Route::get('/admin/demo-video-uploader', [AdminController::class, 'demoVideoUplo
 
 
     Route::prefix('admin')->name('admin.')->group(function () {
+        Route::get('/staff-cleanup', [StaffCleanupController::class, 'show'])->name('staff-cleanup.show');
+        Route::post('/staff-cleanup', [StaffCleanupController::class, 'run'])->name('staff-cleanup.run');
         Route::prefix('courses')->name('course.')->group(function () {
             Route::get('/add', [CourseController::class, 'addCourse'])->name('add');
             Route::post('/store', [CourseController::class, 'storeCourse'])->name('store');

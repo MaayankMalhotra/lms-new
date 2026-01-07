@@ -22,6 +22,47 @@
         </div>
     @endif
 
+    <div class="bg-white shadow rounded-lg p-4 mb-4">
+        <form method="GET" action="{{ route('admin.job-roles.applications') }}" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+            <div>
+                <label for="job_role_id" class="block text-sm font-medium text-gray-700">Job Role</label>
+                <select
+                    id="job_role_id"
+                    name="job_role_id"
+                    class="mt-1 block w-full border rounded px-3 py-2 bg-white focus:outline-none focus:ring focus:ring-orange-200"
+                >
+                    <option value="">All roles</option>
+                    @foreach($jobRoles as $role)
+                        <option value="{{ $role->id }}" {{ (string) ($jobRoleId ?? '') === (string) $role->id ? 'selected' : '' }}>
+                            {{ $role->title }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div class="md:col-span-2">
+                <label for="search" class="block text-sm font-medium text-gray-700">Search student / email / message</label>
+                <input
+                    id="search"
+                    name="search"
+                    type="text"
+                    value="{{ $search ?? '' }}"
+                    placeholder="e.g., student name or email"
+                    class="mt-1 block w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:ring-orange-200"
+                >
+            </div>
+
+            <div class="flex flex-wrap gap-3">
+                <button type="submit" class="inline-flex items-center justify-center px-4 py-2 bg-[#ff9800] text-white rounded hover:bg-[#e07d00]">
+                    Apply filters
+                </button>
+                <a href="{{ route('admin.job-roles.applications') }}" class="inline-flex items-center justify-center px-4 py-2 border border-gray-300 rounded text-gray-700 hover:bg-gray-50">
+                    Reset
+                </a>
+            </div>
+        </form>
+    </div>
+
     <div class="bg-white shadow rounded-lg overflow-hidden">
         <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-200">
@@ -60,7 +101,7 @@
                     @empty
                         <tr>
                             <td colspan="5" class="px-4 py-6 text-center text-gray-500">
-                                No applications yet.
+                                No applications found. @if(($jobRoleId ?? null) || ($search ?? null)) Try adjusting or clearing the filters.@endif
                             </td>
                         </tr>
                     @endforelse
