@@ -29,6 +29,35 @@
             }
         };
     </script>
+    <style>
+        .admin-shell {
+            position: relative;
+        }
+        .admin-sidebar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            width: 20%;
+            min-width: 260px;
+            transform: translateX(-100%);
+            transition: transform 0.2s ease;
+            z-index: 50;
+        }
+        .sidebar-hover-zone {
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            width: 14px;
+            z-index: 40;
+        }
+        .sidebar-hover-zone:hover + .admin-sidebar,
+        .admin-sidebar:hover,
+        .admin-sidebar:focus-within {
+            transform: translateX(0);
+        }
+    </style>
 </head>
 
 <body class="text-gray-900 font-sans"
@@ -36,14 +65,15 @@
              background: url('https://img.freepik.com/free-vector/education-pattern-background-doodle-style_53876-115365.jpg') no-repeat center center fixed;
              background-size: cover;">
              
-    <div class="flex h-screen overflow-hidden">
+    <div class="admin-shell h-screen overflow-hidden">
+        <div class="sidebar-hover-zone" aria-hidden="true"></div>
         <!-- Sidebar -->
-        <aside class="h-full bg-[#2c1d56] px-2 w-1/5 flex-shrink-0 flex flex-col overflow-hidden">
+        <aside class="admin-sidebar h-full bg-[#2c1d56] px-2 flex flex-col overflow-hidden">
             @include('admin.partials.sidebar')
         </aside>
 
         <!-- Main Content Area -->
-        <div class="flex flex-col flex-1 overflow-hidden">
+        <div class="admin-main flex flex-col h-full overflow-hidden">
             <!-- Header -->
             <header class="bg-white shadow-md w-full px-6 py-2 flex justify-between items-center flex-shrink-0">
                 @include('admin.partials.header')

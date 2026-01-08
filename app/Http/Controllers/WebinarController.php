@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Mail\WebinarCertificateMail;
 use App\Mail\WebinarConfirmation;
+use App\Mail\WebinarRegistrationMail;
 use App\Models\Webinar;
 use App\Models\WebinarEnrollment;
 use Illuminate\Http\Request;
@@ -61,13 +62,24 @@ class WebinarController extends Controller
         if ($validator->fails()) {
             return redirect()->back()->withErrors($validator)->withInput();
         }
-        WebinarEnrollment::create([
+        $enrollment = WebinarEnrollment::create([
             'webinar_id' => $webinar->id,
             'name' => $request->name,
             'email' => $request->email,
             'phone' => $request->phone,
             'comments' => $request->comments,
         ]);
+
+        try {
+            Mail::to($enrollment->email)->send(new WebinarRegistrationMail($webinar, $enrollment));
+        } catch (\Throwable $e) {
+            Log::error('Webinar registration email failed', [
+                'webinar_id' => $webinar->id,
+                'enrollment_id' => $enrollment->id,
+                'email' => $enrollment->email,
+                'error' => $e->getMessage(),
+            ]);
+        }
 
         return redirect()->back()->with('success', 'Successfully enrolled in the webinar!');
     }
