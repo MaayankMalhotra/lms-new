@@ -316,11 +316,26 @@
                                     if (empty($videoUrls) && !empty($module['video_url'])) {
                                         $videoUrls[] = $module['video_url'];
                                     }
-                                    $primaryVideo = $videoUrls[0] ?? config('app.demo_video_fallback_url');
+                                    $primaryVideo = $videoUrls[0] ?? null;
+                                    $primaryVideoHref = $primaryVideo ?? config('app.demo_video_fallback_url');
+                                    $primaryEmbedUrl = $primaryVideo
+                                        ? \App\Support\DemoVideoHelper::youtubeEmbedUrl($primaryVideo)
+                                        : null;
                                 @endphp
-                                @if($primaryVideo)
+                                @if($primaryEmbedUrl)
+                                    <div class="mt-4 overflow-hidden rounded-xl border border-gray-100 bg-gray-50 shadow-sm">
+                                        <iframe
+                                            class="w-full aspect-video"
+                                            src="{{ $primaryEmbedUrl }}"
+                                            title="Demo video"
+                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                            allowfullscreen
+                                        ></iframe>
+                                    </div>
+                                @endif
+                                @if($primaryVideoHref)
                                     <div class="mt-6 text-right">
-                                        <a href="{{ $primaryVideo }}" target="_blank" rel="noopener" class="inline-flex items-center justify-center px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-[#ff7300] to-[#ff4500] rounded-lg shadow hover:shadow-lg transition">
+                                        <a href="{{ $primaryVideoHref }}" target="_blank" rel="noopener" class="inline-flex items-center justify-center px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-[#ff7300] to-[#ff4500] rounded-lg shadow hover:shadow-lg transition">
                                             <i class="fas fa-play mr-2"></i>
                                             Watch Demo Video
                                         </a>

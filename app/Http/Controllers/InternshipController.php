@@ -220,7 +220,7 @@ public function update(Request $request, Internship $internship)
         $existing = $modules[$data['module_index']]['video_urls'] ?? [];
         $existing = is_array($existing) ? array_filter(array_map('trim', $existing)) : [];
 
-        $merged = $data['replace_existing'] ? $videoUrls : array_merge($existing, $videoUrls);
+        $merged = $data['replace_existing'] ? $videoUrls : array_merge($videoUrls, $existing);
         $merged = array_values(array_unique(array_filter($merged)));
 
         if (empty($merged)) {
