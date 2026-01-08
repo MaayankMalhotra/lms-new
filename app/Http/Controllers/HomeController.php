@@ -8,6 +8,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\Course;
+use App\Models\Internship;
 use App\Models\Batch;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -27,9 +28,9 @@ class HomeController extends Controller
     }
 
     $placements = DB::select("SELECT * FROM home_placements WHERE is_active = 1 LIMIT 2");
-    $courses = DB::select("SELECT * FROM home_courses WHERE is_active = 1 LIMIT 3");
+    $courses = Course::latest()->limit(3)->get();
     $upcomingCourses = DB::select("SELECT * FROM home_upcoming_courses WHERE is_active = 1 LIMIT 3");
-    $internships = DB::select("SELECT * FROM home_internships WHERE is_active = 1 LIMIT 3");
+    $internships = Internship::latest()->limit(3)->get();
     $instructors = DB::select("SELECT * FROM home_instructors WHERE is_active = 1 LIMIT 4");
     $testimonials = DB::select("SELECT * FROM home_testimonials WHERE is_active = 1 LIMIT 3");
     $faqs = DB::select("SELECT * FROM home_faqs WHERE is_active = 1");

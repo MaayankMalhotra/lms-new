@@ -14,7 +14,7 @@
         </div>
 
         <div class="bg-white shadow-md rounded-lg p-4">
-            <form method="GET" action="{{ route('teacher.bookings') }}" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+            <form method="GET" action="{{ route('teacher.bookings') }}" class="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
                 <div>
                     <label for="filter-course" class="block text-sm font-medium text-gray-700">Course</label>
                     <select
@@ -55,6 +55,22 @@
                         @else
                             <option value="">Select a course first</option>
                         @endif
+                    </select>
+                </div>
+
+                <div>
+                    <label for="filter-status" class="block text-sm font-medium text-gray-700">Status</label>
+                    <select
+                        id="filter-status"
+                        name="status"
+                        class="mt-1 block w-full border rounded px-3 py-2 bg-white focus:outline-none focus:ring focus:ring-indigo-200"
+                    >
+                        <option value="">All statuses</option>
+                        @foreach(['pending' => 'Pending', 'completed' => 'Completed', 'rescheduled' => 'Rescheduled'] as $value => $label)
+                            <option value="{{ $value }}" {{ ($status ?? '') === $value ? 'selected' : '' }}>
+                                {{ $label }}
+                            </option>
+                        @endforeach
                     </select>
                 </div>
 

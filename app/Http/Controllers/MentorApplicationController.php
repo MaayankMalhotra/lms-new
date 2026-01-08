@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\MentorApplication;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 
 class MentorApplicationController extends Controller
@@ -109,7 +110,50 @@ class MentorApplicationController extends Controller
             'status' => ['required', 'string', 'max:50'],
         ]);
 
+        $previousStatus = $application->status;
         $application->update(['status' => $data['status']]);
+
+        if ($previousStatus !== $data['status'] && !empty($application->email)) {
+            $statusLabel = ucfirst($data['status']);
+            $previousLabel = $previousStatus ? ucfirst($previousStatus) : 'Pending';
+            $safeName = e($application->name ?: 'there');
+            $safeEmail = e($application->email);
+
+            $html = "
+                <div style=\"font-family: Arial, sans-serif; color:#1f2937; background:#f8fafc; padding:20px;\">
+                    <div style=\"background:#ffffff; border-radius:8px; padding:20px; border:1px solid #e5e7eb;\">
+                        <h2 style=\"margin:0 0 12px; font-size:18px;\">Mentor application status update</h2>
+                        <p style=\"margin:0 0 12px;\">Hi {$safeName},</p>
+                        <p style=\"margin:0 0 12px;\">Your mentor application status has been updated.</p>
+                        <table style=\"border-collapse: collapse; width:100%; margin:12px 0;\">
+                            <tr>
+                                <td style=\"padding:8px; border:1px solid #e5e7eb; width:140px;\"><strong>Previous</strong></td>
+                                <td style=\"padding:8px; border:1px solid #e5e7eb;\">{$previousLabel}</td>
+                            </tr>
+                            <tr>
+                                <td style=\"padding:8px; border:1px solid #e5e7eb;\"><strong>Current</strong></td>
+                                <td style=\"padding:8px; border:1px solid #e5e7eb;\">{$statusLabel}</td>
+                            </tr>
+                            <tr>
+                                <td style=\"padding:8px; border:1px solid #e5e7eb;\"><strong>Contact</strong></td>
+                                <td style=\"padding:8px; border:1px solid #e5e7eb;\">{$safeEmail}</td>
+                            </tr>
+                        </table>
+                        <p style=\"margin:12px 0 0;\">We will contact you if we need more information.</p>
+                    </div>
+                </div>
+            ";
+
+            try {
+                Mail::html($html, function ($message) use ($application) {
+                    $message->to($application->email)
+                        ->subject('Mentor application status update');
+                });
+            } catch (\Throwable $e) {
+                report($e);
+                return back()->with('error', 'Status updated, but email could not be sent.');
+            }
+        }
 
         return back()->with('success', 'Application status updated.');
     }

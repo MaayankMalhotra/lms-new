@@ -5,8 +5,10 @@
         display: none;
     }
     .sidebar {
-        height: 100vh; /* Full height of the viewport */
         overflow-y: auto; /* Enable vertical scrolling */
+        padding-bottom: 2.5rem; /* Extra space so the last menu isn't cramped */
+        scroll-padding-bottom: 2.5rem;
+        min-height: 0;
     }
 </style>
 <!-- Logo -->
@@ -15,8 +17,21 @@
         class="h-12 w-auto mx-auto">
 </div>
 
+<div class="px-2 mb-3 flex-shrink-0">
+    <label for="sidebar-search" class="sr-only">Search menu</label>
+    <div class="relative">
+        <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+        <input
+            id="sidebar-search"
+            type="text"
+            placeholder="Search menu"
+            class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 pl-8 text-sm text-gray-700 focus:border-[#ff9800] focus:outline-none focus:ring-2 focus:ring-[#ff9800]/30"
+        >
+    </div>
+</div>
+
 <!-- Navigation -->
-<nav class="bg-white shadow-lg rounded-tl-lg rounded-tr-lg p-4 flex-grow sidebar scrollbar-hide">
+<nav class="bg-white shadow-lg rounded-tl-lg rounded-tr-lg p-4 flex-1 min-h-0 sidebar scrollbar-hide">
     <ul class="list-none p-0 m-0 space-y-2 !text-sm">
         <!-- Dashboard -->
         <li>
@@ -63,7 +78,7 @@
                     <i class="fas fa-briefcase mr-3 text-lg"></i> Job Roles
                 </a>
             </li>
-               <li x-data="{ isOpen: {{ request()->routeIs('student.slots.*') ? 'true' : 'false' }} }">
+               <li x-data="{ isOpen: false }" @mouseenter="isOpen = true" @mouseleave="isOpen = false">
             <a href="javascript:void(0)" @click="isOpen = !isOpen"
                 class="flex items-center justify-between p-3 {{ request()->routeIs('student.slots.*') ? 'bg-[#ff9800] text-white' : 'hover:bg-[#ff9800] hover:text-white' }} rounded transition">
                 <span class="flex items-center">
@@ -185,7 +200,7 @@
                 </a>
             </li>
             <!-- Courses -->
-            <li x-data="{ isOpen: {{ request()->routeIs('admin.course.*') ? 'true' : 'false' }} }">
+            <li x-data="{ isOpen: false }" @mouseenter="isOpen = true" @mouseleave="isOpen = false">
                 <a href="javascript:void(0)" @click="isOpen = !isOpen"
                     class="flex items-center justify-between p-3 {{ request()->routeIs('admin.course.*') ? 'bg-[#ff9800] text-white' : 'hover:bg-[#ff9800] hover:text-white' }} rounded transition">
                     <span class="flex items-center">
@@ -215,7 +230,7 @@
                 </ul>
             </li>
             <!-- Internships -->
-            <li x-data="{ isOpen: {{ request()->routeIs('admin.internship.*') || request()->routeIs('admin.internship-batches.*') || request()->routeIs('admin.internship-recording-courses.*') || request()->routeIs('admin.internship.class.*') ? 'true' : 'false' }} }">
+            <li x-data="{ isOpen: false }" @mouseenter="isOpen = true" @mouseleave="isOpen = false">
                 <a href="javascript:void(0)" @click="isOpen = !isOpen"
                     class="flex items-center justify-between p-3 {{ request()->routeIs('admin.internship.*') || request()->routeIs('admin.internship-batches.*') || request()->routeIs('admin.internship-recording-courses.*') || request()->routeIs('admin.internship.class.*') ? 'bg-[#ff9800] text-white' : 'hover:bg-[#ff9800] hover:text-white' }} rounded transition">
                     <span class="flex items-center">
@@ -287,7 +302,7 @@
                 </ul>
             </li>
             <!-- Enrollments -->
-            <li x-data="{ isOpen: {{ request()->routeIs('admin.enrollment.*') ? 'true' : 'false' }} }">
+            <li x-data="{ isOpen: false }" @mouseenter="isOpen = true" @mouseleave="isOpen = false">
                 <a href="javascript:void(0)" @click="isOpen = !isOpen"
                     class="flex items-center justify-between p-3 {{ request()->routeIs('admin.enrollment.*') ? 'bg-[#ff9800] text-white' : 'hover:bg-[#ff9800] hover:text-white' }} rounded transition">
                     <span class="flex items-center">
@@ -305,7 +320,7 @@
                 </ul>
             </li>
             <!-- Coding Module -->
-            <li x-data="{ isOpen: {{ request()->routeIs('admin.coding_questions.*') ? 'true' : 'false' }} }">
+            <li x-data="{ isOpen: false }" @mouseenter="isOpen = true" @mouseleave="isOpen = false">
                 <a href="javascript:void(0)" @click="isOpen = !isOpen"
                     class="flex items-center justify-between p-3 {{ request()->routeIs('admin.coding_questions.*') ? 'bg-[#ff9800] text-white' : 'hover:bg-[#ff9800] hover:text-white' }} rounded transition">
                     <span class="flex items-center">
@@ -323,7 +338,7 @@
                 </ul>
             </li>
             <!-- Batches -->
-            <li x-data="{ isOpen: {{ request()->routeIs('admin.batches.*') ? 'true' : 'false' }} }">
+            <li x-data="{ isOpen: false }" @mouseenter="isOpen = true" @mouseleave="isOpen = false">
                 <a href="javascript:void(0)" @click="isOpen = !isOpen"
                     class="flex items-center justify-between p-3 {{ request()->routeIs('admin.batches.*') ? 'bg-[#ff9800] text-white' : 'hover:bg-[#ff9800] hover:text-white' }} rounded transition">
                     <span class="flex items-center">
@@ -347,7 +362,7 @@
                 </ul>
             </li>
             <!-- Recordings -->
-            <li x-data="{ isOpen: {{ request()->routeIs('admin.recordings.*') ? 'true' : 'false' }} }">
+            <li x-data="{ isOpen: false }" @mouseenter="isOpen = true" @mouseleave="isOpen = false">
                 <a href="javascript:void(0)" @click="isOpen = !isOpen"
                     class="flex items-center justify-between p-3 {{ request()->routeIs('admin.recordings.*') ? 'bg-[#ff9800] text-white' : 'hover:bg-[#ff9800] hover:text-white' }} rounded transition">
                     <span class="flex items-center">
@@ -371,7 +386,7 @@
                 </ul>
             </li>
             <!-- Live Classes -->
-            <li x-data="{ isOpen: {{ request()->routeIs('admin.live_classes.*') ? 'true' : 'false' }} }">
+            <li x-data="{ isOpen: false }" @mouseenter="isOpen = true" @mouseleave="isOpen = false">
                 <a href="javascript:void(0)" @click="isOpen = !isOpen"
                     class="flex items-center justify-between p-3 {{ request()->routeIs('admin.live_classes.*') ? 'bg-[#ff9800] text-white' : 'hover:bg-[#ff9800] hover:text-white' }} rounded transition">
                     <span class="flex items-center">
@@ -420,7 +435,7 @@
                 </a>
             </li>
             <!-- News -->
-            <li x-data="{ isOpen: {{ request()->routeIs('admin.news.*') || request()->routeIs('admin.news-categories.*') ? 'true' : 'false' }} }">
+            <li x-data="{ isOpen: false }" @mouseenter="isOpen = true" @mouseleave="isOpen = false">
                 <a href="javascript:void(0)" @click="isOpen = !isOpen"
                     class="flex items-center justify-between p-3 {{ request()->routeIs('admin.news.*') || request()->routeIs('admin.news-categories.*') ? 'bg-[#ff9800] text-white' : 'hover:bg-[#ff9800] hover:text-white' }} rounded transition">
                     <span class="flex items-center">
@@ -456,7 +471,7 @@
                 </ul>
             </li>
             <!-- Events -->
-            <li x-data="{ isOpen: {{ request()->routeIs('admin.events.*') || request()->routeIs('admin.event-categories.*') ? 'true' : 'false' }} }">
+            <li x-data="{ isOpen: false }" @mouseenter="isOpen = true" @mouseleave="isOpen = false">
                 <a href="javascript:void(0)" @click="isOpen = !isOpen"
                     class="flex items-center justify-between p-3 {{ request()->routeIs('admin.events.*') || request()->routeIs('admin.event-categories.*') ? 'bg-[#ff9800] text-white' : 'hover:bg-[#ff9800] hover:text-white' }} rounded transition">
                     <span class="flex items-center">
@@ -524,7 +539,7 @@
 
         @if (auth()->user()->role == 1)
         <!-- Career Highlights and Reviews -->
-        <li x-data="{ isOpen: {{ request()->routeIs('admin.career_highlight.*') ? 'true' : 'false' }} }">
+        <li x-data="{ isOpen: false }" @mouseenter="isOpen = true" @mouseleave="isOpen = false">
             <a href="javascript:void(0)" @click="isOpen = !isOpen"
                 class="flex items-center justify-between p-3 {{ request()->routeIs('admin.career_highlight.*') ? 'bg-[#ff9800] text-white' : 'hover:bg-[#ff9800] hover:text-white' }} rounded transition">
                 <span class="flex items-center">
@@ -563,7 +578,7 @@
 
     @if (auth()->user()->role == 1)
         <!-- Webinar -->
-        <li x-data="{ isOpen: {{ request()->routeIs('admin.webinar.*') ? 'true' : 'false' }} }">
+        <li x-data="{ isOpen: false }" @mouseenter="isOpen = true" @mouseleave="isOpen = false">
             <a href="javascript:void(0)" @click="isOpen = !isOpen"
                 class="flex items-center justify-between p-3 {{ request()->routeIs('admin.webinar.*') ? 'bg-[#ff9800] text-white' : 'hover:bg-[#ff9800] hover:text-white' }} rounded transition">
                 <span class="flex items-center">
@@ -593,7 +608,7 @@
 
     @if (auth()->user()->role == 1)
         <!-- Hire With Us -->
-        <li x-data="{ isOpen: {{ request()->routeIs('admin.job-roles.*') ? 'true' : 'false' }} }">
+        <li x-data="{ isOpen: false }" @mouseenter="isOpen = true" @mouseleave="isOpen = false">
             <a href="javascript:void(0)" @click="isOpen = !isOpen"
                 class="flex items-center justify-between p-3 {{ request()->routeIs('admin.job-roles.*') ? 'bg-[#ff9800] text-white' : 'hover:bg-[#ff9800] hover:text-white' }} rounded transition">
                 <span class="flex items-center">
@@ -621,7 +636,7 @@
 
     @if (auth()->user()->role == 1)
         <!-- Enrollment -->
-         <li x-data="{ isOpen: {{ request()->routeIs('enrollment.report.*') ? 'true' : 'false' }} }">
+         <li x-data="{ isOpen: false }" @mouseenter="isOpen = true" @mouseleave="isOpen = false">
             <a href="javascript:void(0)" @click="isOpen = !isOpen"
                 class="flex items-center justify-between p-3 {{ request()->routeIs('enrollment.report.*') ? 'bg-[#ff9800] text-white' : 'hover:bg-[#ff9800] hover:text-white' }} rounded transition">
                 <span class="flex items-center">
@@ -643,7 +658,7 @@
 
 
 
-        <li x-data="{ isOpen: {{ request()->routeIs('teacher.slots.*') ? 'true' : 'false' }} }">
+        <li x-data="{ isOpen: false }" @mouseenter="isOpen = true" @mouseleave="isOpen = false">
             <a href="javascript:void(0)" @click="isOpen = !isOpen"
                 class="flex items-center justify-between p-3 {{ request()->routeIs('teacher.slots.*') ? 'bg-[#ff9800] text-white' : 'hover:bg-[#ff9800] hover:text-white' }} rounded transition">
                 <span class="flex items-center">
@@ -663,7 +678,7 @@
     @endif
 
     @if (in_array(auth()->user()->role, [ 2]))
-    <li x-data="{ isOpen: {{ (request()->routeIs('teacher.slots') || request()->routeIs('teacher.bookings')) ? 'true' : 'false' }} }">
+    <li x-data="{ isOpen: false }" @mouseenter="isOpen = true" @mouseleave="isOpen = false">
         <a href="javascript:void(0)" @click="isOpen = !isOpen"
            class="flex items-center justify-between p-3 {{ (request()->routeIs('teacher.slots') || request()->routeIs('teacher.bookings')) ? 'bg-[#ff9800] text-white' : 'hover:bg-[#ff9800] hover:text-white' }} rounded transition">
             <span class="flex items-center">
@@ -692,7 +707,7 @@
 
     @if (auth()->user()->role == 1)
         <!-- Webinar -->
-        <li x-data="{ isOpen: {{ request()->routeIs('admin.contactus.*') ? 'true' : 'false' }} }">
+        <li x-data="{ isOpen: false }" @mouseenter="isOpen = true" @mouseleave="isOpen = false">
             <a href="javascript:void(0)" @click="isOpen = !isOpen"
                 class="flex items-center justify-between p-3 {{ request()->routeIs('admin.contactus.*') ? 'bg-[#ff9800] text-white' : 'hover:bg-[#ff9800] hover:text-white' }} rounded transition">
                 <span class="flex items-center">
@@ -712,3 +727,30 @@
     @endif
     </ul>
 </nav>
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const searchInput = document.getElementById('sidebar-search');
+    const menuList = document.querySelector('nav.sidebar > ul');
+
+    if (!searchInput || !menuList) {
+        return;
+    }
+
+    const items = Array.from(menuList.children).filter((item) => item.tagName === 'LI');
+    const normalize = (value) => value.toLowerCase().replace(/\s+/g, ' ').trim();
+
+    const applyFilter = () => {
+        const query = normalize(searchInput.value);
+        items.forEach((item) => {
+            const text = normalize(item.textContent || '');
+            const matches = !query || text.includes(query);
+            item.style.display = matches ? '' : 'none';
+        });
+    };
+
+    searchInput.addEventListener('input', applyFilter);
+});
+</script>
+@endpush

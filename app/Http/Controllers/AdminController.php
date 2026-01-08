@@ -113,12 +113,46 @@ class AdminController extends Controller
         return response()->json(['message' => 'Trainer updated successfully!']);
     }
 
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
-        $trainerDetail = TrainerDetail::findOrFail($id);
-        $trainerDetail->delete();
-        if (request()->ajax()) {
-        return response()->json(['success' => true, 'message' => 'Trainer deleted successfully']);
+        $type = $request->query('type');
+        $trainerDetail = null;
+        $user = null;
+
+        if ($type === 'detail') {
+            $trainerDetail = TrainerDetail::find($id);
+            if (!$trainerDetail) {
+                return response()->json(['success' => false, 'message' => 'Trainer detail not found'], 404);
+            }
+            $user = User::find($trainerDetail->user_id);
+        } elseif ($type === 'user') {
+            $user = User::where('id', $id)->where('role', 2)->first();
+            if (!$user) {
+                return response()->json(['success' => false, 'message' => 'Trainer not found'], 404);
+            }
+            $trainerDetail = TrainerDetail::where('user_id', $user->id)->first();
+        } else {
+            $trainerDetail = TrainerDetail::find($id);
+            if ($trainerDetail) {
+                $user = User::find($trainerDetail->user_id);
+            } else {
+                $user = User::where('id', $id)->where('role', 2)->first();
+                if (!$user) {
+                    return response()->json(['success' => false, 'message' => 'Trainer not found'], 404);
+                }
+                $trainerDetail = TrainerDetail::where('user_id', $user->id)->first();
+            }
+        }
+
+        if ($trainerDetail) {
+            $trainerDetail->delete();
+        }
+        if ($user) {
+            $user->delete();
+        }
+
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json(['success' => true, 'message' => 'Trainer deleted successfully']);
         }
         return redirect()->route('trainer-management')->with('success', 'Trainer deleted successfully!');
     }
@@ -134,9 +168,16 @@ class AdminController extends Controller
     }
 
 
-public function student_management()
+public function student_management(Request $request)
     {
-        $students = User::where('role', 3)->get()->map(function ($student) {
+        $studentQuery = User::where('role', 3);
+
+        if ($request->filled('email')) {
+            $email = trim($request->input('email'));
+            $studentQuery->where('email', 'like', '%' . $email . '%');
+        }
+
+        $students = $studentQuery->get()->map(function ($student) {
             return [
                 'id' => $student->id,
                 'name' => $student->name,
@@ -708,11 +749,13 @@ public function storePlacement(Request $request)
     {
         $instructor = DB::select("SELECT * FROM home_instructors WHERE id = ?", [$id])[0] ?? null;
         if ($instructor) {
-            Storage::disk('public')->delete($instructor->image);
+            if (!empty($instructor->image)) {
+                Storage::disk('public')->delete($instructor->image);
+            }
             DB::delete("DELETE FROM home_instructors WHERE id = ?", [$id]);
-            return redirect()->home()->with('success', 'Instructor deleted successfully.');
+            return redirect()->route('admin.home')->with('success', 'Instructor deleted successfully.');
         }
-        return redirect()->home()->with('error', 'Instructor not found.');
+        return redirect()->route('admin.home')->with('error', 'Instructor not found.');
     }
 
     // Testimonials

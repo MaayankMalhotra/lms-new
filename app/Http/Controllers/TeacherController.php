@@ -151,6 +151,7 @@ class TeacherController extends Controller
         $teacherId = Auth::id();
         $courseId = $request->query('course_id');
         $batchId = $request->query('batch_id');
+        $status = $request->query('status');
 
         $trainerDetail = TrainerDetail::where('user_id', $teacherId)->first();
         $courseIds = $trainerDetail?->course_ids ?? [];
@@ -172,6 +173,7 @@ class TeacherController extends Controller
             ->where('teacher_id', $teacherId)
             ->when($courseId, fn ($query) => $query->where('course_id', $courseId))
             ->when($batchId, fn ($query) => $query->where('batch_id', $batchId))
+            ->when($status, fn ($query) => $query->where('status', $status))
             ->orderBy('start_time')
             ->get()
             ->groupBy(fn ($slot) => optional($slot->start_time)?->format('Y-m-d') ?? 'TBD');
@@ -190,7 +192,8 @@ class TeacherController extends Controller
             'courses',
             'courseId',
             'batchId',
-            'batches'
+            'batches',
+            'status'
         ));
     }
 

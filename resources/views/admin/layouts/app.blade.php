@@ -38,7 +38,7 @@
              
     <div class="flex h-screen overflow-hidden">
         <!-- Sidebar -->
-        <aside class="h-full bg-[#2c1d56] px-2 w-1/5 flex-shrink-0 ">
+        <aside class="h-full bg-[#2c1d56] px-2 w-1/5 flex-shrink-0 flex flex-col overflow-hidden">
             @include('admin.partials.sidebar')
         </aside>
 

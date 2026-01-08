@@ -6,13 +6,29 @@
     
     <div class="max-w-7xl mx-auto">
         <!-- Header -->
-        <div class="mb-8 flex justify-between items-center">
+        <div class="mb-8 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
                 <h1 class="text-3xl font-bold text-gray-900 drop-shadow-md">
                     <i class="fas fa-users mr-2 text-blue-500"></i>Student List
                 </h1>
                 <p class="text-gray-700 mt-1">Manage all students in the system</p>
             </div>
+            <form method="GET" action="{{ route('student-management') }}" class="flex flex-wrap items-center gap-3 bg-white/70 backdrop-blur-md p-3 rounded-xl shadow">
+                <div class="flex items-center gap-2">
+                    <label for="email-filter" class="text-sm font-semibold text-gray-700">Email</label>
+                    <input id="email-filter" type="text" name="email" value="{{ request('email') }}"
+                           placeholder="Filter by email"
+                           class="w-64 max-w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200">
+                </div>
+                <button type="submit" class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">
+                    Filter
+                </button>
+                @if(request()->filled('email'))
+                    <a href="{{ route('student-management') }}" class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-600 hover:border-gray-400">
+                        Clear
+                    </a>
+                @endif
+            </form>
         </div>
 
         <!-- Alerts -->

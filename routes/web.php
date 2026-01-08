@@ -685,6 +685,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/webinar-enrollments',[WebinarController::class, 'enrollments'])->name('admin.webinar.enrollments');
     Route::get('/webinar-enrollments/export',[WebinarController::class, 'exportEnrollments'])->name('admin.webinar.enrollments.export');
     Route::post('/webinar/send-confirmation', [WebinarController::class, 'sendConfirmation'])->name('admin.webinar.send-confirmation');
+    Route::post('/webinar-enrollments/{enrollment}/send-confirmation', [WebinarController::class, 'sendConfirmationSingle'])->name('admin.webinar.enrollments.send-confirmation');
+    Route::post('/webinar-enrollments/{enrollment}/test-email', [WebinarController::class, 'testEnrollmentEmail'])->name('admin.webinar.enrollments.test-email');
     Route::get('/verify-presence', [WebinarController::class, 'verifyPresence'])->name('webinar-attendance');
     Route::post('/attendance_submit_webinar', [WebinarController::class, 'attendanceSubmitWebinar'])->name('attendance.submit.webinar');
     Route::post('/webinar/{id}/send-certificate',[WebinarController::class, 'sendWebinarCertificate'])->name('admin.webinar.send-certificate');

@@ -343,18 +343,21 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     @foreach($courses as $course)
                         @php
-                            $courseImagePath = $course->image;
+                            $courseTitle = $course->title ?? $course->name;
+                            $courseImagePath = $course->image ?? $course->logo;
                             $courseImage = $courseImagePath
                                 ? (filter_var($courseImagePath, FILTER_VALIDATE_URL) ? $courseImagePath : asset($courseImagePath))
                                 : $defaultCourseImage;
+                            $placedCount = $course->placed_count ?? $course->placed_learner;
+                            $studentCount = $course->student_count ?? null;
                         @endphp
                         <div class="study-box bg-white rounded-lg shadow-md p-6 text-center transition-all hover:scale-105 hover:shadow-lg">
-                            <h3 class="text-xl font-bold text-[#2c0b57]">{{ $course->title }}</h3>
-                            <img src="{{ $courseImage }}" class="w-12 h-12 mx-auto my-4 transition-transform hover:[transform:rotateY(180deg)]" alt="{{ $course->title }}" />
+                            <h3 class="text-xl font-bold text-[#2c0b57]">{{ $courseTitle }}</h3>
+                            <img src="{{ $courseImage }}" class="w-12 h-12 mx-auto my-4 transition-transform hover:[transform:rotateY(180deg)]" alt="{{ $courseTitle }}" />
                             <div class="text-gray-600 space-y-2">
                                 <p><i class="far fa-clock"></i> Duration: <span class="font-bold">{{ $course->duration }}</span></p>
-                                <p><i class="fas fa-users"></i> <span class="font-bold">{{ $course->placed_count }}+ Placed</span></p>
-                                <p>⭐ {{ $course->rating }} ({{ $course->student_count }}+ students)</p>
+                                <p><i class="fas fa-users"></i> <span class="font-bold">{{ $placedCount }}+ Placed</span></p>
+                                <p>⭐ {{ $course->rating }}@if($studentCount !== null && $studentCount !== '') ({{ $studentCount }}+ students)@endif</p>
                             </div>
                             <a href="{{ route('website.course') }}" class="mt-4 block w-full bg-[#ff7b00] text-white py-2 rounded-lg font-bold text-center hover:bg-[#ff5500] transition-all">Register</a>
                         </div>
@@ -388,7 +391,7 @@
                         </div>
                     @endforeach
                 </div>
-                <div id="viewAllUpcoming" class="text-center mt-8">
+                <div id="viewAllUpcoming" class="text-center mt-8 hidden">
                     <a href="{{ route('website.course') }}" class="inline-block bg-gradient-to-r from-[#ff7300] to-[#ff4500] text-white px-8 py-3 rounded-lg font-bold hover:shadow-lg hover:shadow-orange-300 transition-all">View All Upcoming Courses</a>
                 </div>
             </div>
@@ -398,22 +401,33 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     @foreach($internships as $internship)
                         @php
-                            $internshipImagePath = $internship->image;
+                            $internshipTitle = $internship->title ?? $internship->name;
+                            $internshipImagePath = $internship->image ?? $internship->logo;
                             $internshipImage = $internshipImagePath
                                 ? (filter_var($internshipImagePath, FILTER_VALIDATE_URL) ? $internshipImagePath : asset($internshipImagePath))
                                 : $defaultCourseImage;
+                            $projectCount = $internship->project_count ?? $internship->project;
+                            $rating = $internship->rating ?? null;
+                            $applicantCount = $internship->applicant_count ?? $internship->applicant;
+                            $certification = $internship->certification ?? $internship->certified_button;
                         @endphp
                         <div class="study-box bg-white rounded-lg shadow-md p-6 text-center transition-all hover:scale-105 hover:shadow-lg">
-                            <h4 class="text-xl font-bold text-[#2c0b57]">{{ $internship->title }}</h4>
-                            <img src="{{ $internshipImage }}" class="w-12 h-12 mx-auto my-4 transition-transform hover:[transform:rotateY(180deg)]" alt="{{ $internship->title }}" />
+                            <h4 class="text-xl font-bold text-[#2c0b57]">{{ $internshipTitle }}</h4>
+                            <img src="{{ $internshipImage }}" class="w-12 h-12 mx-auto my-4 transition-transform hover:[transform:rotateY(180deg)]" alt="{{ $internshipTitle }}" />
                             <div class="text-gray-600 space-y-2">
                                 <div class="flex justify-around">
                                     <span><i class="far fa-clock"></i> {{ $internship->duration }}</span>
-                                    <span><i class="fas fa-tasks"></i> {{ $internship->project_count }} Projects</span>
+                                    <span><i class="fas fa-tasks"></i> {{ $projectCount }} Projects</span>
                                 </div>
-                                <p>⭐ {{ $internship->rating }} ({{ $internship->applicant_count }}+ applicants)</p>
+                                @if($rating !== null && $rating !== '')
+                                    <p>⭐ {{ $rating }}@if($applicantCount !== null && $applicantCount !== '') ({{ $applicantCount }}+ applicants)@endif</p>
+                                @elseif($applicantCount !== null && $applicantCount !== '')
+                                    <p>⭐ {{ $applicantCount }}</p>
+                                @endif
                             </div>
-                            <span class="inline-block bg-[#ffd700] text-[#333] px-3 py-1 rounded-full text-sm font-bold mt-2">{{ $internship->certification }}</span>
+                            @if($certification !== null && $certification !== '')
+                                <span class="inline-block bg-[#ffd700] text-[#333] px-3 py-1 rounded-full text-sm font-bold mt-2">{{ $certification }}</span>
+                            @endif
                             <a href="{{ route('website.internship') }}" class="mt-4 block w-full bg-[#ff7b00] text-white py-2 rounded-lg font-bold text-center hover:bg-[#ff5500] transition-all">Register</a>
                         </div>
                     @endforeach

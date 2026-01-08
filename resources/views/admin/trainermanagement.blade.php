@@ -88,11 +88,15 @@
                                     class="text-blue-500 hover:text-blue-600" title="Edit">
                                 <i class="fas fa-edit text-lg"></i>
                             </button>
-                            <button onclick="openDeleteModal({{ $trainer->trainerDetail->id }})" 
-                                    class="text-red-500 hover:text-red-600" title="Delete">
-                                <i class="fas fa-trash text-lg"></i>
-                            </button>
                         @endif
+                        @php
+                            $deleteId = $trainer->trainerDetail->id ?? $trainer->id;
+                            $deleteType = $trainer->trainerDetail ? 'detail' : 'user';
+                        @endphp
+                        <button onclick="openDeleteModal({{ $deleteId }}, '{{ $deleteType }}')" 
+                                class="text-red-500 hover:text-red-600" title="Delete">
+                            <i class="fas fa-trash text-lg"></i>
+                        </button>
                     </div>
                 </div>
             @empty
@@ -225,16 +229,20 @@
             });
     }
     let deleteId = null;
-    function openDeleteModal(id) {
+    let deleteType = 'detail';
+    function openDeleteModal(id, type = 'detail') {
         deleteId = id;
+        deleteType = type;
         openModal('deleteModal');
     }
     document.getElementById('confirmDeleteBtn').addEventListener('click', function () {
         if (deleteId) {
-            fetch(`/admin/trainers/${deleteId}/delete`, {
+            const typeParam = deleteType ? `?type=${encodeURIComponent(deleteType)}` : '';
+            fetch(`/admin/trainers/${deleteId}/delete${typeParam}`, {
                 method: 'DELETE',
                 headers: {
-                    'X-CSRF-TOKEN': csrfToken
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json'
                 }
             }).then(res => location.reload());
         }

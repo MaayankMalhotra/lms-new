@@ -104,6 +104,22 @@
                                 @endif
                             @endif
                         </div>
+                        <div class="mt-3 flex flex-wrap gap-2">
+                            <button type="button"
+                                class="bg-indigo-500 hover:bg-indigo-600 text-white px-3 py-1 rounded text-sm"
+                                data-enrollment-id="{{ $enrollment->id }}"
+                                data-enrollment-email="{{ $enrollment->email }}"
+                                onclick="openSingleConfirmationModal(this)">
+                                Send Mail
+                            </button>
+                            <button type="button"
+                                class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1 rounded text-sm"
+                                data-enrollment-id="{{ $enrollment->id }}"
+                                data-enrollment-email="{{ $enrollment->email }}"
+                                onclick="sendTestEmail(this)">
+                                Test Email
+                            </button>
+                        </div>
                     </div>
                 @endforeach
             </div>
@@ -123,6 +139,10 @@
         <form id="confirmation-form">
             @csrf
             <input type="hidden" id="webinar-id" name="webinar_id" value="{{ request('webinar_id') }}">
+            <input type="hidden" id="enrollment-id" name="enrollment_id" value="">
+            <div id="confirmation-target" class="hidden mb-3 text-sm text-gray-600">
+                Sending to: <span id="confirmation-target-email" class="font-semibold text-gray-800"></span>
+            </div>
             <div class="mb-3">
                 <label class="block text-sm font-medium">Attendance Code</label>
                 <input type="text" id="attendance-code" name="attendance_code" class="w-full border rounded-lg px-3 py-2" required>
@@ -153,16 +173,48 @@ document.addEventListener('DOMContentLoaded', function () {
     const openBtn = document.getElementById('send-confirmation-btn');
     const closeBtn = document.getElementById('close-modal-btn');
     const form = document.getElementById('confirmation-form');
+    const enrollmentIdInput = document.getElementById('enrollment-id');
+    const targetWrapper = document.getElementById('confirmation-target');
+    const targetEmail = document.getElementById('confirmation-target-email');
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
 
-    openBtn.addEventListener('click', () => modal.classList.remove('hidden'));
+    function openBulkConfirmationModal() {
+        if (enrollmentIdInput) {
+            enrollmentIdInput.value = '';
+        }
+        if (targetWrapper) {
+            targetWrapper.classList.add('hidden');
+        }
+        modal.classList.remove('hidden');
+    }
+
+    window.openSingleConfirmationModal = function (button) {
+        const enrollmentId = button.getAttribute('data-enrollment-id');
+        const email = button.getAttribute('data-enrollment-email');
+        if (enrollmentIdInput) {
+            enrollmentIdInput.value = enrollmentId || '';
+        }
+        if (targetWrapper && targetEmail) {
+            targetEmail.textContent = email || 'Selected user';
+            targetWrapper.classList.remove('hidden');
+        }
+        modal.classList.remove('hidden');
+    };
+
+    openBtn.addEventListener('click', openBulkConfirmationModal);
     closeBtn.addEventListener('click', () => modal.classList.add('hidden'));
     modal.addEventListener('click', e => { if (e.target === modal) modal.classList.add('hidden'); });
 
     form.addEventListener('submit', function (e) {
         e.preventDefault();
-        fetch('{{ route('admin.webinar.send-confirmation') }}', {
+        const enrollmentId = enrollmentIdInput ? enrollmentIdInput.value : '';
+        const endpoint = enrollmentId
+            ? `/webinar-enrollments/${enrollmentId}/send-confirmation`
+            : '{{ route('admin.webinar.send-confirmation') }}';
+
+        fetch(endpoint, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
             body: JSON.stringify({
                 attendance_code: document.getElementById('attendance-code').value,
                 meeting_id: document.getElementById('meeting-id').value,
@@ -181,6 +233,29 @@ document.addEventListener('DOMContentLoaded', function () {
             alert('Failed to send mail');
         });
     });
+
+    window.sendTestEmail = function (button) {
+        const enrollmentId = button.getAttribute('data-enrollment-id');
+        if (!enrollmentId) {
+            alert('Enrollment not found.');
+            return;
+        }
+        fetch(`/webinar-enrollments/${enrollmentId}/test-email`, {
+            method: 'POST',
+            headers: { 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' }
+        })
+            .then(res => res.json().then(data => ({ ok: res.ok, data })))
+            .then(({ ok, data }) => {
+                if (!ok) {
+                    throw new Error(data.message || 'Test email failed');
+                }
+                alert(data.message || 'Test email sent!');
+            })
+            .catch(err => {
+                console.error(err);
+                alert(err.message || 'Test email failed');
+            });
+    };
 });
 </script>
 @endsection

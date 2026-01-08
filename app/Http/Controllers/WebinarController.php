@@ -255,6 +255,73 @@ class WebinarController extends Controller
         return response()->json(['message' => 'Confirmation emails sent and data saved successfully']);
     }
 
+    public function sendConfirmationSingle(Request $request, WebinarEnrollment $enrollment)
+    {
+        $validated = $request->validate([
+            'attendance_code' => 'required|string',
+            'meeting_id' => 'required|string',
+            'meeting_link' => 'required|url',
+            'meeting_password' => 'required|string',
+        ]);
+
+        if (!$enrollment->email) {
+            return response()->json(['message' => 'No email found for this enrollment'], 422);
+        }
+
+        $enrollment->update([
+            'attendance_code' => $validated['attendance_code'],
+            'meeting_id' => $validated['meeting_id'],
+            'meeting_link' => $validated['meeting_link'],
+            'meeting_password' => $validated['meeting_password'],
+        ]);
+
+        try {
+            Mail::to($enrollment->email)->send(new WebinarConfirmation($validated, $enrollment));
+        } catch (\Throwable $e) {
+            Log::error('Single confirmation email failed', [
+                'enrollment_id' => $enrollment->id,
+                'email' => $enrollment->email,
+                'error' => $e->getMessage(),
+            ]);
+            return response()->json(['message' => 'Failed to send email. Please check mail settings.'], 500);
+        }
+
+        return response()->json([
+            'message' => 'Confirmation email sent to ' . $enrollment->email,
+        ]);
+    }
+
+    public function testEnrollmentEmail(Request $request, WebinarEnrollment $enrollment)
+    {
+        if (!$enrollment->email) {
+            return response()->json(['message' => 'No email found for this enrollment'], 422);
+        }
+
+        try {
+            $subject = 'Webinar Email Test';
+            $body = "This is a test email to confirm the mail server is working.\n\n"
+                . "Recipient: {$enrollment->email}\n"
+                . "Webinar: {$enrollment->resolved_webinar_title}\n"
+                . "Sent at: " . now()->toDateTimeString();
+
+            Mail::raw($body, function ($message) use ($enrollment, $subject) {
+                $message->to($enrollment->email)
+                    ->subject($subject);
+            });
+        } catch (\Throwable $e) {
+            Log::error('Test email failed', [
+                'enrollment_id' => $enrollment->id,
+                'email' => $enrollment->email,
+                'error' => $e->getMessage(),
+            ]);
+            return response()->json(['message' => 'Test email failed. Please check mail settings.'], 500);
+        }
+
+        return response()->json([
+            'message' => 'Test email sent to ' . $enrollment->email,
+        ]);
+    }
+
     public function verifyPresence(Request $request)
     {
         $email = $request->email;

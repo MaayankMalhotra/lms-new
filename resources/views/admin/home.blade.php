@@ -69,7 +69,7 @@
     <!-- Tabs Navigation -->
     <div class="mt-8 overflow-x-auto hide-scrollbar">
         <ul class="flex space-x-4 whitespace-nowrap justify-center">
-            @foreach(['Placements', 'Courses', 'Upcoming Courses', 'Internships', 'Instructors', 'Testimonials', 'FAQs'] as $tab)
+            @foreach(['Placements', 'Upcoming Courses', 'Instructors', 'Testimonials', 'FAQs'] as $tab)
                 <li>
                     <button class="nav-tab text-lg font-bold hover:text-[#ff7300] transition-all duration-300 px-4 py-2 rounded-xl {{ $loop->first ? 'text-white bg-[#ff7300]' : '' }}" data-tab="tab-{{ str_replace(' ', '-', strtolower($tab)) }}">
                         {{ $tab }}
@@ -150,77 +150,6 @@
             </div>
         </div>
 
-        <!-- Courses -->
-        <div id="tab-courses" class="tab-pane hidden">
-            <h2 class="text-2xl font-bold text-[#2c0b57] mb-4">Add Course</h2>
-            <form action="{{ route('admin.courses.store') }}" method="POST" enctype="multipart/form-data" class="bg-white p-6 rounded-xl shadow-lg mb-8">
-                @csrf
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <input type="text" name="title" placeholder="Title" required class="p-3 border rounded-lg">
-                    <input type="file" name="image" accept="image/*" required class="p-3 border rounded-lg">
-                    <input type="text" name="duration" placeholder="Duration" required class="p-3 border rounded-lg">
-                    <input type="number" name="placed_count" placeholder="Placed Count" class="p-3 border rounded-lg">
-                    <input type="number" name="rating" placeholder="Rating" step="0.1" class="p-3 border rounded-lg">
-                    <input type="number" name="student_count" placeholder="Student Count" class="p-3 border rounded-lg">
-                </div>
-                <button type="submit" class="mt-4 w-full bg-gradient-to-r from-[#ff7300] to-[#ff4500] text-white py-3 rounded-lg font-bold">Add Course</button>
-            </form>
-
-            <h2 class="text-2xl font-bold text-[#2c0b57] mb-4">Existing Courses</h2>
-            <div class="card-grid">
-                @forelse($courses as $course)
-                    <div class="record-card">
-                        @php
-                            $courseImage = $course->image ? (\Illuminate\Support\Str::startsWith($course->image, ['http://', 'https://']) ? $course->image : asset('storage/' . ltrim($course->image, '/'))) : null;
-                        @endphp
-                        @if($courseImage)
-                            <img src="{{ $courseImage }}" alt="{{ $course->title }}">
-                        @endif
-                        <div class="record-body">
-                            <div class="record-title">{{ $course->title }}</div>
-                            <div class="record-meta">Duration: {{ $course->duration }} <br> Rating: {{ $course->rating }} ⭐</div>
-                            <div class="record-actions">
-                                <button type="button" class="edit toggle-edit" data-target="course-edit-{{ $course->id }}" aria-label="Edit {{ $course->title }}">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                                <form action="{{ route('admin.courses.delete', $course->id) }}" method="POST" onsubmit="return confirm('Delete this?')">
-                                    @csrf @method('DELETE')
-                                    <button class="delete"><i class="fas fa-trash"></i></button>
-                                </form>
-                            </div>
-                            <form id="course-edit-{{ $course->id }}"
-                                  class="edit-form mt-4 border-t border-gray-200 pt-4 grid gap-3"
-                                  style="display: none;"
-                                  data-display="grid"
-                                  action="{{ route('admin.courses.update', $course->id) }}"
-                                  method="POST"
-                                  enctype="multipart/form-data">
-                                @csrf
-                                @method('PUT')
-                                <input type="text" name="title" value="{{ $course->title }}" placeholder="Title" required class="p-2 border rounded-lg">
-                                <label class="block text-sm font-semibold text-gray-600">
-                                    Update Image
-                                    <input type="file" name="image" accept="image/*" class="mt-1 p-2 border rounded-lg w-full">
-                                </label>
-                                <input type="text" name="duration" value="{{ $course->duration }}" placeholder="Duration" required class="p-2 border rounded-lg">
-                                <input type="number" name="placed_count" value="{{ $course->placed_count }}" placeholder="Placed Count" class="p-2 border rounded-lg">
-                                <input type="number" step="0.1" name="rating" value="{{ $course->rating }}" placeholder="Rating" class="p-2 border rounded-lg">
-                                <input type="number" name="student_count" value="{{ $course->student_count }}" placeholder="Student Count" class="p-2 border rounded-lg">
-                                <label class="inline-flex items-center space-x-2">
-                                    <input type="checkbox" name="is_active" value="1" {{ $course->is_active ? 'checked' : '' }} class="h-4 w-4">
-                                    <span class="text-sm text-gray-600">Active</span>
-                                </label>
-                                <div class="flex items-center gap-2">
-                                    <button type="submit" class="px-4 py-2 bg-[#ff7300] text-white rounded-lg font-semibold">Save</button>
-                                    <button type="button" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg font-semibold cancel-edit" data-target="course-edit-{{ $course->id }}">Cancel</button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                @empty <p>No Courses yet.</p> @endforelse
-            </div>
-        </div>
-
         <!-- Upcoming Courses -->
         <div id="tab-upcoming-courses" class="tab-pane hidden">
             <h2 class="text-2xl font-bold text-[#2c0b57] mb-4">Add Upcoming Course</h2>
@@ -284,79 +213,6 @@
                         </div>
                     </div>
                 @empty <p>No Upcoming Courses yet.</p> @endforelse
-            </div>
-        </div>
-
-        <!-- Internships -->
-        <div id="tab-internships" class="tab-pane hidden">
-            <h2 class="text-2xl font-bold text-[#2c0b57] mb-4">Add Internship</h2>
-            <form action="{{ route('admin.internships.store') }}" method="POST" enctype="multipart/form-data" class="bg-white p-6 rounded-xl shadow-lg mb-8">
-                @csrf
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <input type="text" name="title" placeholder="Title" required class="p-3 border rounded-lg">
-                    <input type="file" name="image" accept="image/*" required class="p-3 border rounded-lg">
-                    <input type="text" name="duration" placeholder="Duration" required class="p-3 border rounded-lg">
-                    <input type="number" name="project_count" placeholder="Project Count" class="p-3 border rounded-lg">
-                    <input type="number" name="rating" placeholder="Rating" step="0.1" class="p-3 border rounded-lg">
-                    <input type="number" name="applicant_count" placeholder="Applicant Count" class="p-3 border rounded-lg">
-                    <input type="text" name="certification" placeholder="Certification" class="p-3 border rounded-lg">
-                </div>
-                <button type="submit" class="mt-4 w-full bg-gradient-to-r from-[#ff7300] to-[#ff4500] text-white py-3 rounded-lg font-bold">Add Internship</button>
-            </form>
-
-            <h2 class="text-2xl font-bold text-[#2c0b57] mb-4">Existing Internships</h2>
-            <div class="card-grid">
-                @forelse($internships as $internship)
-                    <div class="record-card">
-                        @php
-                            $internshipImage = $internship->image ? (\Illuminate\Support\Str::startsWith($internship->image, ['http://', 'https://']) ? $internship->image : asset('storage/' . ltrim($internship->image, '/'))) : null;
-                        @endphp
-                        @if($internshipImage)
-                            <img src="{{ $internshipImage }}" alt="{{ $internship->title }}">
-                        @endif
-                        <div class="record-body">
-                            <div class="record-title">{{ $internship->title }}</div>
-                            <div class="record-meta">Duration: {{ $internship->duration }} <br> Projects: {{ $internship->project_count }}</div>
-                            <div class="record-actions">
-                                <button type="button" class="edit toggle-edit" data-target="internship-edit-{{ $internship->id }}" aria-label="Edit {{ $internship->title }}">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                                <form action="{{ route('admin.internships.delete', $internship->id) }}" method="POST" onsubmit="return confirm('Delete this?')">
-                                    @csrf @method('DELETE')
-                                    <button class="delete"><i class="fas fa-trash"></i></button>
-                                </form>
-                            </div>
-                            <form id="internship-edit-{{ $internship->id }}"
-                                  class="edit-form mt-4 border-t border-gray-200 pt-4 grid gap-3"
-                                  style="display: none;"
-                                  data-display="grid"
-                                  action="{{ route('admin.internships.update', $internship->id) }}"
-                                  method="POST"
-                                  enctype="multipart/form-data">
-                                @csrf
-                                @method('PUT')
-                                <input type="text" name="title" value="{{ $internship->title }}" placeholder="Title" required class="p-2 border rounded-lg">
-                                <label class="block text-sm font-semibold text-gray-600">
-                                    Update Image
-                                    <input type="file" name="image" accept="image/*" class="mt-1 p-2 border rounded-lg w-full">
-                                </label>
-                                <input type="text" name="duration" value="{{ $internship->duration }}" placeholder="Duration" required class="p-2 border rounded-lg">
-                                <input type="number" name="project_count" value="{{ $internship->project_count }}" placeholder="Project Count" class="p-2 border rounded-lg">
-                                <input type="number" step="0.1" name="rating" value="{{ $internship->rating }}" placeholder="Rating" class="p-2 border rounded-lg">
-                                <input type="number" name="applicant_count" value="{{ $internship->applicant_count }}" placeholder="Applicant Count" class="p-2 border rounded-lg">
-                                <input type="text" name="certification" value="{{ $internship->certification }}" placeholder="Certification" class="p-2 border rounded-lg">
-                                <label class="inline-flex items-center space-x-2">
-                                    <input type="checkbox" name="is_active" value="1" {{ $internship->is_active ? 'checked' : '' }} class="h-4 w-4">
-                                    <span class="text-sm text-gray-600">Active</span>
-                                </label>
-                                <div class="flex items-center gap-2">
-                                    <button type="submit" class="px-4 py-2 bg-[#ff7300] text-white rounded-lg font-semibold">Save</button>
-                                    <button type="button" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg font-semibold cancel-edit" data-target="internship-edit-{{ $internship->id }}">Cancel</button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                @empty <p>No Internships yet.</p> @endforelse
             </div>
         </div>
 
@@ -440,6 +296,7 @@
                     <input type="text" name="name" placeholder="Name" required class="p-3 border rounded-lg">
                     <input type="file" name="image" required class="p-3 border rounded-lg">
                     <input type="text" name="designation" placeholder="Designation" required class="p-3 border rounded-lg">
+                    <input type="number" name="rating" placeholder="Rating (0-5)" required min="0" max="5" step="0.1" class="p-3 border rounded-lg">
                 </div>
                 <textarea name="content" placeholder="Content" required class="p-3 border rounded-lg w-full"></textarea>
                 <button type="submit" class="mt-4 w-full bg-gradient-to-r from-[#ff7300] to-[#ff4500] text-white py-3 rounded-lg font-bold">Add Testimonial</button>
