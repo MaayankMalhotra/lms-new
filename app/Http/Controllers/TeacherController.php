@@ -124,7 +124,8 @@ class TeacherController extends Controller
         //     abort(403);
         // }
 
-        $booking->update(['meeting_link' => $request->meeting_link, 'status' => 'confirmed']);
+        InterviewBooking::where('slot_id', $booking->slot_id)
+            ->update(['meeting_link' => $request->meeting_link, 'status' => 'confirmed']);
 
         return redirect()->route('teacher.bookings')->with('success', 'Link uploaded.');
     }
@@ -166,7 +167,7 @@ class TeacherController extends Controller
         $courses = $coursesQuery->get();
 
         $slotsByDate = AvailableSlot::with([
-                'booking.student',
+                'bookings.student',
                 'course',
                 'batch',
             ])
@@ -176,7 +177,31 @@ class TeacherController extends Controller
             ->when($status, fn ($query) => $query->where('status', $status))
             ->orderBy('start_time')
             ->get()
-            ->groupBy(fn ($slot) => optional($slot->start_time)?->format('Y-m-d') ?? 'TBD');
+            ->groupBy(fn ($slot) => optional($slot->start_time)?->format('Y-m-d') ?? 'TBD')
+            ->map(function ($slots) {
+                return $slots->map(function ($slot) {
+                    $bookings = $slot->bookings->sortBy('id')->values();
+                    $totalBookings = max(1, $bookings->count());
+
+                    $slotStart = $slot->start_time instanceof Carbon
+                        ? $slot->start_time->copy()
+                        : Carbon::parse($slot->start_time);
+                    $totalSeconds = max(1, (int) $slot->duration_minutes) * 60;
+                    $perStudentSeconds = max(1, intdiv($totalSeconds, $totalBookings));
+
+                    $bookings->each(function ($booking, $index) use ($slotStart, $perStudentSeconds, $totalBookings) {
+                        $joinStart = $slotStart->copy()->addSeconds($perStudentSeconds * $index);
+                        $joinEnd = $joinStart->copy()->addSeconds($perStudentSeconds);
+                        $booking->setAttribute('join_start', $joinStart);
+                        $booking->setAttribute('join_end', $joinEnd);
+                        $booking->setAttribute('join_position', $index + 1);
+                        $booking->setAttribute('join_total', $totalBookings);
+                        $booking->setAttribute('join_duration_seconds', $perStudentSeconds);
+                    });
+
+                    return $slot;
+                });
+            });
 
         $batches = collect();
         if ($courseId) {

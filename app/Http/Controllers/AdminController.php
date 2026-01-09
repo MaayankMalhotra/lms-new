@@ -177,6 +177,20 @@ public function student_management(Request $request)
             $studentQuery->where('email', 'like', '%' . $email . '%');
         }
 
+        $courseId = $request->input('course_id');
+        if ($request->filled('course_id')) {
+            $studentQuery->whereHas('enrollments.batch', function ($query) use ($courseId) {
+                $query->where('course_id', $courseId);
+            });
+        }
+
+        $batchId = $request->input('batch_id');
+        if ($request->filled('batch_id')) {
+            $studentQuery->whereHas('enrollments', function ($query) use ($batchId) {
+                $query->where('batch_id', $batchId);
+            });
+        }
+
         $students = $studentQuery->get()->map(function ($student) {
             return [
                 'id' => $student->id,
@@ -187,7 +201,14 @@ public function student_management(Request $request)
             ];
         });
 
-        return view('admin.studentmanagement', compact('students'));
+        $courses = Course::orderBy('name')->get(['id', 'name']);
+        $batchesQuery = Batch::with('course:id,name')->orderBy('batch_name');
+        if ($request->filled('course_id')) {
+            $batchesQuery->where('course_id', $courseId);
+        }
+        $batches = $batchesQuery->get(['id', 'batch_name', 'course_id']);
+
+        return view('admin.studentmanagement', compact('students', 'courses', 'batches'));
     }
 
     public function demoVideoUploader()

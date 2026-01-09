@@ -41,13 +41,12 @@ class StudentController extends Controller
             return view('student.interview')->with('error', 'No active interview or link not uploaded.');
         }
 
-        // Check if current time is around the slot time (e.g., within 15 min before/after)
+        [$joinStart, $joinEnd] = $this->resolveJoinWindow($booking);
+        if (!$joinStart || !$joinEnd) {
+            return view('student.interview')->with('error', 'No active interview or link not uploaded.');
+        }
         $now = now();
-        $start = $booking->slot->start_time instanceof \Carbon\Carbon
-            ? $booking->slot->start_time->copy()
-            : \Carbon\Carbon::parse($booking->slot->start_time);
-        $end = $start->copy()->addMinutes($booking->slot->duration_minutes);
-        if ($now->lt($start->copy()->subMinutes(15)) || $now->gt($end)) {
+        if ($now->lt($joinStart) || $now->gt($joinEnd)) {
             return view('student.interview')->with('error', 'Not the right time to join.');
         }
 
@@ -57,10 +56,13 @@ class StudentController extends Controller
         ]);
 
         if ($booking->slot) {
-            $booking->slot->update([
-                'status' => 'completed',
-                'is_booked' => true,
-            ]);
+            $booking->slot->update(['is_booked' => true]);
+            $pendingExists = InterviewBooking::where('slot_id', $booking->slot->id)
+                ->where('status', '!=', 'completed')
+                ->exists();
+            if (!$pendingExists) {
+                $booking->slot->update(['status' => 'completed']);
+            }
         }
 
         return redirect($booking->meeting_link); // Or display in view if needed.
@@ -78,13 +80,12 @@ class StudentController extends Controller
             return back()->with('error', 'No meeting link available.');
         }
 
+        [$joinStart, $joinEnd] = $this->resolveJoinWindow($booking);
+        if (!$joinStart || !$joinEnd) {
+            return back()->with('error', 'No meeting link available.');
+        }
         $now = now();
-        $start = $booking->slot->start_time instanceof \Carbon\Carbon
-            ? $booking->slot->start_time->copy()
-            : \Carbon\Carbon::parse($booking->slot->start_time);
-        $end = $start->copy()->addMinutes($booking->slot->duration_minutes);
-
-        if ($now->lt($start->copy()->subMinutes(15)) || $now->gt($end)) {
+        if ($now->lt($joinStart) || $now->gt($joinEnd)) {
             return back()->with('error', 'Not the right time to join.');
         }
 
@@ -94,10 +95,13 @@ class StudentController extends Controller
         ]);
 
         if ($booking->slot) {
-            $booking->slot->update([
-                'status' => 'completed',
-                'is_booked' => true,
-            ]);
+            $booking->slot->update(['is_booked' => true]);
+            $pendingExists = InterviewBooking::where('slot_id', $booking->slot->id)
+                ->where('status', '!=', 'completed')
+                ->exists();
+            if (!$pendingExists) {
+                $booking->slot->update(['status' => 'completed']);
+            }
         }
 
         return redirect($booking->meeting_link);
@@ -196,7 +200,7 @@ public function viewAvailableSlots()
         $joinWindowLookback = $now->copy()->subMinutes(60); // allow showing meetings that started within the last hour for rejoin
 
         // Booked slots for this student (upcoming) + batch info via JOIN
-        $upcomingMeetings = AvailableSlot::query()
+        $upcomingMeetingsRaw = AvailableSlot::query()
             ->select(
                 'available_slots.*',
                 'interview_bookings.id as booking_id',
@@ -215,10 +219,48 @@ public function viewAvailableSlots()
             ->where('available_slots.start_time', '>', $joinWindowLookback)
             ->orderBy('available_slots.start_time', 'asc')
             ->get()
+            ->values();
+
+        $slotIds = $upcomingMeetingsRaw->pluck('id')->unique()->values();
+        $bookingsBySlot = $slotIds->isNotEmpty()
+            ? InterviewBooking::query()
+                ->whereIn('slot_id', $slotIds)
+                ->orderBy('id')
+                ->get(['id', 'slot_id'])
+                ->groupBy('slot_id')
+            : collect();
+
+        $upcomingMeetings = $upcomingMeetingsRaw
+            ->map(function ($slot) use ($bookingsBySlot) {
+                $bookings = $bookingsBySlot->get($slot->id, collect());
+                $totalBookings = max(1, $bookings->count());
+                $positionIndex = $bookings->search(fn ($booking) => (int) $booking->id === (int) $slot->booking_id);
+                if ($positionIndex === false) {
+                    $positionIndex = 0;
+                }
+
+                $slotStart = $slot->start_time instanceof Carbon
+                    ? $slot->start_time->copy()
+                    : Carbon::parse($slot->start_time);
+
+                $totalSeconds = max(1, (int) $slot->duration_minutes) * 60;
+                $perStudentSeconds = max(1, intdiv($totalSeconds, $totalBookings));
+                $joinStart = $slotStart->copy()->addSeconds($perStudentSeconds * $positionIndex);
+                $joinEnd = $joinStart->copy()->addSeconds($perStudentSeconds);
+
+                $slot->setAttribute('join_start', $joinStart);
+                $slot->setAttribute('join_end', $joinEnd);
+                $slot->setAttribute('join_start_iso', $joinStart->toIsoString());
+                $slot->setAttribute('join_position', $positionIndex + 1);
+                $slot->setAttribute('join_total', $totalBookings);
+                $slot->setAttribute('join_duration_seconds', $perStudentSeconds);
+
+                return $slot;
+            })
             // keep your existing grouping style
             ->groupBy('start_time');
 
-        // Unbooked future slots + batch info via JOIN
+        // Available future slots (allow multiple students per batch slot)
         $availableSlots = AvailableSlot::query()
             ->select(
                 'available_slots.*',
@@ -226,10 +268,13 @@ public function viewAvailableSlots()
                 'batches.batch_name',
                 'batches.start_date as batch_start_date'
             )
-            ->leftJoin('interview_bookings', 'interview_bookings.slot_id', '=', 'available_slots.id')
+            ->leftJoin('interview_bookings as student_bookings', function ($join) use ($studentId) {
+                $join->on('student_bookings.slot_id', '=', 'available_slots.id')
+                    ->where('student_bookings.student_id', $studentId);
+            })
             ->leftJoin('courses', 'courses.id', '=', 'available_slots.course_id')
             ->leftJoin('batches', 'batches.id', '=', 'available_slots.batch_id')
-            ->whereNull('interview_bookings.id')
+            ->whereNull('student_bookings.id')
             ->where('available_slots.status', 'pending')
             ->where('available_slots.start_time', '>', $now)
             ->when($studentCourseIds->isNotEmpty(), function ($query) use ($studentCourseIds) {
@@ -237,6 +282,22 @@ public function viewAvailableSlots()
             }, function ($query) {
                 // If student has no course enrollment, return none
                 $query->whereRaw('1 = 0');
+            })
+            ->when($studentBatchIds->isNotEmpty(), function ($query) use ($studentBatchIds) {
+                $query->where(function ($subQuery) use ($studentBatchIds) {
+                    $subQuery->whereNull('available_slots.batch_id')
+                        ->orWhereIn('available_slots.batch_id', $studentBatchIds);
+                });
+            }, function ($query) {
+                $query->whereNull('available_slots.batch_id');
+            })
+            ->where(function ($query) {
+                $query->whereNotNull('available_slots.batch_id')
+                    ->orWhereNotExists(function ($subQuery) {
+                        $subQuery->selectRaw('1')
+                            ->from('interview_bookings')
+                            ->whereColumn('interview_bookings.slot_id', 'available_slots.id');
+                    });
             })
             ->orderBy('available_slots.start_time', 'asc')
             ->get()
@@ -278,12 +339,25 @@ public function viewAvailableSlots()
             ? $user->enrollments()->pluck('batch_id')->filter()->map(fn ($id) => (int) $id)->values()->toArray()
             : [];
 
-        if ($slot->is_booked || $slot->start_time <= now()) {
+        if ($slot->start_time <= now()) {
             return redirect()->route('student.slots')->with('error', 'Slot is unavailable or expired.');
         }
 
         if ($slot->batch_id && !in_array($slot->batch_id, $studentBatchIds, true)) {
             return redirect()->route('student.slots')->with('error', 'This slot is not assigned to your batch.');
+        }
+
+        $alreadyBooked = InterviewBooking::where('slot_id', $slot->id)
+            ->where('student_id', $studentId)
+            ->exists();
+
+        if ($alreadyBooked) {
+            return redirect()->route('student.slots')->with('error', 'You have already booked this slot.');
+        }
+
+        $slotHasBooking = InterviewBooking::where('slot_id', $slot->id)->exists();
+        if (!$slot->batch_id && ($slot->is_booked || $slotHasBooking)) {
+            return redirect()->route('student.slots')->with('error', 'Slot is unavailable or expired.');
         }
 
         InterviewBooking::create([
@@ -292,8 +366,40 @@ public function viewAvailableSlots()
             'status' => 'pending',
         ]);
 
-        $slot->update(['is_booked' => true]);
+        if (!$slot->is_booked) {
+            $slot->update(['is_booked' => true]);
+        }
 
         return redirect()->route('student.slots')->with('success', 'Slot booked successfully!');
+    }
+
+    private function resolveJoinWindow(InterviewBooking $booking): array
+    {
+        $booking->loadMissing('slot');
+        if (!$booking->slot || !$booking->slot->start_time || !$booking->slot->duration_minutes) {
+            return [null, null];
+        }
+
+        $bookings = InterviewBooking::query()
+            ->where('slot_id', $booking->slot_id)
+            ->orderBy('id')
+            ->get(['id']);
+
+        $totalBookings = max(1, $bookings->count());
+        $positionIndex = $bookings->search(fn ($item) => (int) $item->id === (int) $booking->id);
+        if ($positionIndex === false) {
+            $positionIndex = 0;
+        }
+
+        $slotStart = $booking->slot->start_time instanceof Carbon
+            ? $booking->slot->start_time->copy()
+            : Carbon::parse($booking->slot->start_time);
+        $totalSeconds = max(1, (int) $booking->slot->duration_minutes) * 60;
+        $perStudentSeconds = max(1, intdiv($totalSeconds, $totalBookings));
+
+        $joinStart = $slotStart->copy()->addSeconds($perStudentSeconds * $positionIndex);
+        $joinEnd = $joinStart->copy()->addSeconds($perStudentSeconds);
+
+        return [$joinStart, $joinEnd];
     }
 }

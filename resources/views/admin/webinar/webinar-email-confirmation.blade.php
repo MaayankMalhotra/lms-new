@@ -28,10 +28,7 @@
                 </p>
                 
                 <ul style="font-size: 16px; color: #333; padding-left: 20px;">
-                    <li><strong>Attendance Verification Code:</strong> {{ $data['attendance_code'] }}</li>
-                    <li><strong>Meeting ID:</strong> {{ $data['meeting_id'] }}</li>
                     <li><strong>Meeting Link:</strong> <a href="{{ $data['meeting_link'] }}" style="color: #0c3c7c; text-decoration: underline;">Join Meeting</a></li>
-                    <li><strong>Meeting Password:</strong> {{ $data['meeting_password'] }}</li>
                 </ul>
                 <p style="font-size: 16px; color: #333;">
                     Please confirm your presence by clicking the button below:

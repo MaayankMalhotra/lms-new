@@ -58,8 +58,8 @@
                                 </span>
                             </td>
                             <td class="px-4 py-3">
-                                @if($booking->slot && $booking->slot->booking && $booking->slot->booking->meeting_link)
-                                    <a href="{{ $booking->slot->booking->meeting_link }}" target="_blank" class="text-blue-600 hover:underline">Join link</a>
+                                @if($booking->meeting_link)
+                                    <a href="{{ $booking->meeting_link }}" target="_blank" class="text-blue-600 hover:underline">Join link</a>
                                 @else
                                     <span class="text-gray-500">—</span>
                                 @endif

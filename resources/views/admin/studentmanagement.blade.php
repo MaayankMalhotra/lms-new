@@ -20,10 +20,34 @@
                            placeholder="Filter by email"
                            class="w-64 max-w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200">
                 </div>
+                <div class="flex items-center gap-2">
+                    <label for="course-filter" class="text-sm font-semibold text-gray-700">Course</label>
+                    <select id="course-filter" name="course_id"
+                            class="w-56 max-w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200">
+                        <option value="">All courses</option>
+                        @foreach($courses as $course)
+                            <option value="{{ $course->id }}" {{ (string) request('course_id') === (string) $course->id ? 'selected' : '' }}>
+                                {{ $course->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="flex items-center gap-2">
+                    <label for="batch-filter" class="text-sm font-semibold text-gray-700">Batch</label>
+                    <select id="batch-filter" name="batch_id"
+                            class="w-56 max-w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200">
+                        <option value="">All batches</option>
+                        @foreach($batches as $batch)
+                            <option value="{{ $batch->id }}" {{ (string) request('batch_id') === (string) $batch->id ? 'selected' : '' }}>
+                                {{ $batch->batch_name }}{{ $batch->course ? ' · ' . $batch->course->name : '' }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
                 <button type="submit" class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">
                     Filter
                 </button>
-                @if(request()->filled('email'))
+                @if(request()->filled('email') || request()->filled('course_id') || request()->filled('batch_id'))
                     <a href="{{ route('student-management') }}" class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-600 hover:border-gray-400">
                         Clear
                     </a>

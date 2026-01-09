@@ -39,7 +39,12 @@ class AvailableSlot extends Model
 
     public function booking()
     {
-        return $this->hasOne(InterviewBooking::class, 'slot_id');
+        return $this->hasOne(InterviewBooking::class, 'slot_id')->latestOfMany('id');
+    }
+
+    public function bookings()
+    {
+        return $this->hasMany(InterviewBooking::class, 'slot_id');
     }
 
     public function batch()

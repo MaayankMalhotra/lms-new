@@ -92,16 +92,30 @@
                                     </td>
                                     <td class="px-6 py-4">
                                         @php
-                                            $windowStart = (clone $slot->start_time)->subMinutes(15);
-                                            $windowEnd   = (clone $slot->start_time)->addMinutes($slot->duration_minutes + 30); // allow rejoin for 30 mins after end
+                                            $joinStart = $slot->join_start ?? $slot->start_time;
+                                            $joinEnd = $slot->join_end ?? (clone $slot->start_time)->addMinutes($slot->duration_minutes);
+                                            $joinStartLabel = $joinStart instanceof \Carbon\Carbon
+                                                ? $joinStart->format('h:i A')
+                                                : \Carbon\Carbon::parse($joinStart)->format('h:i A');
+                                            $joinDurationMinutes = isset($slot->join_duration_seconds)
+                                                ? (int) ceil($slot->join_duration_seconds / 60)
+                                                : (int) $slot->duration_minutes;
                                         @endphp
 
-                                        @if ($slot->meeting_link && now()->between($windowStart, $windowEnd) && !empty($slot->booking_id))
+                                        @if ($slot->meeting_link && now()->between($joinStart, $joinEnd) && !empty($slot->booking_id))
                                             <a href="{{ route('student.interview.booking', $slot->booking_id) }}" class="inline-block px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700">
                                                 Join Meeting
                                             </a>
                                         @else
-                                            <span class="text-gray-500">Not Available Yet</span>
+                                            <span class="text-gray-500">Join at {{ $joinStartLabel }}</span>
+                                        @endif
+                                        <div class="text-xs text-gray-500 mt-1">
+                                            Your slot: {{ $slot->join_position ?? 1 }}/{{ $slot->join_total ?? 1 }} ({{ $joinDurationMinutes }} mins)
+                                        </div>
+                                        @if(!empty($slot->join_start_iso))
+                                            <div class="text-xs text-gray-500">
+                                                Starts in <span class="countdown" data-countdown="{{ $slot->join_start_iso }}">--</span>
+                                            </div>
                                         @endif
                                     </td>
                                 </tr>
@@ -184,3 +198,42 @@
         @endif
     </div>
 @endsection
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const countdowns = Array.from(document.querySelectorAll('[data-countdown]'));
+    if (!countdowns.length) {
+        return;
+    }
+
+    const updateCountdowns = () => {
+        const now = Date.now();
+        countdowns.forEach((node) => {
+            const target = new Date(node.dataset.countdown).getTime();
+            if (!target) {
+                return;
+            }
+            let diff = target - now;
+            if (diff <= 0) {
+                node.textContent = 'Started';
+                return;
+            }
+            const hours = Math.floor(diff / 3600000);
+            diff %= 3600000;
+            const minutes = Math.floor(diff / 60000);
+            diff %= 60000;
+            const seconds = Math.floor(diff / 1000);
+            if (hours > 0) {
+                node.textContent = `${hours}h ${minutes}m ${seconds}s`;
+            } else {
+                node.textContent = `${minutes}m ${seconds}s`;
+            }
+        });
+    };
+
+    updateCountdowns();
+    setInterval(updateCountdowns, 1000);
+});
+</script>
+@endpush
