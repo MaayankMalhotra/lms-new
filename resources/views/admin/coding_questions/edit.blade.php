@@ -67,6 +67,40 @@
                         @enderror
                     </div>
 
+                    <!-- Example Outputs -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="relative">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Example Output 1</label>
+                            <textarea name="example_output_1"
+                                      class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+                                      rows="3"
+                                      placeholder="Enter example output 1">{{ old('example_output_1', $codingQuestion->example_output_1) }}</textarea>
+                            @error('example_output_1')
+                                <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+                        <div class="relative">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Example Output 2</label>
+                            <textarea name="example_output_2"
+                                      class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+                                      rows="3"
+                                      placeholder="Enter example output 2">{{ old('example_output_2', $codingQuestion->example_output_2) }}</textarea>
+                            @error('example_output_2')
+                                <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+                        <div class="relative">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Example Output 3</label>
+                            <textarea name="example_output_3"
+                                      class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+                                      rows="3"
+                                      placeholder="Enter example output 3">{{ old('example_output_3', $codingQuestion->example_output_3) }}</textarea>
+                            @error('example_output_3')
+                                <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+                    </div>
+
                     <!-- Solutions -->
                     <div class="relative">
                         <label class="block text-sm font-medium text-gray-700 mb-2">

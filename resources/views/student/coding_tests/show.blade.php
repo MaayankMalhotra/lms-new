@@ -28,6 +28,22 @@
             <p class="text-gray-600 mb-2">
                 <span class="font-medium">Possible Solutions:</span> {{ count($codingQuestion->solutions) }}
             </p>
+            @if($codingQuestion->example_output_1 || $codingQuestion->example_output_2 || $codingQuestion->example_output_3)
+                <div class="mt-4">
+                    <h3 class="text-lg font-semibold text-indigo-600 mb-2">Example Outputs</h3>
+                    <div class="space-y-2 text-gray-700">
+                        @if($codingQuestion->example_output_1)
+                            <p><span class="font-medium">Output 1:</span> {{ $codingQuestion->example_output_1 }}</p>
+                        @endif
+                        @if($codingQuestion->example_output_2)
+                            <p><span class="font-medium">Output 2:</span> {{ $codingQuestion->example_output_2 }}</p>
+                        @endif
+                        @if($codingQuestion->example_output_3)
+                            <p><span class="font-medium">Output 3:</span> {{ $codingQuestion->example_output_3 }}</p>
+                        @endif
+                    </div>
+                </div>
+            @endif
         </div>
 
         <!-- Code Runner -->

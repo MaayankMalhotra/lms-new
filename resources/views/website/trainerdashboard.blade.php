@@ -2,14 +2,24 @@
 @section('content')
 <div class="px-3">
     <section class="py-6">
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
             <div class="bg-white shadow-lg rounded-lg p-6 flex items-center space-x-4">
                 <div class="w-16 h-16 flex items-center justify-center bg-blue-100 rounded-full">
                     <img src="https://cdn-icons-png.flaticon.com/128/3135/3135755.png" alt="Enrolled Courses" class="w-10 h-10">
                 </div>
                 <div>
-                    <h3 class="text-2xl font-bold text-gray-700">100</h3>
-                    <p class="text-gray-500">Enrolled Courses</p>
+                    <h3 class="text-2xl font-bold text-gray-700">{{ $totalTrainerBatches ?? 0 }}</h3>
+                    <p class="text-gray-500">Total Batches</p>
+                </div>
+            </div>
+
+            <div class="bg-white shadow-lg rounded-lg p-6 flex items-center space-x-4">
+                <div class="w-16 h-16 flex items-center justify-center bg-green-100 rounded-full">
+                    <img src="https://cdn-icons-png.flaticon.com/128/1048/1048953.png" alt="Assigned Internships" class="w-10 h-10">
+                </div>
+                <div>
+                    <h3 class="text-2xl font-bold text-gray-700">{{ $totalTrainerInternships ?? 0 }}</h3>
+                    <p class="text-gray-500">Assigned Internships</p>
                 </div>
             </div>
 

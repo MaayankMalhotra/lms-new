@@ -27,6 +27,9 @@ class CodingQuestionController extends Controller
             'course_id' => 'required|exists:courses,id',
             'title' => 'required|string|max:255',
             'description' => 'required|string',
+            'example_output_1' => 'nullable|string',
+            'example_output_2' => 'nullable|string',
+            'example_output_3' => 'nullable|string',
             'solutions' => 'required|array|min:1',
             'solutions.*' => 'required|string', // Validate each solution
         ]);
@@ -36,6 +39,9 @@ class CodingQuestionController extends Controller
             'course_id' => $validated['course_id'],
             'title' => $validated['title'],
             'description' => $validated['description'],
+            'example_output_1' => $validated['example_output_1'] ?? null,
+            'example_output_2' => $validated['example_output_2'] ?? null,
+            'example_output_3' => $validated['example_output_3'] ?? null,
             'solutions' => $validated['solutions'], // Automatically stored as JSON
         ]);
 
@@ -58,6 +64,9 @@ class CodingQuestionController extends Controller
             'course_id' => 'required|exists:courses,id',
             'title' => 'required|string|max:255',
             'description' => 'required|string',
+            'example_output_1' => 'nullable|string',
+            'example_output_2' => 'nullable|string',
+            'example_output_3' => 'nullable|string',
             'solutions' => 'required|array|min:1',
             'solutions.*' => 'required|string',
         ]);
@@ -66,6 +75,9 @@ class CodingQuestionController extends Controller
             'course_id' => $validated['course_id'],
             'title' => $validated['title'],
             'description' => $validated['description'],
+            'example_output_1' => $validated['example_output_1'] ?? null,
+            'example_output_2' => $validated['example_output_2'] ?? null,
+            'example_output_3' => $validated['example_output_3'] ?? null,
             'solutions' => $validated['solutions'],
         ]);
 

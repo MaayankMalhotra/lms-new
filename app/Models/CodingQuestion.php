@@ -18,6 +18,9 @@ class CodingQuestion extends Model
         'course_id',
         'title',
         'description',
+        'example_output_1',
+        'example_output_2',
+        'example_output_3',
         'solutions',
     ];
 

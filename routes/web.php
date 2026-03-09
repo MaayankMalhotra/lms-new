@@ -307,7 +307,21 @@ Route::get('/student-dashboard', function () {
 })->name('student.dashboard');
 
 Route::get('/trainer-dashboard', function () {
-    return view('website.trainerdashboard');
+    $trainerId = Auth::id();
+
+    $totalTrainerBatches = DB::table('users')
+        ->join('batches', 'users.id', '=', 'batches.teacher_id')
+        ->where('users.id', $trainerId)
+        ->where('users.role', 2)
+        ->count('batches.id');
+
+    $totalTrainerInternships = DB::table('internships')
+        ->join('internship_batches', 'internships.id', '=', 'internship_batches.internship_id')
+        ->where('internship_batches.teacher_id', $trainerId)
+        ->distinct()
+        ->count('internships.id');
+
+    return view('website.trainerdashboard', compact('totalTrainerBatches', 'totalTrainerInternships'));
 })->name('trainer.dashboard');
 
 //Route::middleware(['auth'])->group(function () {

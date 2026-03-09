@@ -111,8 +111,13 @@
             <!-- Trainer Batches -->
             <li>
                 <a href="{{ route('get-trainer-course') }}"
-                    class="flex items-center p-3 {{ request()->routeIs('get-trainer-course') ? 'bg-[#ff9800] text-white' : 'hover:bg-[#ff9800] hover:text-white' }} rounded transition">
-                    <i class="fas fa-users mr-3 text-lg"></i> My Batches
+                    class="flex items-center justify-between p-3 {{ request()->routeIs('get-trainer-course') ? 'bg-[#ff9800] text-white' : 'hover:bg-[#ff9800] hover:text-white' }} rounded transition">
+                    <span class="flex items-center">
+                        <i class="fas fa-users mr-3 text-lg"></i> My Batches
+                    </span>
+                    <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold {{ request()->routeIs('get-trainer-course') ? 'bg-white/20 text-white' : 'bg-[#fff3e0] text-[#ff9800]' }}">
+                        {{ $totalAssignedInternships ?? 0 }} Int
+                    </span>
                 </a>
             </li>
         @endif
