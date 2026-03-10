@@ -166,7 +166,6 @@
                                                 <label class="block text-sm font-medium text-gray-700 mb-3">Select EMI Plan</label>
                                                 <select name="emi_plan" class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all bg-white appearance-none">
                                                     <option value="" disabled selected>Choose your EMI plan</option>
-                                                    // In your blade template, update the EMI option display:
                                                     @foreach ($batchData['emi_plans'] as $index => $plan)
                                                     <option value="{{ $index }}"
                                                         data-amount="{{ number_format($plan['amount'], 2, '.', '') }}"
@@ -289,6 +288,13 @@
         // Payment logic
         const batchPrice = @json($batchData['price']);
         const courseName = @json($batchData['course_name']);
+        const razorpayKey = @json(env('RAZORPAY_KEY'));
+        const payButtonEl = document.getElementById('payButton');
+        const form = document.getElementById('registrationForm');
+
+        if (!payButtonEl || !form) {
+            return;
+        }
 
         document.querySelectorAll('input[name="payment_method"]').forEach(radio => {
             radio.addEventListener('change', function () {
@@ -330,7 +336,13 @@
 
             const payButton = document.getElementById('payButton');
             if (payButton) {
-                payButton.textContent = `Pay ₹${amount.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+                const parsedAmount = Number(amount) || 0;
+                payButton.innerHTML = `
+                    Pay ₹${parsedAmount.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                    <svg xmlns="http://www.w3.org/2000/svg" class="ml-2 h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+                    </svg>
+                `;
                 payButton.dataset.amount = amount;
             }
         }
@@ -388,11 +400,17 @@
             preview.classList.remove('hidden');
         }
 
-        document.getElementById('payButton').addEventListener('click', function () {
-            const form = document.getElementById('registrationForm');
+        payButtonEl.addEventListener('click', function () {
             const nameField = form.querySelector('input[name="name"]');
             const emailField = form.querySelector('input[name="email"]');
             const phoneField = form.querySelector('input[name="phone"]');
+            const termsCheckbox = document.getElementById('terms');
+            const paymentIdInput = document.getElementById('payment_id');
+
+            if (!nameField || !emailField || !phoneField || !termsCheckbox || !paymentIdInput) {
+                showAlert('error', 'Registration form is incomplete. Please refresh and try again.');
+                return;
+            }
 
             [nameField, emailField, phoneField].forEach(f => f.classList.remove('field-error'));
 
@@ -433,7 +451,7 @@
                 return;
             }
 
-            if (!document.getElementById('terms').checked) {
+            if (!termsCheckbox.checked) {
                 showAlert('warning', 'Please agree to the terms and conditions');
                 return;
             }
@@ -457,15 +475,25 @@
                 description = "First EMI payment for " + courseName;
             }
 
+            if (typeof Razorpay === 'undefined') {
+                showAlert('error', 'Payment gateway failed to load. Please refresh and try again.');
+                return;
+            }
+
+            if (!razorpayKey) {
+                showAlert('error', 'Payment configuration is missing. Please contact support.');
+                return;
+            }
+
             const options = {
-                key: "{{ env('RAZORPAY_KEY') }}",
+                key: razorpayKey,
                 amount: Math.round(amount * 100),
                 currency: "INR",
                 name: "{{ config('app.name') }}",
                 description: description,
                 image: "{{ asset('path/to/your/logo.png') }}",
                 handler: function (response) {
-                    document.getElementById('payment_id').value = response.razorpay_payment_id;
+                    paymentIdInput.value = response.razorpay_payment_id;
                     form.submit();
                 },
                 prefill: {
