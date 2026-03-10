@@ -45,6 +45,46 @@ class AdminRecordingController extends Controller
             ->exists();
     }
 
+    private function trainerOwnsFolder(int $folderId): bool
+    {
+        if (!$this->isTrainer()) {
+            return true;
+        }
+
+        $courseIds = $this->trainerCourseIds();
+        return Folder::where('id', $folderId)
+            ->whereIn('course_id', $courseIds)
+            ->exists();
+    }
+
+    private function trainerOwnsTopic(int $topicId): bool
+    {
+        if (!$this->isTrainer()) {
+            return true;
+        }
+
+        $courseIds = $this->trainerCourseIds();
+        return Topic::where('id', $topicId)
+            ->whereHas('folder', function ($query) use ($courseIds) {
+                $query->whereIn('course_id', $courseIds);
+            })
+            ->exists();
+    }
+
+    private function trainerOwnsRecording(int $recordingId): bool
+    {
+        if (!$this->isTrainer()) {
+            return true;
+        }
+
+        $courseIds = $this->trainerCourseIds();
+        return Recording::where('id', $recordingId)
+            ->whereHas('topic.folder', function ($query) use ($courseIds) {
+                $query->whereIn('course_id', $courseIds);
+            })
+            ->exists();
+    }
+
     public function index()
     {
         if ($this->isTrainer()) {
@@ -275,6 +315,10 @@ public function addFolder(Request $request, $courseId)
 
 public function createFolder(Request $request)
 {
+    if (!$this->trainerOwnsCourse((int) $request->course_id)) {
+        return response()->json(['success' => false, 'message' => 'Unauthorized course'], 403);
+    }
+
     $folder = Folder::create([
         'name' => $request->name,
         'course_id' => $request->course_id,
@@ -292,6 +336,10 @@ public function createFolder(Request $request)
 
         if ($validator->fails()) {
             return response()->json(['success' => false, 'message' => 'Validation failed', 'errors' => $validator->errors()], 422);
+        }
+
+        if (!$this->trainerOwnsFolder((int) $request->parent_id)) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized folder'], 403);
         }
 
         $topic = Topic::create([
@@ -313,6 +361,10 @@ public function createFolder(Request $request)
             return response()->json(['success' => false, 'message' => 'Validation failed', 'errors' => $validator->errors()], 422);
         }
 
+        if (!$this->trainerOwnsTopic((int) $request->parent_id)) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized topic'], 403);
+        }
+
         $recording = Recording::create([
             'video_url' => $request->name,
             'topic_id' => $request->parent_id,
@@ -332,6 +384,15 @@ public function createFolder(Request $request)
 
         if ($validator->fails()) {
             return response()->json(['success' => false, 'message' => 'Validation failed', 'errors' => $validator->errors()], 422);
+        }
+
+        $folder = Folder::findOrFail($request->folder_id);
+        if ((int) $folder->course_id !== (int) $request->course_id) {
+            return response()->json(['success' => false, 'message' => 'Folder does not belong to selected course'], 422);
+        }
+
+        if (!$this->trainerOwnsCourse((int) $request->course_id)) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized course'], 403);
         }
 
         // Create the topic
@@ -366,6 +427,9 @@ public function createFolder(Request $request)
             }
 
             $folder = Folder::findOrFail($id);
+            if (!$this->trainerOwnsFolder((int) $folder->id) || !$this->trainerOwnsCourse((int) $request->input('course_id'))) {
+                return response()->json(['success' => false, 'message' => 'Unauthorized folder/course'], 403);
+            }
             Log::info('Folder found: ', $folder->toArray());
 
             $folder->name = $request->input('name');
@@ -398,14 +462,18 @@ public function createFolder(Request $request)
         }
 
         $topic = Topic::findOrFail($id);
+        if (!$this->trainerOwnsTopic((int) $topic->id)) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized topic'], 403);
+        }
         $topic->update($request->only(['name']));
         return response()->json(['success' => true]);
     }
 
     public function updateRecording(Request $request, $id)
     {
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|url',
+        $videoUrl = $request->input('video_url', $request->input('name'));
+        $validator = Validator::make(['video_url' => $videoUrl], [
+            'video_url' => 'required|url',
         ]);
 
         if ($validator->fails()) {
@@ -413,15 +481,24 @@ public function createFolder(Request $request)
         }
 
         $recording = Recording::findOrFail($id);
-        $recording->update($request->only(['video_url']));
+        if (!$this->trainerOwnsRecording((int) $recording->id)) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized recording'], 403);
+        }
+        $recording->update(['video_url' => $videoUrl]);
         return response()->json(['success' => true]);
     }
 public function toggleLock($type, $id)
 {
     if ($type === 'folder') {
         $item = Folder::findOrFail($id);
+        if (!$this->trainerOwnsFolder((int) $item->id)) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized folder'], 403);
+        }
     } elseif ($type === 'recording') {
         $item = Recording::findOrFail($id);
+        if (!$this->trainerOwnsRecording((int) $item->id)) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized recording'], 403);
+        }
     }
     $item->locked = !$item->locked;
     $item->save();
@@ -445,6 +522,9 @@ public function toggleLock($type, $id)
             }
 
             $item = Topic::findOrFail($id);
+            if (!$this->trainerOwnsTopic((int) $item->id)) {
+                return response()->json(['success' => false, 'message' => 'Unauthorized topic'], 403);
+            }
             $item->update($request->only(['name']));
         } elseif ($type === 'recording') {
             $validator = Validator::make($request->all(), [
@@ -456,6 +536,9 @@ public function toggleLock($type, $id)
             }
 
             $item = Recording::findOrFail($id);
+            if (!$this->trainerOwnsRecording((int) $item->id)) {
+                return response()->json(['success' => false, 'message' => 'Unauthorized recording'], 403);
+            }
             $item->update($request->only(['video_url']));
         } else {
             return response()->json(['success' => false, 'message' => 'Invalid type'], 400);
