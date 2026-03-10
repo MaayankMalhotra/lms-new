@@ -141,6 +141,18 @@
                     <i class="fas fa-chalkboard-teacher mr-3 text-lg"></i> Teacher Live Classes
                 </a>
             </li>
+
+            <!-- Populate Trainer Demo Data -->
+            <li>
+                <form action="{{ route('trainer.populate-data') }}" method="POST"
+                    onsubmit="return confirm('Populate demo data for trainer@gmail.com?');">
+                    @csrf
+                    <button type="submit"
+                        class="w-full flex items-center justify-center p-3 rounded transition bg-[#fff3e0] text-[#ff9800] hover:bg-[#ff9800] hover:text-white font-semibold">
+                        <i class="fas fa-database mr-2 text-sm"></i> Populate Data
+                    </button>
+                </form>
+            </li>
         @endif
 
         @if (auth()->user()->role == 3)

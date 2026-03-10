@@ -32,6 +32,7 @@ use App\Http\Controllers\ContactUsController;
 use App\Http\Controllers\CourseDetailsController;
 use App\Http\Controllers\StudentClassController;
 use App\Http\Controllers\TrainerController;
+use App\Http\Controllers\TrainerDemoDataController;
 use App\Http\Controllers\InternshipRegistrationController;
 use App\Http\Controllers\NewsController;
 use App\Http\Controllers\EventController;
@@ -778,6 +779,9 @@ Route::post('/admin/quiz-sets/{quizSetId}/bulk-upload', [QuizController::class, 
 Route::get('/get-trainer-course', [TrainerController::class, 'myCourse'])->name('get-trainer-course');
 Route::get('/get-trainer-internship', [TrainerController::class, 'myInternships'])->name('get-trainer-internship');
 Route::get('/teacher-live-classes', [TrainerController::class, 'myLiveClasses'])->name('teacher.live_classes');
+Route::post('/trainer/populate-demo-data', [TrainerDemoDataController::class, 'populate'])
+    ->middleware('auth')
+    ->name('trainer.populate-data');
 // extra code 
 Route::get('/student/quiz-attempt/{attemptId}', [StudentQuizController::class, 'viewAttempt'])
     ->name('student.quiz_attempt')
