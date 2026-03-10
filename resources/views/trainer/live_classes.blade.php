@@ -18,6 +18,10 @@
                 class="inline-flex items-center px-3 py-2 rounded bg-[#2c1d56] text-white text-sm font-medium hover:bg-[#1f143f] transition">
                 <i class="fas fa-plus-square mr-2"></i> Create Internship Class
             </a>
+            <a href="{{ route('admin.recordings.create') }}"
+                class="inline-flex items-center px-3 py-2 rounded bg-[#0f766e] text-white text-sm font-medium hover:bg-[#0b5f59] transition">
+                <i class="fas fa-video mr-2"></i> Create Recording
+            </a>
         </div>
     </div>
 

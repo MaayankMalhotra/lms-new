@@ -20,6 +20,31 @@ use Illuminate\Http\Request;
 
 class AdminRecordingController extends Controller
 {
+    private function isTrainer(): bool
+    {
+        return auth()->check() && (int) auth()->user()->role === 2;
+    }
+
+    private function trainerCourseIds()
+    {
+        return Batch::where('teacher_id', auth()->id())
+            ->pluck('course_id')
+            ->filter()
+            ->unique()
+            ->values();
+    }
+
+    private function trainerOwnsCourse(int $courseId): bool
+    {
+        if (!$this->isTrainer()) {
+            return true;
+        }
+
+        return Batch::where('teacher_id', auth()->id())
+            ->where('course_id', $courseId)
+            ->exists();
+    }
+
     public function index()
     {
         $recordings = Recording::all(); // Fetch recordings with courses
@@ -150,9 +175,21 @@ public function addFolder(Request $request, $courseId)
 
  public function create()
     {
-        $courses = Course::all();
-        $folders = Folder::with('course')->get();
-        $topics = Topic::with('folder')->get();
+        if ($this->isTrainer()) {
+            $courseIds = $this->trainerCourseIds();
+            $courses = Course::whereIn('id', $courseIds)->get();
+            $folders = Folder::with('course')->whereIn('course_id', $courseIds)->get();
+            $topics = Topic::with('folder.course')
+                ->whereHas('folder', function ($query) use ($courseIds) {
+                    $query->whereIn('course_id', $courseIds);
+                })
+                ->get();
+        } else {
+            $courses = Course::all();
+            $folders = Folder::with('course')->get();
+            $topics = Topic::with('folder.course')->get();
+        }
+
         return view('admin.recordings.create', compact('courses', 'folders', 'topics'));
     }
 
@@ -162,6 +199,10 @@ public function addFolder(Request $request, $courseId)
             'course_id' => 'required|exists:courses,id',
             'name' => 'required|string|max:255',
         ]);
+
+        if (!$this->trainerOwnsCourse((int) $request->course_id)) {
+            return back()->withErrors(['course_id' => 'You can create recordings only for your assigned courses.'])->withInput();
+        }
 
         Folder::create([
             'course_id' => $request->course_id,
@@ -179,6 +220,11 @@ public function addFolder(Request $request, $courseId)
             'discussion' => 'nullable|string',
         ]);
 
+        $folder = Folder::findOrFail($request->folder_id);
+        if (!$this->trainerOwnsCourse((int) $folder->course_id)) {
+            return back()->withErrors(['folder_id' => 'You can create topics only in your assigned courses.'])->withInput();
+        }
+
         Topic::create([
             'folder_id' => $request->folder_id,
             'name' => $request->name,
@@ -194,6 +240,11 @@ public function addFolder(Request $request, $courseId)
             'topic_id' => 'required|exists:topics,id',
             'video_url' => 'required|url',
         ]);
+
+        $topic = Topic::with('folder')->findOrFail($request->topic_id);
+        if (!$topic->folder || !$this->trainerOwnsCourse((int) $topic->folder->course_id)) {
+            return back()->withErrors(['topic_id' => 'You can add recordings only in your assigned courses.'])->withInput();
+        }
 
         Recording::create([
             'topic_id' => $request->topic_id,
