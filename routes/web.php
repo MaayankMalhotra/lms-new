@@ -764,6 +764,8 @@ Route::post('/admin/quiz-sets/{quizSetId}/bulk-upload', [QuizController::class, 
     Route::get('/internship-enrollment-view',[InternshipEnrollmentController::class, 'viewEnrollments'])->name('admin.internship-enrollment-view');
 
 Route::get('/get-trainer-course', [TrainerController::class, 'myCourse'])->name('get-trainer-course');
+Route::get('/get-trainer-internship', [TrainerController::class, 'myInternships'])->name('get-trainer-internship');
+Route::get('/teacher-live-classes', [TrainerController::class, 'myLiveClasses'])->name('teacher.live_classes');
 // extra code 
 Route::get('/student/quiz-attempt/{attemptId}', [StudentQuizController::class, 'viewAttempt'])
     ->name('student.quiz_attempt')

@@ -111,13 +111,29 @@
             <!-- Trainer Batches -->
             <li>
                 <a href="{{ route('get-trainer-course') }}"
-                    class="flex items-center justify-between p-3 {{ request()->routeIs('get-trainer-course') ? 'bg-[#ff9800] text-white' : 'hover:bg-[#ff9800] hover:text-white' }} rounded transition">
+                    class="flex items-center p-3 {{ request()->routeIs('get-trainer-course') ? 'bg-[#ff9800] text-white' : 'hover:bg-[#ff9800] hover:text-white' }} rounded transition">
+                    <i class="fas fa-users mr-3 text-lg"></i> My Batches
+                </a>
+            </li>
+
+            <!-- Trainer Internships -->
+            <li>
+                <a href="{{ route('get-trainer-internship') }}"
+                    class="flex items-center justify-between p-3 {{ request()->routeIs('get-trainer-internship') ? 'bg-[#ff9800] text-white' : 'hover:bg-[#ff9800] hover:text-white' }} rounded transition">
                     <span class="flex items-center">
-                        <i class="fas fa-users mr-3 text-lg"></i> My Batches
+                        <i class="fas fa-briefcase mr-3 text-lg"></i> Internship Enrolled
                     </span>
-                    <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold {{ request()->routeIs('get-trainer-course') ? 'bg-white/20 text-white' : 'bg-[#fff3e0] text-[#ff9800]' }}">
-                        {{ $totalAssignedInternships ?? 0 }} Int
+                    <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold {{ request()->routeIs('get-trainer-internship') ? 'bg-white/20 text-white' : 'bg-[#fff3e0] text-[#ff9800]' }}">
+                        {{ $totalAssignedInternships ?? 0 }}
                     </span>
+                </a>
+            </li>
+
+            <!-- Trainer Live Classes -->
+            <li>
+                <a href="{{ route('teacher.live_classes') }}"
+                    class="flex items-center p-3 {{ request()->routeIs('teacher.live_classes') ? 'bg-[#ff9800] text-white' : 'hover:bg-[#ff9800] hover:text-white' }} rounded transition">
+                    <i class="fas fa-chalkboard-teacher mr-3 text-lg"></i> Teacher Live Classes
                 </a>
             </li>
         @endif
