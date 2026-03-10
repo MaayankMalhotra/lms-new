@@ -126,6 +126,13 @@
                                                     @enderror
                                                 </div>
                                             </div>
+                                            <div>
+                                                <label class="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                                                <input type="password" name="password" class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all placeholder-gray-400" placeholder="Enter at least 6 characters" autocomplete="new-password">
+                                                @error('password')
+                                                <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                                                @enderror
+                                            </div>
                                         </div>
                                     </div>
 
@@ -400,19 +407,43 @@
             preview.classList.remove('hidden');
         }
 
-        payButtonEl.addEventListener('click', function () {
+        function extractFirstValidationMessage(payload) {
+            const details = payload?.details || payload?.errors || {};
+            const firstEntry = Object.values(details)[0];
+
+            if (Array.isArray(firstEntry) && firstEntry.length) {
+                return firstEntry[0];
+            }
+
+            if (typeof firstEntry === 'string' && firstEntry.trim()) {
+                return firstEntry;
+            }
+
+            if (typeof payload?.message === 'string' && payload.message.trim()) {
+                return payload.message;
+            }
+
+            if (typeof payload?.error === 'string' && payload.error.trim()) {
+                return payload.error;
+            }
+
+            return null;
+        }
+
+        payButtonEl.addEventListener('click', async function () {
             const nameField = form.querySelector('input[name="name"]');
             const emailField = form.querySelector('input[name="email"]');
             const phoneField = form.querySelector('input[name="phone"]');
+            const passwordField = form.querySelector('input[name="password"]');
             const termsCheckbox = document.getElementById('terms');
             const paymentIdInput = document.getElementById('payment_id');
 
-            if (!nameField || !emailField || !phoneField || !termsCheckbox || !paymentIdInput) {
+            if (!nameField || !emailField || !phoneField || !passwordField || !termsCheckbox || !paymentIdInput) {
                 showAlert('error', 'Registration form is incomplete. Please refresh and try again.');
                 return;
             }
 
-            [nameField, emailField, phoneField].forEach(f => f.classList.remove('field-error'));
+            [nameField, emailField, phoneField, passwordField].forEach(f => f.classList.remove('field-error'));
 
             if (!nameField.value.trim()) {
                 showAlert('warning', 'Fill this detail: Full Name');
@@ -432,6 +463,20 @@
                 showAlert('warning', 'Fill this detail: Phone Number');
                 phoneField.classList.add('field-error');
                 phoneField.focus();
+                return;
+            }
+
+            if (!passwordField.value) {
+                showAlert('warning', 'Fill this detail: Password');
+                passwordField.classList.add('field-error');
+                passwordField.focus();
+                return;
+            }
+
+            if (passwordField.value.length < 6) {
+                showAlert('error', 'Password must be at least 6 characters');
+                passwordField.classList.add('field-error');
+                passwordField.focus();
                 return;
             }
 
@@ -473,6 +518,36 @@
                 }
                 amount = Math.round(amount * 100) / 100;
                 description = "First EMI payment for " + courseName;
+            }
+
+            const csrfToken = form.querySelector('input[name="_token"]')?.value;
+            const batchId = form.querySelector('input[name="batch_id"]')?.value;
+
+            try {
+                const precheckResponse = await fetch("{{ route('register.precheck') }}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken || '',
+                    },
+                    body: JSON.stringify({
+                        batch_id: batchId,
+                        email: emailField.value.trim(),
+                        password: passwordField.value,
+                        payment_method: paymentMethod,
+                        emi_plan: paymentMethod === 'emi' ? form.querySelector('select[name="emi_plan"]')?.value : null,
+                    }),
+                });
+
+                const precheckPayload = await precheckResponse.json().catch(() => ({}));
+                if (!precheckResponse.ok) {
+                    showAlert('error', extractFirstValidationMessage(precheckPayload) || 'Unable to proceed with payment.');
+                    return;
+                }
+            } catch (error) {
+                showAlert('error', 'Unable to validate your details right now. Please try again.');
+                return;
             }
 
             if (typeof Razorpay === 'undefined') {

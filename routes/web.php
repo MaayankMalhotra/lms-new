@@ -86,6 +86,8 @@ Route::get('/register', [BatchController::class, 'show'])->name('register');
 
 Route::get('/register-int', [BatchController::class, 'showInt'])->name('register.int');
 // Route::post('/register/submit', [BatchController::class, 'submit'])->name('register.submit');
+Route::post('/register/precheck', [BatchController::class, 'precheck'])->name('register.precheck');
+Route::post('/register/precheck-int', [BatchController::class, 'precheckInt'])->name('register.precheck.int');
 Route::post('/register/submit', [BatchController::class, 'submitr'])->name('register.submit');
 Route::post('/register/submit-int', [BatchController::class, 'submitrInt'])->name('register.submit.int');
 Route::get('/student/quiz-sets', [StudentQuizController::class, 'index'])->name('student.quiz_sets');

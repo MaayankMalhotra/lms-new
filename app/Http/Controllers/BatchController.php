@@ -770,6 +770,102 @@ public function showInt(Request $request)
     return view('website.internship-register', compact('batchData'));
 }
 
+public function precheck(Request $request)
+{
+    $validator = Validator::make($request->all(), [
+        'batch_id' => 'required|exists:batches,id',
+        'email' => 'required|email|unique:users,email',
+        'password' => 'required|string|min:6|max:255',
+        'payment_method' => 'required|in:full,emi',
+        'emi_plan' => 'required_if:payment_method,emi|integer|min:0',
+    ], [
+        'email.unique' => 'This email is already registered. Please login or use a different email.',
+    ]);
+
+    if ($validator->fails()) {
+        return response()->json([
+            'error' => 'Validation failed',
+            'details' => $validator->errors(),
+        ], 422);
+    }
+
+    $batch = Batch::find($request->batch_id);
+    if (!$batch || (int) $batch->slots_available <= 0) {
+        return response()->json([
+            'error' => 'Validation failed',
+            'details' => ['batch_id' => ['This batch is full or unavailable.']],
+        ], 422);
+    }
+
+    if ($request->payment_method === 'emi') {
+        $emiPlans = $batch->emi_plans ?? [];
+
+        if (!$batch->emi_available || empty($emiPlans)) {
+            return response()->json([
+                'error' => 'Validation failed',
+                'details' => ['emi_plan' => ['EMI is not available for this batch.']],
+            ], 422);
+        }
+
+        if (!array_key_exists($request->emi_plan, $emiPlans)) {
+            return response()->json([
+                'error' => 'Validation failed',
+                'details' => ['emi_plan' => ['Selected EMI plan is invalid.']],
+            ], 422);
+        }
+    }
+
+    return response()->json(['success' => true], 200);
+}
+
+public function precheckInt(Request $request)
+{
+    $validator = Validator::make($request->all(), [
+        'batch_id' => 'required|exists:internship_batches,id',
+        'email' => 'required|email|unique:users,email',
+        'password' => 'required|string|min:6|max:255',
+        'payment_method' => 'required|in:full,emi',
+        'emi_plan' => 'required_if:payment_method,emi|integer|min:0',
+    ], [
+        'email.unique' => 'This email is already registered. Please login or use a different email.',
+    ]);
+
+    if ($validator->fails()) {
+        return response()->json([
+            'error' => 'Validation failed',
+            'details' => $validator->errors(),
+        ], 422);
+    }
+
+    $batch = InternshipBatch::find($request->batch_id);
+    if (!$batch || (int) $batch->slots_available <= 0) {
+        return response()->json([
+            'error' => 'Validation failed',
+            'details' => ['batch_id' => ['This batch is full or unavailable.']],
+        ], 422);
+    }
+
+    if ($request->payment_method === 'emi') {
+        $emiPlans = $batch->emi_plans ?? [];
+
+        if (!$batch->emi_available || empty($emiPlans)) {
+            return response()->json([
+                'error' => 'Validation failed',
+                'details' => ['emi_plan' => ['EMI is not available for this batch.']],
+            ], 422);
+        }
+
+        if (!array_key_exists($request->emi_plan, $emiPlans)) {
+            return response()->json([
+                'error' => 'Validation failed',
+                'details' => ['emi_plan' => ['Selected EMI plan is invalid.']],
+            ], 422);
+        }
+    }
+
+    return response()->json(['success' => true], 200);
+}
+
 // public function submitr(Request $request)
 // {
 //     $batch = Batch::findOrFail($request->batch_id);
@@ -1009,7 +1105,8 @@ public function showInt(Request $request)
 public function submitrInt(Request $request)
 {
   //   dd($request->all());
-    Log::info('Incoming registration request:', $request->all());
+    $logRequestData = $request->except(['password', 'password_confirmation']);
+    Log::info('Incoming registration request:', $logRequestData);
 
     try {
         // Validate request data
@@ -1022,14 +1119,17 @@ public function submitrInt(Request $request)
             'slots_available' => 'required|integer|min:0',
             'slots_filled' => 'required|integer|min:0',
             'name' => 'required|string|max:255',
-            'email' => 'required|email:users,email|max:255',
+            'email' => 'required|email|unique:users,email|max:255',
             'phone' => 'required|string|max:15',
+            'password' => 'required|string|min:6|max:255',
             'payment_id' => 'required|string|max:255',
             'payment_method' => 'required|in:full,emi',
             'emi_plan' => 'required_if:payment_method,emi|integer|min:0',
         ]);
 
-        Log::info('Validated data:', $validated);
+        $logValidatedData = $validated;
+        unset($logValidatedData['password']);
+        Log::info('Validated data:', $logValidatedData);
 
         // Fetch batch and log EMI plans
         $batch = InternshipBatch::findOrFail($validated['batch_id']);
@@ -1071,7 +1171,7 @@ public function submitrInt(Request $request)
             $user = User::create([
                 'name' => $validated['name'],
                 'email' => $validated['email'],
-                'password' => Hash::make('123456'),
+                'password' => Hash::make($validated['password']),
                 'role' => 3,
                 'internship' => '1',
             ]);
@@ -1168,7 +1268,8 @@ public function submitrInt(Request $request)
 public function submitr(Request $request)
 {
     // dd($request->all());
-    Log::info('Incoming registration request:', $request->all());
+    $logRequestData = $request->except(['password', 'password_confirmation']);
+    Log::info('Incoming registration request:', $logRequestData);
 
     try {
         // Validate request data
@@ -1183,12 +1284,15 @@ public function submitr(Request $request)
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email|max:255',
             'phone' => 'required|string|max:15',
+            'password' => 'required|string|min:6|max:255',
             'payment_id' => 'required|string|max:255',
             'payment_method' => 'required|in:full,emi',
             'emi_plan' => 'required_if:payment_method,emi|integer|min:0',
         ]);
 
-        Log::info('Validated data:', $validated);
+        $logValidatedData = $validated;
+        unset($logValidatedData['password']);
+        Log::info('Validated data:', $logValidatedData);
 
         // Fetch batch and log EMI plans
         $batch = Batch::findOrFail($validated['batch_id']);
@@ -1230,7 +1334,7 @@ public function submitr(Request $request)
             $user = User::create([
                 'name' => $validated['name'],
                 'email' => $validated['email'],
-                'password' => Hash::make('123456'),
+                'password' => Hash::make($validated['password']),
                 'role' => 3,
             ]);
             Log::info('User created:', ['user_id' => $user->id]);
