@@ -176,6 +176,18 @@
                 .catch(error => console.error('Error:', error));
         }
 
+        function openAddModal(type, courseId) {
+            if (type !== 'folder') {
+                return;
+            }
+
+            const createUrl = new URL("{{ route('admin.recordings.create') }}", window.location.origin);
+            if (courseId) {
+                createUrl.searchParams.set('course_id', courseId);
+            }
+            window.location.href = createUrl.toString();
+        }
+
         // other modal functions unchanged ...
     </script>
 @endsection

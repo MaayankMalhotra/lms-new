@@ -29,7 +29,9 @@
                 <select name="course_id" class="w-full p-2 border rounded" required>
                     <option value="">Choose a course</option>
                     @foreach ($courses as $course)
-                        <option value="{{ $course->id }}">{{ $course->name }}</option>
+                        <option value="{{ $course->id }}" {{ (string) request('course_id') === (string) $course->id ? 'selected' : '' }}>
+                            {{ $course->name }}
+                        </option>
                     @endforeach
                 </select>
             </div>
