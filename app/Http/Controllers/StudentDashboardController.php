@@ -16,9 +16,22 @@ class StudentDashboardController extends Controller
         $user = auth()->user();
         $userId = $user->id;
 
-        $batchIds = $user->enrollments()
+        $enrollments = DB::table('enrollments as enrollments')
+            ->leftJoin('batches', 'batches.id', '=', 'enrollments.batch_id')
+            ->where('enrollments.user_id', $userId)
+            ->select('enrollments.batch_id', 'batches.course_id')
+            ->get();
+
+        $batchIds = $enrollments
             ->pluck('batch_id')
             ->filter()
+            ->unique()
+            ->values();
+
+        $courseIds = $enrollments
+            ->pluck('course_id')
+            ->filter()
+            ->unique()
             ->values();
 
         $studentBatches = DB::table('users')
@@ -35,16 +48,41 @@ class StudentDashboardController extends Controller
             )
             ->get();
 
-        $totalAssignments = $batchIds->isNotEmpty()
-            ? DB::table('assignments')
-                ->whereIn('batch_id', $batchIds)
-                ->distinct('id')
-                ->count('id')
-            : 0;
+        $assignmentIds = collect();
+        if ($batchIds->isNotEmpty() || $courseIds->isNotEmpty()) {
+            $assignmentIds = DB::table('assignments')
+                ->where(function ($query) use ($batchIds, $courseIds) {
+                    if ($batchIds->isNotEmpty()) {
+                        $query->whereIn('batch_id', $batchIds);
+                    }
+                    if ($courseIds->isNotEmpty()) {
+                        if ($batchIds->isNotEmpty()) {
+                            $query->orWhereIn('course_id', $courseIds);
+                        } else {
+                            $query->whereIn('course_id', $courseIds);
+                        }
+                    }
+                })
+                ->distinct()
+                ->pluck('id');
+        }
+
+        $totalAssignments = $assignmentIds->count();
 
         $quizSets = QuizSet::with(['batch.course'])
-            ->when($batchIds->isNotEmpty(), function ($query) use ($batchIds) {
-                $query->whereIn('batch_id', $batchIds);
+            ->when($batchIds->isNotEmpty() || $courseIds->isNotEmpty(), function ($query) use ($batchIds, $courseIds) {
+                $query->where(function ($subQuery) use ($batchIds, $courseIds) {
+                    if ($batchIds->isNotEmpty()) {
+                        $subQuery->whereIn('batch_id', $batchIds);
+                    }
+                    if ($courseIds->isNotEmpty()) {
+                        if ($batchIds->isNotEmpty()) {
+                            $subQuery->orWhereIn('course_id', $courseIds);
+                        } else {
+                            $subQuery->whereIn('course_id', $courseIds);
+                        }
+                    }
+                });
             }, function ($query) {
                 $query->whereRaw('1 = 0');
             })
@@ -152,11 +190,10 @@ class StudentDashboardController extends Controller
         $quizSetIds = $quizSets->pluck('id');
 
         $submittedAssignments = 0;
-        if ($batchIds->isNotEmpty() && Schema::hasTable('assignment_submissions')) {
+        if ($assignmentIds->isNotEmpty() && Schema::hasTable('assignment_submissions')) {
             $submittedAssignments = DB::table('assignment_submissions as submissions')
-                ->join('assignments', 'assignments.id', '=', 'submissions.assignment_id')
                 ->where('submissions.user_id', $userId)
-                ->whereIn('assignments.batch_id', $batchIds)
+                ->whereIn('submissions.assignment_id', $assignmentIds)
                 ->distinct('submissions.assignment_id')
                 ->count('submissions.assignment_id');
         }
