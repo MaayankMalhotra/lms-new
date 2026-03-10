@@ -153,18 +153,6 @@
                     <i class="fas fa-plus-square mr-3 text-lg"></i> Create Internship Class
                 </a>
             </li>
-            <li>
-                <a href="{{ route('admin.recordings.create') }}"
-                    class="flex items-center p-3 {{ request()->routeIs('admin.recordings.create') ? 'bg-[#ff9800] text-white' : 'hover:bg-[#ff9800] hover:text-white' }} rounded transition">
-                    <i class="fas fa-video mr-3 text-lg"></i> Create Recording
-                </a>
-            </li>
-            <li>
-                <a href="{{ route('admin.recordings.index') }}"
-                    class="flex items-center p-3 {{ request()->routeIs('admin.recordings.index') ? 'bg-[#ff9800] text-white' : 'hover:bg-[#ff9800] hover:text-white' }} rounded transition">
-                    <i class="fas fa-list mr-3 text-lg"></i> Recordings
-                </a>
-            </li>
             <!-- Trainer Coding Module -->
             <li x-data="{ isOpen: false }">
                 <a href="javascript:void(0)" @click="isOpen = !isOpen"
