@@ -524,6 +524,17 @@
             const batchId = form.querySelector('input[name="batch_id"]')?.value;
 
             try {
+                const precheckBody = {
+                    batch_id: batchId,
+                    email: emailField.value.trim(),
+                    password: passwordField.value,
+                    payment_method: paymentMethod,
+                };
+
+                if (paymentMethod === 'emi') {
+                    precheckBody.emi_plan = form.querySelector('select[name="emi_plan"]')?.value;
+                }
+
                 const precheckResponse = await fetch("{{ route('register.precheck') }}", {
                     method: 'POST',
                     headers: {
@@ -531,13 +542,7 @@
                         'Accept': 'application/json',
                         'X-CSRF-TOKEN': csrfToken || '',
                     },
-                    body: JSON.stringify({
-                        batch_id: batchId,
-                        email: emailField.value.trim(),
-                        password: passwordField.value,
-                        payment_method: paymentMethod,
-                        emi_plan: paymentMethod === 'emi' ? form.querySelector('select[name="emi_plan"]')?.value : null,
-                    }),
+                    body: JSON.stringify(precheckBody),
                 });
 
                 const precheckPayload = await precheckResponse.json().catch(() => ({}));

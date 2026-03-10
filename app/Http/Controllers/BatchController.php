@@ -777,7 +777,7 @@ public function precheck(Request $request)
         'email' => 'required|email|unique:users,email',
         'password' => 'required|string|min:6|max:255',
         'payment_method' => 'required|in:full,emi',
-        'emi_plan' => 'required_if:payment_method,emi|integer|min:0',
+        'emi_plan' => 'nullable|required_if:payment_method,emi|integer|min:0',
     ], [
         'email.unique' => 'This email is already registered. Please login or use a different email.',
     ]);
@@ -825,7 +825,7 @@ public function precheckInt(Request $request)
         'email' => 'required|email|unique:users,email',
         'password' => 'required|string|min:6|max:255',
         'payment_method' => 'required|in:full,emi',
-        'emi_plan' => 'required_if:payment_method,emi|integer|min:0',
+        'emi_plan' => 'nullable|required_if:payment_method,emi|integer|min:0',
     ], [
         'email.unique' => 'This email is already registered. Please login or use a different email.',
     ]);
@@ -1124,7 +1124,7 @@ public function submitrInt(Request $request)
             'password' => 'required|string|min:6|max:255',
             'payment_id' => 'required|string|max:255',
             'payment_method' => 'required|in:full,emi',
-            'emi_plan' => 'required_if:payment_method,emi|integer|min:0',
+            'emi_plan' => 'nullable|required_if:payment_method,emi|integer|min:0',
         ]);
 
         $logValidatedData = $validated;
@@ -1287,7 +1287,7 @@ public function submitr(Request $request)
             'password' => 'required|string|min:6|max:255',
             'payment_id' => 'required|string|max:255',
             'payment_method' => 'required|in:full,emi',
-            'emi_plan' => 'required_if:payment_method,emi|integer|min:0',
+            'emi_plan' => 'nullable|required_if:payment_method,emi|integer|min:0',
         ]);
 
         $logValidatedData = $validated;
