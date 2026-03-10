@@ -23,26 +23,60 @@ class AdminLiveClassController extends Controller
     // }
     public function index()
     {
-        $batches = Batch::with('course', 'liveClasses')->get();
-       // dd($batches);
+        $batchesQuery = Batch::with('course', 'liveClasses');
+
+        if (auth()->check() && (int) auth()->user()->role === 2) {
+            $batchesQuery->where('teacher_id', auth()->id());
+        }
+
+        $batches = $batchesQuery->get();
+
         return view('admin.live_classes.index', compact('batches'));
     }
 
      public function indexInt()
     {
-        $batches = InternshipBatch::with('internship', 'liveClasses')->get();
-        // dd($batches);
+        $batchesQuery = InternshipBatch::with('internship', 'liveClasses');
+
+        if (auth()->check() && (int) auth()->user()->role === 2) {
+            $batchesQuery->where('teacher_id', auth()->id());
+        }
+
+        $batches = $batchesQuery->get();
+
         return view('admin.live_classes.index-int', compact('batches'));
     }
     public function create()
     {
-        $courses = Course::orderBy('name')->get();
+        if (auth()->check() && (int) auth()->user()->role === 2) {
+            $courseIds = Batch::where('teacher_id', auth()->id())
+                ->pluck('course_id')
+                ->filter()
+                ->unique()
+                ->values();
+
+            $courses = Course::whereIn('id', $courseIds)->orderBy('name')->get();
+        } else {
+            $courses = Course::orderBy('name')->get();
+        }
+
         return view('admin.live_classes.create', compact('courses'));
     }
 
     public function createInt()
     {
-        $internships = Internship::orderBy('name')->get();
+        if (auth()->check() && (int) auth()->user()->role === 2) {
+            $internshipIds = InternshipBatch::where('teacher_id', auth()->id())
+                ->pluck('internship_id')
+                ->filter()
+                ->unique()
+                ->values();
+
+            $internships = Internship::whereIn('id', $internshipIds)->orderBy('name')->get();
+        } else {
+            $internships = Internship::orderBy('name')->get();
+        }
+
         return view('admin.live_classes.create-int', compact('internships'));
     }
 
@@ -224,6 +258,14 @@ class AdminLiveClassController extends Controller
             'recording_id.*' => 'exists:recordings,id',
         ]);
 
+        $selectedBatch = Batch::findOrFail($request->batch_id);
+
+        if (auth()->check() && (int) auth()->user()->role === 2) {
+            if ((int) $selectedBatch->teacher_id !== (int) auth()->id()) {
+                return back()->withErrors(['batch_id' => 'You can only create live classes for your own batches.'])->withInput();
+            }
+        }
+
         $topicName = 'Untitled Live Class';
         if ($request->has('folder_id') && $request->folder_id) {
             $folder = Folder::find($request->folder_id);
@@ -235,8 +277,8 @@ class AdminLiveClassController extends Controller
 
         $recordingIds = $request->has('recording_id') && !empty($request->recording_id) ? implode(',', $request->recording_id) : null;
 
-        $liveClass = LiveClass::create([
-            'course_id' => $request->course_id,
+        LiveClass::create([
+            'course_id' => $selectedBatch->course_id,
             'batch_id' => $request->batch_id,
             'folder_id' => $request->folder_id,
             'topic' => $topicName,
@@ -247,7 +289,11 @@ class AdminLiveClassController extends Controller
             'recording_id' => $recordingIds,
         ]);
 
-        return redirect()->route('admin.live_classes.index')->with('success', 'Live class created successfully');
+        $redirectRoute = auth()->check() && (int) auth()->user()->role === 2
+            ? 'teacher.live_classes'
+            : 'admin.live_classes.index';
+
+        return redirect()->route($redirectRoute)->with('success', 'Live class created successfully');
     }
 
   public function storeInt(Request $request)
@@ -263,6 +309,14 @@ class AdminLiveClassController extends Controller
                // 'recording_id.*' => 'exists:recordings,id',
             ]);
 
+            $selectedBatch = InternshipBatch::findOrFail($request->batch_id);
+
+            if (auth()->check() && (int) auth()->user()->role === 2) {
+                if ((int) $selectedBatch->teacher_id !== (int) auth()->id()) {
+                    return back()->withErrors(['batch_id' => 'You can only create live classes for your own batches.'])->withInput();
+                }
+            }
+
             $topicName = 'Untitled Live Class';
             if ($request->has('folder_id') && $request->folder_id) {
                 $folder = InternshipFolder::find($request->folder_id);
@@ -274,7 +328,7 @@ class AdminLiveClassController extends Controller
 
             $recordingIds = $request->has('recording_id') && !empty($request->recording_id) ? implode(',', $request->recording_id) : null;
 
-            $liveClass = InternshipClass::create([
+            InternshipClass::create([
                 'batch_id' => $request->batch_id,
                 'folder_id' => $request->folder_id,
                 'topic' => $topicName,
@@ -285,7 +339,11 @@ class AdminLiveClassController extends Controller
                 'recording_id' => $recordingIds,
             ]);
 
-            return redirect()->route('admin.live_classes.index')->with('success', 'Live class created successfully');
+            $redirectRoute = auth()->check() && (int) auth()->user()->role === 2
+                ? 'teacher.live_classes'
+                : 'admin.live_classes.index';
+
+            return redirect()->route($redirectRoute)->with('success', 'Live class created successfully');
         } catch (\ValidationException $e) {
             dd('Validation Error:', $e->errors());
         } catch (\Exception $e) {

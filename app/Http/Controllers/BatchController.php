@@ -500,6 +500,9 @@ public function storeInt(Request $request)
 
         $batches = Batch::where('course_id', $courseId)
             ->with('course', 'teacher')
+            ->when(auth()->check() && (int) auth()->user()->role === 2, function ($query) {
+                $query->where('teacher_id', auth()->id());
+            })
             ->get()
             ->map(function ($batch) {
                 return [
@@ -531,6 +534,9 @@ public function storeInt(Request $request)
 
         $batches = InternshipBatch::where('internship_id', $courseId)
             ->with('internship', 'teacher')
+            ->when(auth()->check() && (int) auth()->user()->role === 2, function ($query) {
+                $query->where('teacher_id', auth()->id());
+            })
             ->get()
             ->map(function ($batch) {
                 return [

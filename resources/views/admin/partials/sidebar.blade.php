@@ -141,6 +141,18 @@
                     <i class="fas fa-chalkboard-teacher mr-3 text-lg"></i> Teacher Live Classes
                 </a>
             </li>
+            <li>
+                <a href="{{ route('admin.live_classes.create') }}"
+                    class="flex items-center p-3 {{ request()->routeIs('admin.live_classes.create') ? 'bg-[#ff9800] text-white' : 'hover:bg-[#ff9800] hover:text-white' }} rounded transition">
+                    <i class="fas fa-plus-circle mr-3 text-lg"></i> Create Live Class
+                </a>
+            </li>
+            <li>
+                <a href="{{ route('admin.live_classes.create.int') }}"
+                    class="flex items-center p-3 {{ request()->routeIs('admin.live_classes.create.int') ? 'bg-[#ff9800] text-white' : 'hover:bg-[#ff9800] hover:text-white' }} rounded transition">
+                    <i class="fas fa-plus-square mr-3 text-lg"></i> Create Internship Class
+                </a>
+            </li>
 
             <!-- Populate Trainer Demo Data -->
             <li>

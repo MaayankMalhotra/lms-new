@@ -3,10 +3,22 @@
 @section('content')
 <div class="px-3 py-4">
     <div class="flex items-center justify-between mb-5">
-        <h2 class="text-2xl font-semibold text-gray-800">Teacher Live Classes</h2>
-        <span class="text-sm text-gray-500">
-            Total Batches: {{ $batches->count() }}
-        </span>
+        <div>
+            <h2 class="text-2xl font-semibold text-gray-800">Teacher Live Classes</h2>
+            <span class="text-sm text-gray-500">
+                Total Batches: {{ $batches->count() }}
+            </span>
+        </div>
+        <div class="flex items-center gap-2">
+            <a href="{{ route('admin.live_classes.create') }}"
+                class="inline-flex items-center px-3 py-2 rounded bg-[#ff9800] text-white text-sm font-medium hover:bg-[#e68900] transition">
+                <i class="fas fa-plus-circle mr-2"></i> Create Live Class
+            </a>
+            <a href="{{ route('admin.live_classes.create.int') }}"
+                class="inline-flex items-center px-3 py-2 rounded bg-[#2c1d56] text-white text-sm font-medium hover:bg-[#1f143f] transition">
+                <i class="fas fa-plus-square mr-2"></i> Create Internship Class
+            </a>
+        </div>
     </div>
 
     @if($batches->isEmpty())
