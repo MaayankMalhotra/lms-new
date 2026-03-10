@@ -13,6 +13,55 @@ use Illuminate\Support\Facades\Storage;
 
 class CourseController extends Controller
 {
+    private function storeCourseLogo($image): string
+    {
+        $imageName = time() . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
+
+        // Primary path: public/courses (legacy behavior)
+        $destPath = public_path('courses');
+        try {
+            if (!is_dir($destPath)) {
+                @mkdir($destPath, 0755, true);
+            }
+            $image->move($destPath, $imageName);
+            return 'courses/' . $imageName;
+        } catch (\Throwable $e) {
+            // Fallback for production permission issues on /public/courses
+            Log::warning('Course logo upload fallback to storage disk', [
+                'error' => $e->getMessage(),
+            ]);
+
+            Storage::disk('public')->putFileAs('courses', $image, $imageName);
+            return 'storage/courses/' . $imageName;
+        }
+    }
+
+    private function deleteCourseLogo(?string $logoPath): void
+    {
+        if (!$logoPath) {
+            return;
+        }
+
+        if (filter_var($logoPath, FILTER_VALIDATE_URL)) {
+            return;
+        }
+
+        $normalized = ltrim($logoPath, '/');
+
+        // Delete from public path if present
+        $publicFile = public_path($normalized);
+        if (is_file($publicFile)) {
+            @unlink($publicFile);
+        }
+
+        // Delete from storage disk if present
+        if (str_starts_with($normalized, 'storage/')) {
+            Storage::disk('public')->delete(substr($normalized, strlen('storage/')));
+        } else {
+            Storage::disk('public')->delete($normalized);
+        }
+    }
+
     public function addCourse()
     {
         return view('admin.add-course');
@@ -33,16 +82,9 @@ class CourseController extends Controller
         'price'           => 'required|numeric|min:0',
     ]);
 
-    // Handle logo upload to public/courses and save relative path
+    // Handle logo upload
     if ($request->hasFile('logo')) {
-        $destPath = public_path('courses');
-        if (!is_dir($destPath)) {
-            @mkdir($destPath, 0755, true);
-        }
-        $image = $request->file('logo');
-        $imageName = time() . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
-        $image->move($destPath, $imageName);
-        $validated['logo'] = 'courses/' . $imageName;
+        $validated['logo'] = $this->storeCourseLogo($request->file('logo'));
     }
 
     // Create the course using mass assignment
@@ -146,23 +188,8 @@ public function update(Request $request, $id)
 
     // Handle logo (optional)
     if ($request->hasFile('logo')) {
-        // delete old file if exists
-        if ($course->logo && file_exists(public_path($course->logo))) {
-            @unlink(public_path($course->logo));
-        }
-
-        // ensure folder exists
-        $destPath = public_path('courses');
-        if (!is_dir($destPath)) {
-            @mkdir($destPath, 0755, true);
-        }
-
-        $image = $request->file('logo');
-        $imageName = time() . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
-        $image->move($destPath, $imageName);
-
-        // store relative path (your Blade uses asset($course->logo))
-        $data['logo'] = 'courses/' . $imageName;
+        $this->deleteCourseLogo($course->logo);
+        $data['logo'] = $this->storeCourseLogo($request->file('logo'));
     }
 
     // Save without validation
@@ -180,13 +207,7 @@ public function destroy(Request $request, $id)
     try {
         $course = Course::findOrFail($id);
 
-        // Delete logo file (relative path like 'courses/xyz.jpg')
-        if ($course->logo) {
-            $path = public_path($course->logo);
-            if (is_file($path)) {
-                @unlink($path);
-            }
-        }
+        $this->deleteCourseLogo($course->logo);
 
         $course->delete();
 

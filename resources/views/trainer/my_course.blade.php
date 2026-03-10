@@ -3,8 +3,14 @@
 @section('content')
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
     @foreach ($trainer as $batch)
+        @php
+            $logoPath = optional($batch->course)->logo;
+            $logoUrl = $logoPath
+                ? (filter_var($logoPath, FILTER_VALIDATE_URL) ? $logoPath : asset($logoPath))
+                : asset('images/default-course.png');
+        @endphp
         <div class="bg-white shadow-md rounded-2xl overflow-hidden">
-            <img src="{{ asset('storage/' . $batch->course->logo) }}" alt="{{ $batch->course->name }}" class="w-full h-48 object-cover">
+            <img src="{{ $logoUrl }}" alt="{{ $batch->course->name }}" class="w-full h-48 object-cover">
             
             <div class="p-4">
                 <h2 class="text-xl font-semibold text-gray-800">{{ $batch->course->name }}</h2>
