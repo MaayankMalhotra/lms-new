@@ -301,6 +301,7 @@ Route::get('/student-management', [AdminController::class, 'student_management']
 Route::get('admin/student/{id}/edit', [AdminController::class, 'editStudent'])->name('admin.student.edit');
 Route::put('admin/student/{id}', [AdminController::class, 'updateStudent'])->name('admin.student.update');
 Route::delete('admin/student/{id}', [AdminController::class, 'deleteStudent'])->name('admin.student.delete');
+Route::patch('admin/student/{id}/status', [AdminController::class, 'toggleStudentStatus'])->name('admin.student.toggle-status');
 
 Route::get('/upload', [ImageUploadController::class, 'showUploadForm'])->name('upload.form');
 Route::post('/upload', [ImageUploadController::class, 'uploadImage'])->name('upload.image');

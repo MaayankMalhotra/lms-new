@@ -24,7 +24,7 @@
             </a>
             <a href="{{ route('admin.recordings.index') }}"
                 class="inline-flex items-center px-3 py-2 rounded bg-[#1e40af] text-white text-sm font-medium hover:bg-[#1d4ed8] transition">
-                <i class="fas fa-list mr-2"></i> View Recordings
+                <i class="fas fa-list mr-2"></i> Recordings
             </a>
         </div>
     </div>

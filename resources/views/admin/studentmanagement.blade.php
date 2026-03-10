@@ -75,12 +75,17 @@
         <!-- Student Cards -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             @forelse ($students as $index => $student)
-                <div class="backdrop-blur-md bg-white/80 rounded-xl shadow-lg p-6 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
+                <div class="backdrop-blur-md {{ $student['is_active'] ? 'bg-white/80' : 'bg-gray-100/85' }} rounded-xl shadow-lg p-6 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
                     <!-- Header -->
-                    <div class="flex justify-between items-center mb-4">
-                        <h2 class="text-lg font-semibold text-gray-900">
-                            {{ $student['name'] }}
-                        </h2>
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <h2 class="text-lg font-semibold text-gray-900">
+                                {{ $student['name'] }}
+                            </h2>
+                            <span class="mt-2 inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold {{ $student['is_active'] ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-700' }}">
+                                {{ $student['is_active'] ? 'Active' : 'Inactive' }}
+                            </span>
+                        </div>
                         <span class="text-xs text-gray-500">#{{ $index + 1 }}</span>
                     </div>
 
@@ -104,12 +109,18 @@
                                 title="Edit">
                             <i class="fas fa-edit text-lg"></i>
                         </button>
-                        <button class="text-red-500 hover:text-red-600 delete-student"
-                                data-id="{{ $student['id'] }}"
-                                data-url="{{ route('admin.student.delete', $student['id']) }}"
-                                title="Delete">
-                            <i class="fas fa-trash text-lg"></i>
-                        </button>
+                        <form method="POST"
+                              action="{{ route('admin.student.toggle-status', $student['id']) }}"
+                              onsubmit="return confirm('{{ $student['is_active'] ? 'Deactivate this student?' : 'Activate this student?' }}')">
+                            @csrf
+                            @method('PATCH')
+                            <input type="hidden" name="status" value="{{ $student['is_active'] ? 'inactive' : 'active' }}">
+                            <button type="submit"
+                                    class="rounded-lg px-3 py-1 text-xs font-semibold {{ $student['is_active'] ? 'bg-red-500 text-white hover:bg-red-600' : 'bg-green-600 text-white hover:bg-green-700' }}"
+                                    title="{{ $student['is_active'] ? 'Deactivate' : 'Activate' }}">
+                                {{ $student['is_active'] ? 'Deactivate' : 'Activate' }}
+                            </button>
+                        </form>
                     </div>
                 </div>
             @empty
@@ -165,22 +176,10 @@
     </div>
 </div>
 
-<!-- Delete Confirmation Modal -->
-<div id="deleteModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
-    <div class="bg-white rounded-lg shadow p-6 w-96">
-        <h2 class="text-lg font-semibold mb-4">Confirm Delete</h2>
-        <p>Are you sure you want to delete this Student?</p>
-        <div class="flex justify-end mt-6">
-            <button class="px-4 py-2 bg-gray-300 rounded mr-2 modal-close">Cancel</button>
-            <button id="confirmDeleteBtn" class="px-4 py-2 bg-red-500 text-white rounded">Delete</button>
-        </div>
-    </div>
-</div>
-
 <!-- Scripts (same as before, no change needed) -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
-    // Same AJAX Edit + Delete logic from your existing code
+    // Same AJAX edit logic from your existing code
     // Just works with cards instead of table
 </script>
 @endsection

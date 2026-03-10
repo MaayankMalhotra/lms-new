@@ -197,6 +197,7 @@ public function student_management(Request $request)
                 'name' => $student->name,
                 'email' => $student->email,
                 'phone' => $student->phone ?? 'N/A',
+                'is_active' => (bool) ($student->is_active ?? 1),
                 'created_at' => $student->created_at,
             ];
         });
@@ -266,12 +267,50 @@ public function student_management(Request $request)
     public function deleteStudent($id)
     {
         try {
-            $student = User::findOrFail($id);
-            $student->delete();
-            return response()->json(['message' => 'Student deleted successfully'], 200);
+            $student = User::where('role', 3)->findOrFail($id);
+            $student->is_active = 0;
+            $student->save();
+
+            return response()->json(['message' => 'Student deactivated successfully'], 200);
         } catch (\Exception $e) {
             Log::error('Delete Student Error: ' . $e->getMessage());
             return response()->json(['message' => 'Failed to delete student'], 500);
+        }
+    }
+
+    public function toggleStudentStatus(Request $request, $id)
+    {
+        $validated = $request->validate([
+            'status' => 'required|in:active,inactive',
+        ]);
+
+        try {
+            $student = User::where('role', 3)->findOrFail($id);
+            $isActive = $validated['status'] === 'active';
+
+            $student->is_active = $isActive ? 1 : 0;
+            $student->save();
+
+            $message = $isActive
+                ? 'Student activated successfully'
+                : 'Student deactivated successfully';
+
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'message' => $message,
+                    'is_active' => $isActive,
+                ], 200);
+            }
+
+            return redirect()->route('student-management')->with('success', $message);
+        } catch (\Exception $e) {
+            Log::error('Toggle Student Status Error: ' . $e->getMessage());
+
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json(['message' => 'Failed to update student status'], 500);
+            }
+
+            return redirect()->route('student-management')->with('error', 'Failed to update student status');
         }
     }
 

@@ -27,6 +27,7 @@ class User extends Authenticatable
         'college_company',
         'phone',
         'internship',
+        'is_active',
 
     ];
 

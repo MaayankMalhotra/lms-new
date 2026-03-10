@@ -162,8 +162,26 @@
             <li>
                 <a href="{{ route('admin.recordings.index') }}"
                     class="flex items-center p-3 {{ request()->routeIs('admin.recordings.index') ? 'bg-[#ff9800] text-white' : 'hover:bg-[#ff9800] hover:text-white' }} rounded transition">
-                    <i class="fas fa-list mr-3 text-lg"></i> View Recordings
+                    <i class="fas fa-list mr-3 text-lg"></i> Recordings
                 </a>
+            </li>
+            <!-- Trainer Coding Module -->
+            <li x-data="{ isOpen: false }">
+                <a href="javascript:void(0)" @click="isOpen = !isOpen"
+                    class="flex items-center justify-between p-3 {{ request()->routeIs('admin.coding_questions.*') ? 'bg-[#ff9800] text-white' : 'hover:bg-[#ff9800] hover:text-white' }} rounded transition">
+                    <span class="flex items-center">
+                        <i class="fas fa-code mr-3 text-lg"></i> Coding Module
+                    </span>
+                    <i class="fas fa-chevron-down text-sm transition-transform" :class="{ 'rotate-180': isOpen }"></i>
+                </a>
+                <ul x-show="isOpen" x-collapse class="ml-6 mt-2 space-y-2 border-l-2 border-gray-300 pl-4">
+                    <li>
+                        <a href="{{ route('admin.coding_questions.index') }}"
+                            class="flex items-center p-2 text-sm {{ request()->routeIs('admin.coding_questions.index') ? 'bg-[#ff9800] text-white' : 'hover:bg-[#ff9800]/20' }} rounded transition">
+                            <i class="fas fa-list mr-2"></i> View Questions
+                        </a>
+                    </li>
+                </ul>
             </li>
 
         @endif

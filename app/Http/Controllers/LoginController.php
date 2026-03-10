@@ -23,6 +23,11 @@ class LoginController extends Controller
     
         if (Auth::attempt($userCredentials)) {
             $user = Auth::user();
+
+            if ((int) $user->role === 3 && (int) ($user->is_active ?? 1) !== 1) {
+                Auth::logout();
+                return to_route('login')->withErrors(['error' => 'Your account is deactivated. Please contact admin.']);
+            }
     
             // Redirect based on role
             switch ($user->role) {
