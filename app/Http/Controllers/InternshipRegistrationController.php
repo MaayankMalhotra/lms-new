@@ -19,7 +19,7 @@ class InternshipRegistrationController extends Controller
     }
     public function store(Request $request)
     {
-        $api = new Api(env('RAZORPAY_KEY'), env('RAZORPAY_SECRET'));
+        $api = new Api(config('services.razorpay.key'), config('services.razorpay.secret'));
     
         // Check if user exists, or create new user
         $user = User::where('email', $request->email)->first();

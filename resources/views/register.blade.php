@@ -288,7 +288,7 @@
         // Payment logic
         const batchPrice = @json($batchData['price']);
         const courseName = @json($batchData['course_name']);
-        const razorpayKey = @json(env('RAZORPAY_KEY'));
+        const razorpayKey = @json(config('services.razorpay.key'));
         const payButtonEl = document.getElementById('payButton');
         const form = document.getElementById('registrationForm');
 

@@ -32,7 +32,7 @@ class RegistrationController extends Controller
         }
 
         // Initialize Razorpay API
-        $api = new Api(env('RAZORPAY_KEY'), env('RAZORPAY_SECRET'));
+        $api = new Api(config('services.razorpay.key'), config('services.razorpay.secret'));
 
         // Verify payment
         try {

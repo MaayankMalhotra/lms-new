@@ -1055,7 +1055,7 @@ public function submitrInt(Request $request)
         }
 
         // Verify Razorpay payment
-        $api = new Api(env('RAZORPAY_KEY'), env('RAZORPAY_SECRET'));
+        $api = new Api(config('services.razorpay.key'), config('services.razorpay.secret'));
         $razorpayPayment = $api->payment->fetch($validated['payment_id']);
         Log::info('Razorpay payment details:', (array) $razorpayPayment);
 
@@ -1214,7 +1214,7 @@ public function submitr(Request $request)
         }
 
         // Verify Razorpay payment
-        $api = new Api(env('RAZORPAY_KEY'), env('RAZORPAY_SECRET'));
+        $api = new Api(config('services.razorpay.key'), config('services.razorpay.secret'));
         $razorpayPayment = $api->payment->fetch($validated['payment_id']);
         Log::info('Razorpay payment details:', (array) $razorpayPayment);
 

@@ -166,7 +166,6 @@
                                                 <label class="block text-sm font-medium text-gray-700 mb-3">Select EMI Plan</label>
                                                 <select name="emi_plan" class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all bg-white appearance-none">
                                                     <option value="" disabled selected>Choose your EMI plan</option>
-                                                    // In your blade template, update the EMI option display:
                                                     @foreach ($batchData['emi_plans'] as $index => $plan)
                                                     <option value="{{ $index }}"
                                                         data-amount="{{ number_format($plan['amount'], 2, '.', '') }}"
@@ -289,6 +288,7 @@
         // Payment logic
         const batchPrice = @json($batchData['price']);
         const courseName = @json($batchData['course_name']);
+        const razorpayKey = @json(config('services.razorpay.key'));
 
         document.querySelectorAll('input[name="payment_method"]').forEach(radio => {
             radio.addEventListener('change', function () {
@@ -457,8 +457,18 @@
                 description = "First EMI payment for " + courseName;
             }
 
+            if (typeof Razorpay === 'undefined') {
+                showAlert('error', 'Payment gateway failed to load. Please refresh and try again.');
+                return;
+            }
+
+            if (!razorpayKey) {
+                showAlert('error', 'Payment configuration is missing. Please contact support.');
+                return;
+            }
+
             const options = {
-                key: "{{ env('RAZORPAY_KEY') }}",
+                key: razorpayKey,
                 amount: Math.round(amount * 100),
                 currency: "INR",
                 name: "{{ config('app.name') }}",
