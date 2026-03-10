@@ -22,6 +22,10 @@
                 class="inline-flex items-center px-3 py-2 rounded bg-[#0f766e] text-white text-sm font-medium hover:bg-[#0b5f59] transition">
                 <i class="fas fa-video mr-2"></i> Create Recording
             </a>
+            <a href="{{ route('admin.recordings.index') }}"
+                class="inline-flex items-center px-3 py-2 rounded bg-[#1e40af] text-white text-sm font-medium hover:bg-[#1d4ed8] transition">
+                <i class="fas fa-list mr-2"></i> View Recordings
+            </a>
         </div>
     </div>
 

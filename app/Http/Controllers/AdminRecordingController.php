@@ -47,8 +47,19 @@ class AdminRecordingController extends Controller
 
     public function index()
     {
-        $recordings = Recording::all(); // Fetch recordings with courses
-        $courses = Course::all(); // Fetch all courses for the edit modal
+        if ($this->isTrainer()) {
+            $courseIds = $this->trainerCourseIds();
+            $recordings = Recording::whereHas('topic.folder', function ($query) use ($courseIds) {
+                $query->whereIn('course_id', $courseIds);
+            })->get();
+            $courses = Course::with(['batches', 'folders.topics.recordings'])
+                ->whereIn('id', $courseIds)
+                ->get();
+        } else {
+            $recordings = Recording::all(); // Fetch recordings with courses
+            $courses = Course::with(['batches', 'folders.topics.recordings'])->get();
+        }
+
         return view('admin.recordings.index', compact('recordings', 'courses'));
     }
 
@@ -69,9 +80,17 @@ class AdminRecordingController extends Controller
 
         return view('admin.recordings.index-int', compact('courses', 'recordings'));
     }
-    public function view()
+public function view()
 {
-    $courses = Course::with(['batches', 'folders.topics.recordings'])->get();
+    if ($this->isTrainer()) {
+        $courseIds = $this->trainerCourseIds();
+        $courses = Course::with(['batches', 'folders.topics.recordings'])
+            ->whereIn('id', $courseIds)
+            ->get();
+    } else {
+        $courses = Course::with(['batches', 'folders.topics.recordings'])->get();
+    }
+
     return view('admin.recordings.view', compact('courses'));
 }
 

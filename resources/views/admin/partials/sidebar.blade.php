@@ -159,6 +159,12 @@
                     <i class="fas fa-video mr-3 text-lg"></i> Create Recording
                 </a>
             </li>
+            <li>
+                <a href="{{ route('admin.recordings.index') }}"
+                    class="flex items-center p-3 {{ request()->routeIs('admin.recordings.index') ? 'bg-[#ff9800] text-white' : 'hover:bg-[#ff9800] hover:text-white' }} rounded transition">
+                    <i class="fas fa-list mr-3 text-lg"></i> View Recordings
+                </a>
+            </li>
 
             <!-- Populate Trainer Demo Data -->
             <li>
