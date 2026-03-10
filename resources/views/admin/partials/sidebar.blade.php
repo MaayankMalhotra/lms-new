@@ -40,6 +40,11 @@
                     class="flex items-center p-3 {{ request()->routeIs('student.dashboard') ? 'bg-[#ff9800] text-white' : 'hover:bg-[#ff9800] hover:text-white' }} rounded transition">
                     <i class="fas fa-home mr-3 text-lg"></i> Student Dashboard
                 </a>
+            @elseif(auth()->user()->role == 2)
+                <a href="{{ route('trainer.dashboard') }}"
+                    class="flex items-center p-3 {{ request()->routeIs('trainer.dashboard') ? 'bg-[#ff9800] text-white' : 'hover:bg-[#ff9800] hover:text-white' }} rounded transition">
+                    <i class="fas fa-home mr-3 text-lg"></i> Trainer Dashboard
+                </a>
             @else
                 <a href="{{ route('admin.dash') }}"
                     class="flex items-center p-3 {{ request()->routeIs('admin.dash') ? 'bg-[#ff9800] text-white' : 'hover:bg-[#ff9800] hover:text-white' }} rounded transition">

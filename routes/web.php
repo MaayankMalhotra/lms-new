@@ -330,6 +330,18 @@ Route::get('/trainer-dashboard', function () {
     // })->name('admin.dash');
 
 Route::get('/dashboard', function () {
+    if (!Auth::check()) {
+        return to_route('login');
+    }
+
+    if ((int) Auth::user()->role === 2) {
+        return to_route('trainer.dashboard');
+    }
+
+    if ((int) Auth::user()->role === 3) {
+        return to_route('student.dashboard');
+    }
+
     // 1. Registrations
  
 
