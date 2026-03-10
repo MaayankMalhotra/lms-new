@@ -10,7 +10,13 @@ class TrainerController extends Controller
 {
     public function myCourse()
     {
-        $trainer = Batch::with('course')->where('teacher_id', auth()->id())->get();
+        $trainer = Batch::with([
+            'course',
+            'enrollments' => function ($query) {
+                $query->with(['user', 'student'])->orderByDesc('id');
+            },
+        ])->where('teacher_id', auth()->id())->get();
+
         return view('trainer.my_course', compact('trainer'));
     }
 

@@ -35,5 +35,10 @@ class Batch extends Model
         return $this->hasMany(LiveClass::class);
     }
 
+    public function enrollments()
+    {
+        return $this->hasMany(Enrollment::class, 'batch_id');
+    }
+
    
 }
