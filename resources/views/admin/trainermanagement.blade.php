@@ -76,6 +76,9 @@
                     <p class="text-sm text-gray-600 mb-1">
                         <i class="fas fa-book mr-2 text-blue-400"></i>Courses: {{ $trainer->course_names ?? 'None' }}
                     </p>
+                    <p class="text-sm text-gray-600 mb-1">
+                        <i class="fas fa-users mr-2 text-blue-400"></i>Batches: {{ $trainer->batch_names ?? 'None' }}
+                    </p>
                     <p class="text-sm text-gray-600 mb-3">
                         <i class="fas fa-calendar-alt mr-2 text-blue-400"></i>
                         Registered: {{ $trainer->created_at ? date('d M Y', strtotime($trainer->created_at)) : 'N/A' }}

@@ -20,30 +20,45 @@ use App\Support\DemoVideoHelper;
 class AdminController extends Controller
 {
     public function trainer_management(){
+        $courseLookup = Course::pluck('name', 'id');
+
         $trainers = User::where('role', 2)
-                ->with('trainerDetail')
+                ->with(['trainerDetail', 'batches.course:id,name'])
                 ->get()
-                ->map(function ($user) {
+                ->map(function ($user) use ($courseLookup) {
             $trainer = $user->trainerDetail;
-            $courses = [];
+            $courseIds = $this->normalizeIdList($trainer?->course_ids);
 
-            if ($trainer && $trainer->course_ids) {
-                $decoded = json_decode($trainer->course_ids, true); // could be ["18,16,17"] or [18,16,17]
-                $ids = [];
+            $detailCourseNames = collect($courseIds)
+                ->map(fn ($id) => $courseLookup->get($id))
+                ->filter()
+                ->values();
 
-                // ✅ Handle both old (["18,16,17"]) and new ([18,16,17]) formats
-                if (is_array($decoded)) {
-                    if (count($decoded) === 1 && is_string($decoded[0]) && str_contains($decoded[0], ',')) {
-                        $ids = explode(',', $decoded[0]);
-                    } else {
-                        $ids = $decoded;
+            $batchCourseNames = $user->batches
+                ->pluck('course.name')
+                ->filter()
+                ->unique()
+                ->values();
+
+            $allCourseNames = $detailCourseNames
+                ->merge($batchCourseNames)
+                ->unique()
+                ->values();
+
+            $batchNames = $user->batches
+                ->map(function ($batch) {
+                    if (!$batch->batch_name) {
+                        return null;
                     }
 
-                    $ids = array_map('intval', $ids); // ensure integers
-                    $courses = Course::whereIn('id', $ids)->pluck('name')->toArray();
-                }
-            }
-            $user->course_names = $courses ? implode(', ', $courses) : 'None';
+                    $courseName = $batch->course->name ?? null;
+                    return $courseName ? "{$batch->batch_name} ({$courseName})" : $batch->batch_name;
+                })
+                ->filter()
+                ->values();
+
+            $user->course_names = $allCourseNames->isNotEmpty() ? $allCourseNames->implode(', ') : 'None';
+            $user->batch_names = $batchNames->isNotEmpty() ? $batchNames->implode(', ') : 'None';
 
             return $user;  // <-- Important: return the modified user!
         });
@@ -75,8 +90,8 @@ class AdminController extends Controller
     {
         $trainerDetail = TrainerDetail::findOrFail($id);
         $user = $trainerDetail->user()->select('id', 'name', 'email')->first();
-        $courseIds = $trainerDetail->course_ids ? json_decode($trainerDetail->course_ids, true) : [];
-        $courseIds = array_map('intval', $courseIds); // Convert to integers
+        $courseIds = $this->normalizeIdList($trainerDetail->course_ids);
+
         return response()->json([
             'id' => $trainerDetail->id,
             'user_id' => $trainerDetail->user_id,
@@ -107,7 +122,7 @@ class AdminController extends Controller
             'user_id' => $validated['user_id'],
             'experience' => $validated['experience'],
             'teaching_hours' => $validated['teaching_hours'],
-            'course_ids' => !empty($validated['course_ids']) ? json_encode($validated['course_ids']) : null,
+            'course_ids' => !empty($validated['course_ids']) ? $validated['course_ids'] : null,
         ]);
 
         return response()->json(['message' => 'Trainer updated successfully!']);
@@ -165,6 +180,51 @@ class AdminController extends Controller
         User::whereIn('id', $trainerIds)->delete();
 
         return redirect()->route('trainer-management')->with('success', 'All trainers deleted successfully!');
+    }
+
+    private function normalizeIdList($rawIds): array
+    {
+        if (empty($rawIds)) {
+            return [];
+        }
+
+        if (is_array($rawIds)) {
+            $ids = $rawIds;
+        } elseif (is_string($rawIds)) {
+            $trimmed = trim($rawIds);
+
+            if ($trimmed === '') {
+                return [];
+            }
+
+            $decoded = json_decode($trimmed, true);
+
+            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                $ids = $decoded;
+            } else {
+                $ids = explode(',', $trimmed);
+            }
+        } else {
+            return [];
+        }
+
+        if (count($ids) === 1 && is_string($ids[0]) && str_contains($ids[0], ',')) {
+            $ids = explode(',', $ids[0]);
+        }
+
+        $ids = array_map(static function ($value) {
+            if (is_numeric($value)) {
+                return (int) $value;
+            }
+
+            if (is_string($value) && ctype_digit(trim($value))) {
+                return (int) trim($value);
+            }
+
+            return null;
+        }, $ids);
+
+        return array_values(array_unique(array_filter($ids, static fn ($id) => $id !== null && $id > 0)));
     }
 
 

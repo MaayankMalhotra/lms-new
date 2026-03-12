@@ -577,10 +577,15 @@
         <div class="grid lg:grid-cols-2 gap-8 items-start">
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 md:gap-8">
                 @foreach($instructors as $instructor)
-                    <div class="group bg-white p-6 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 text-center">
-                        <div class="relative">
-                            <div class="absolute inset-0 bg-gradient-to-r from-blue-100 to-purple-100 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                            <img src="{{ asset('storage/' . $instructor->image) }}" alt="{{ $instructor->name }}" class="relative mx-auto rounded-full w-24 md:w-32 border-4 border-white shadow-lg">
+                    <div class="group bg-white p-6 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 text-center h-full">
+                        <div class="relative mx-auto w-24 h-24 md:w-32 md:h-32">
+                            <div class="absolute inset-0 bg-gradient-to-r from-blue-100 to-purple-100 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                            <img
+                                src="{{ asset('storage/' . $instructor->image) }}"
+                                alt="{{ $instructor->name }}"
+                                class="relative w-full h-full rounded-full object-cover object-center border-4 border-white shadow-lg"
+                                loading="lazy"
+                            >
                         </div>
                         <h4 class="mt-5 text-xl md:text-2xl font-bold text-gray-900">{{ $instructor->name }}</h4>
                         <div class="mt-3 flex justify-center items-center bg-blue-50 px-4 py-2 rounded-full mx-auto w-fit">

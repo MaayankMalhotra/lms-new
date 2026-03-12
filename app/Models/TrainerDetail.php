@@ -26,16 +26,48 @@ class TrainerDetail extends Model
 
     public function getCourseNamesAttribute()
     {
-    if (!$this->course_ids) 
-    {
-        return 'None';
-    }
-    try {
-        $courseIds = json_decode($this->course_ids, true);
+        if (empty($this->course_ids)) {
+            return 'None';
+        }
+
+        $courseIds = $this->course_ids;
+
+        if (is_string($courseIds)) {
+            $decoded = json_decode($courseIds, true);
+
+            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                $courseIds = $decoded;
+            } else {
+                $courseIds = explode(',', $courseIds);
+            }
+        }
+
+        if (!is_array($courseIds)) {
+            return 'None';
+        }
+
+        if (count($courseIds) === 1 && is_string($courseIds[0]) && str_contains($courseIds[0], ',')) {
+            $courseIds = explode(',', $courseIds[0]);
+        }
+
+        $courseIds = array_values(array_filter(array_map(static function ($value) {
+            if (is_numeric($value)) {
+                return (int) $value;
+            }
+
+            if (is_string($value) && ctype_digit(trim($value))) {
+                return (int) trim($value);
+            }
+
+            return null;
+        }, $courseIds), static fn ($id) => $id !== null && $id > 0));
+
+        if (empty($courseIds)) {
+            return 'None';
+        }
+
         $courses = Course::whereIn('id', $courseIds)->pluck('name')->toArray();
-        return implode(', ', $courses) ?: 'None';
-    } catch (\Exception $e) {
-        return 'Error';
+
+        return !empty($courses) ? implode(', ', $courses) : 'None';
     }
-}    
 }
