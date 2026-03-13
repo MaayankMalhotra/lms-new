@@ -30,6 +30,14 @@
     </div>
 @endif
 
+@if ($errors->any())
+    <div class="container mx-auto px-4 mt-6">
+        <div class="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg shadow">
+            <p class="font-semibold">Please fix the form errors and submit again.</p>
+        </div>
+    </div>
+@endif
+
 
     <!-- Why TechBit Section -->
     <section class="bg-orange-50 py-16 ">
@@ -294,7 +302,7 @@
             @csrf
             <div class="mb-4">
                 <label for="name" class="block text-sm font-medium text-gray-700">Full Name <span class="text-red-500">*</span></label>
-                <input type="text" name="name" id="name" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500" placeholder="e.g., John Doe" required>
+                <input type="text" name="name" id="name" value="{{ old('name') }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500" placeholder="e.g., John Doe" required>
                 @error('name')
                     <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                 @enderror
@@ -302,7 +310,7 @@
 
             <div class="mb-4">
                 <label for="email" class="block text-sm font-medium text-gray-700">Email (Optional)</label>
-                <input type="email" name="email" id="email" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500" placeholder="e.g., you@example.com">
+                <input type="email" name="email" id="email" value="{{ old('email') }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500" placeholder="e.g., you@example.com">
                 @error('email')
                     <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                 @enderror
@@ -310,7 +318,7 @@
             
             <div class="mb-4">
                 <label for="teaching_hours" class="block text-sm font-medium text-gray-700">Teaching Hours <span class="text-red-500">*</span></label>
-                <input type="number" name="teaching_hours" id="teaching_hours" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500" placeholder="e.g., 500" min="0" required>
+                <input type="number" name="teaching_hours" id="teaching_hours" value="{{ old('teaching_hours') }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500" placeholder="e.g., 500" min="0" required>
                 @error('teaching_hours')
                     <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                 @enderror
@@ -318,42 +326,42 @@
 
             <div class="mb-4">
                 <label for="experience_years" class="block text-sm font-medium text-gray-700">Experience (Years) (Optional)</label>
-                <input type="number" name="experience_years" id="experience_years" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500" placeholder="e.g., 5" min="0">
+                <input type="number" name="experience_years" id="experience_years" value="{{ old('experience_years') }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500" placeholder="e.g., 5" min="0">
                 @error('experience_years')
                     <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                 @enderror
             </div>
             <div class="mb-4">
                 <label for="specialization" class="block text-sm font-medium text-gray-700">Specialization <span class="text-red-500">*</span></label>
-                <input type="text" name="specialization" id="specialization" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500" placeholder="e.g., Web Development" required>
+                <input type="text" name="specialization" id="specialization" value="{{ old('specialization') }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500" placeholder="e.g., Web Development" required>
                 @error('specialization')
                     <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                 @enderror
             </div>
             <div class="mb-4">
                 <label for="phone_number" class="block text-sm font-medium text-gray-700">Phone Number <span class="text-red-500">*</span></label>
-                <input type="text" name="phone_number" id="phone_number" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500" placeholder="e.g., 5234567890" required>
+                <input type="text" name="phone_number" id="phone_number" value="{{ old('phone_number') }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500" placeholder="e.g., 5234567890" required>
                 @error('phone_number')
                     <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                 @enderror
             </div>
             <div class="mb-4">
                 <label for="linkedin_url" class="block text-sm font-medium text-gray-700">LinkedIn URL (Optional)</label>
-                <input type="url" name="linkedin_url" id="linkedin_url" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500" placeholder="e.g., https://linkedin.com/in/username">
+                <input type="url" name="linkedin_url" id="linkedin_url" value="{{ old('linkedin_url') }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500" placeholder="e.g., https://linkedin.com/in/username">
                 @error('linkedin_url')
                     <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                 @enderror
             </div>
             <div class="mb-4">
                 <label for="facebook_url" class="block text-sm font-medium text-gray-700">Portfolio / Profile URL (Optional)</label>
-                <input type="url" name="facebook_url" id="facebook_url" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500" placeholder="e.g., https://yourwebsite.com">
+                <input type="url" name="facebook_url" id="facebook_url" value="{{ old('facebook_url') }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500" placeholder="e.g., https://yourwebsite.com">
                 @error('facebook_url')
                     <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                 @enderror
             </div>
             <div class="mb-4">
                 <label for="message" class="block text-sm font-medium text-gray-700">Tell us about your mentoring style (Optional)</label>
-                <textarea name="message" id="message" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500" placeholder="Share anything that helps us know you better..."></textarea>
+                <textarea name="message" id="message" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500" placeholder="Share anything that helps us know you better...">{{ old('message') }}</textarea>
                 @error('message')
                     <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                 @enderror
@@ -371,29 +379,43 @@
     const openBtn = document.getElementById('apply-mentor-btn');
     const closeBtn = document.getElementById('close-mentor-modal');
     const cancelBtn = document.getElementById('cancel-mentor-modal');
+    const hasMentorFormErrors = {{ $errors->any() ? 'true' : 'false' }};
 
-    openBtn.addEventListener('click', () => {
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
-    });
+    if (openBtn && modal) {
+        openBtn.addEventListener('click', () => {
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        });
+    }
 
-    closeBtn.addEventListener('click', () => {
-        modal.classList.add('hidden');
-        modal.classList.remove('flex');
-    });
-
-    cancelBtn.addEventListener('click', () => {
-        modal.classList.add('hidden');
-        modal.classList.remove('flex');
-    });
-
-    // Close modal when clicking outside
-    modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
+    if (closeBtn && modal) {
+        closeBtn.addEventListener('click', () => {
             modal.classList.add('hidden');
             modal.classList.remove('flex');
+        });
+    }
+
+    if (cancelBtn && modal) {
+        cancelBtn.addEventListener('click', () => {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        });
+    }
+
+    if (modal) {
+        // Close modal when clicking outside
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+        });
+
+        if (hasMentorFormErrors) {
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
         }
-    });
+    }
 </script>
 
 

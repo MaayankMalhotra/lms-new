@@ -8,6 +8,7 @@ use App\Models\JobRoleApplication;
 use App\Models\JobRolesForHiring;
 use App\Models\MentorApplication;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
@@ -23,6 +24,11 @@ class HireController extends Controller
 
     public function storeMentor(Request $request)
     {
+        $request->merge([
+            'linkedin_url' => $this->normalizeOptionalUrl($request->input('linkedin_url')),
+            'facebook_url' => $this->normalizeOptionalUrl($request->input('facebook_url')),
+        ]);
+
         $request->validate([
             'name' => 'required|string|max:255',
             // 'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048', // Validate image file
@@ -30,38 +36,64 @@ class HireController extends Controller
             'specialization' => 'required|string|max:255',
             'linkedin_url' => 'nullable|url|max:255',
             'facebook_url' => 'nullable|url|max:255',
-            'phone_number' => 'required|string|digits:10',
+            'phone_number' => ['required', 'string', 'max:20', 'regex:/^[0-9+\-\s()]{10,20}$/'],
             'email' => 'nullable|email|max:255',
             'experience_years' => 'nullable|integer|min:0|max:60',
-            'message' => 'nullable|string',
+            'message' => 'nullable|string|max:2000',
+        ], [
+            'phone_number.regex' => 'Phone number must be 10-20 characters and can include +, -, spaces, or parentheses.',
         ]);
 
-        
-        Instructor::create([
-            'name' => $request->name,
-            'image' => null, // Explicitly set to null since images are not stored
-            'teaching_hours' => $request->teaching_hours,
-            'specialization' => $request->specialization,
-            'linkedin_url' => $request->linkedin_url,
-            'facebook_url' => $request->facebook_url,
-            'phone_number' => $request->phone_number,
-            'is_active' => 0, // Set to inactive pending review
-        ]);
+        $normalizedPhone = preg_replace('/\D+/', '', (string) $request->phone_number);
 
-        MentorApplication::create([
-            'name' => $request->name,
-            'email' => $request->input('email'),
-            'phone' => $request->phone_number,
-            'teaching_hours' => $request->teaching_hours,
-            'specialization' => $request->specialization,
-            'experience_years' => $request->input('experience_years'),
-            'linkedin_url' => $request->linkedin_url,
-            'portfolio_url' => $request->facebook_url,
-            'message' => $request->input('message'),
-            'status' => 'pending',
-        ]);
+        if (strlen($normalizedPhone) < 10 || strlen($normalizedPhone) > 15) {
+            return back()->withErrors([
+                'phone_number' => 'Please enter a valid phone number.',
+            ])->withInput();
+        }
+
+        DB::transaction(function () use ($request, $normalizedPhone) {
+            Instructor::create([
+                'name' => $request->name,
+                'image' => null, // Explicitly set to null since images are not stored
+                'teaching_hours' => $request->teaching_hours,
+                'specialization' => $request->specialization,
+                'linkedin_url' => $request->linkedin_url,
+                'facebook_url' => $request->facebook_url,
+                'phone_number' => $normalizedPhone,
+                'is_active' => 0, // Set to inactive pending review
+            ]);
+
+            MentorApplication::create([
+                'name' => $request->name,
+                'email' => $request->input('email'),
+                'phone' => $normalizedPhone,
+                'teaching_hours' => $request->teaching_hours,
+                'specialization' => $request->specialization,
+                'experience_years' => $request->input('experience_years'),
+                'linkedin_url' => $request->linkedin_url,
+                'portfolio_url' => $request->facebook_url,
+                'message' => $request->input('message'),
+                'status' => 'pending',
+            ]);
+        });
 
         return redirect()->route('hire.show')->with('success', 'Mentor application submitted successfully. Awaiting review.');
+    }
+
+    private function normalizeOptionalUrl(?string $url): ?string
+    {
+        $url = trim((string) $url);
+
+        if ($url === '') {
+            return null;
+        }
+
+        if (!preg_match('~^https?://~i', $url)) {
+            $url = 'https://' . ltrim($url, '/');
+        }
+
+        return $url;
     }
 
     public function seedSample()
